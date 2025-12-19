@@ -1,0 +1,293 @@
+import React, { useState, useEffect } from "react";
+import { StepIndicator } from "../components/StepIndicator";
+import { Button } from "../components/Button";
+import { Card } from "../components/Card";
+import { useAudit } from "../context/AuditContext";
+import { ActionItem } from "../models/types";
+import {
+  generateActionPlan,
+  exportActionPlanAsMarkdown,
+} from "../utils/actionPlanGenerator";
+import { getRequirementsForRisk } from "../utils/requirements";
+
+const STEPS = [
+  { number: 1, title: "Risiko einstufen" },
+  { number: 2, title: "Anforderungen prüfen" },
+  { number: 3, title: "Maßnahmenkatalog" },
+];
+
+export const ActionPlanPage: React.FC = () => {
+  const { state, setActionItems, updateActionItem, setCurrentStep, resetAudit } =
+    useAudit();
+
+  const [showMarkdown, setShowMarkdown] = useState(false);
+  const [markdown, setMarkdown] = useState("");
+
+  useEffect(() => {
+    if (!state.riskClass) {
+      setCurrentStep(1);
+      return;
+    }
+
+    // Generiere Maßnahmenplan, falls noch nicht vorhanden
+    if (state.actionItems.length === 0) {
+      const requirements = getRequirementsForRisk(state.riskClass);
+      const actions = generateActionPlan(requirements, state.auditAnswers);
+      setActionItems(actions);
+    }
+  }, [state.riskClass, state.auditAnswers, state.actionItems.length, setActionItems, setCurrentStep]);
+
+  const handleExportMarkdown = () => {
+    const md = exportActionPlanAsMarkdown(state.actionItems);
+    setMarkdown(md);
+    setShowMarkdown(true);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleStartNew = () => {
+    if (
+      window.confirm(
+        "Möchten Sie wirklich ein neues Audit beginnen? Alle aktuellen Daten gehen verloren."
+      )
+    ) {
+      resetAudit();
+      setCurrentStep(0);
+    }
+  };
+
+  // Gruppiere Actions nach Kategorie
+  const actionsByCategory = new Map<string, ActionItem[]>();
+  state.actionItems.forEach((action) => {
+    const existing = actionsByCategory.get(action.category) || [];
+    actionsByCategory.set(action.category, [...existing, action]);
+  });
+
+  // Sortiere nach Severity
+  const sortBySeverity = (a: ActionItem, b: ActionItem) => {
+    const severityOrder = { hoch: 0, mittel: 1, niedrig: 2 };
+    return severityOrder[a.severity] - severityOrder[b.severity];
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <StepIndicator currentStep={3} steps={STEPS} />
+
+      <div className="max-w-5xl mx-auto px-4 py-8 print:py-4">
+        <div className="flex items-center justify-between mb-6 print:mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Maßnahmenkatalog
+            </h1>
+            <p className="text-gray-600">
+              EU AI Act Audit – Empfohlene Maßnahmen
+            </p>
+          </div>
+          <div className="print:hidden flex gap-2">
+            <Button variant="secondary" onClick={handleExportMarkdown}>
+              Als Markdown anzeigen
+            </Button>
+            <Button variant="secondary" onClick={handlePrint}>
+              🖨️ Drucken / PDF
+            </Button>
+          </div>
+        </div>
+
+        {/* Markdown Modal */}
+        {showMarkdown && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-xl font-semibold">Markdown Export</h2>
+                <button
+                  onClick={() => setShowMarkdown(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto p-4">
+                <textarea
+                  value={markdown}
+                  readOnly
+                  className="w-full h-full min-h-[400px] font-mono text-sm border border-gray-300 rounded p-4"
+                />
+              </div>
+              <div className="p-4 border-t flex gap-2">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(markdown);
+                    alert("Markdown in Zwischenablage kopiert!");
+                  }}
+                >
+                  In Zwischenablage kopieren
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowMarkdown(false)}
+                >
+                  Schließen
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Summary Card */}
+        <Card className="mb-6 print:mb-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600">
+                {state.actionItems.length}
+              </div>
+              <div className="text-sm text-gray-600">Gesamte Maßnahmen</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-600">
+                {
+                  state.actionItems.filter((a) => a.severity === "hoch").length
+                }
+              </div>
+              <div className="text-sm text-gray-600">Hohe Priorität</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600">
+                {
+                  state.actionItems.filter((a) => a.severity === "mittel")
+                    .length
+                }
+              </div>
+              <div className="text-sm text-gray-600">Mittlere Priorität</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Actions by Category */}
+        <div className="space-y-6 mb-6">
+          {Array.from(actionsByCategory.entries()).map(
+            ([category, actions]) => (
+              <Card key={category}>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6 print:mb-4">
+                  {category}
+                </h2>
+
+                <div className="space-y-6 print:space-y-4">
+                  {actions.sort(sortBySeverity).map((action, index) => (
+                    <div
+                      key={action.id}
+                      className={`border-l-4 pl-4 py-2 ${
+                        action.severity === "hoch"
+                          ? "border-red-500"
+                          : action.severity === "mittel"
+                          ? "border-orange-500"
+                          : "border-yellow-500"
+                      }`}
+                    >
+                      {/* Action Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">
+                            {index + 1}. {action.requirementTitle}
+                          </h3>
+                          <span
+                            className={`inline-block text-xs font-medium px-2 py-1 rounded ${
+                              action.severity === "hoch"
+                                ? "bg-red-100 text-red-800"
+                                : action.severity === "mittel"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            Priorität: {action.severity.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Description */}
+                      <div className="mb-4 text-gray-700 text-sm">
+                        {action.recommendedAction.split("**").map((part, i) =>
+                          i % 2 === 1 ? (
+                            <strong key={i}>{part}</strong>
+                          ) : (
+                            part
+                          )
+                        )}
+                      </div>
+
+                      {/* Editable Fields */}
+                      <div className="grid grid-cols-2 gap-4 print:gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Verantwortlich (Rolle)
+                          </label>
+                          <input
+                            type="text"
+                            value={action.responsible}
+                            onChange={(e) =>
+                              updateActionItem({
+                                ...action,
+                                responsible: e.target.value,
+                              })
+                            }
+                            placeholder="z.B. CTO, Data Protection Officer"
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent print:border-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Zieltermin
+                          </label>
+                          <input
+                            type="date"
+                            value={action.targetDate}
+                            onChange={(e) =>
+                              updateActionItem({
+                                ...action,
+                                targetDate: e.target.value,
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent print:border-gray-400"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <Card className="print:hidden">
+          <div className="flex gap-4">
+            <Button
+              variant="secondary"
+              onClick={() => setCurrentStep(2)}
+              className="flex-1"
+            >
+              ← Zurück zum Audit
+            </Button>
+            <Button variant="danger" onClick={handleStartNew} className="flex-1">
+              Neues Audit beginnen
+            </Button>
+          </div>
+        </Card>
+
+        {/* Print Footer */}
+        <div className="hidden print:block mt-8 pt-4 border-t text-sm text-gray-600">
+          <p>
+            <strong>Hinweis:</strong> Dieser Maßnahmenkatalog wurde automatisch
+            generiert und ersetzt keine Rechtsberatung.
+          </p>
+          <p className="mt-2">
+            Generiert am: {new Date().toLocaleDateString("de-DE")} | EU AI Act
+            Audit-Assistent (Prototyp v0.0.1)
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};

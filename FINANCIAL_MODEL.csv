@@ -1,0 +1,181 @@
+EU AI Act Audit Tool - Financial Model (3-Year Projection)
+
+REVENUE MODEL
+
+Month,Year 1,Year 2,Year 3
+1,0,150000,600000
+2,0,165000,660000
+3,15000,180000,720000
+4,20000,195000,780000
+5,25000,210000,840000
+6,45000,225000,900000
+7,55000,240000,960000
+8,65000,255000,1020000
+9,75000,270000,1080000
+10,90000,285000,1140000
+11,105000,300000,1200000
+12,135000,315000,1260000
+Total Annual,630000,2790000,11160000
+
+CUSTOMER METRICS
+
+Metric,Year 1,Year 2,Year 3
+New Customers,50,250,700
+Churn Rate,5%,4%,3%
+Active Customers (EoY),48,286,963
+Average Contract Value (€/year),13125,9755,11590
+Monthly Recurring Revenue (MRR) EoY,52500,232500,966000
+Annual Recurring Revenue (ARR) EoY,630000,2790000,11592000
+
+CUSTOMER ACQUISITION
+
+Metric,Year 1,Year 2,Year 3
+Customer Acquisition Cost (CAC),4000,3500,3000
+Sales Cycle (days),60,45,30
+Conversion Rate,8%,12%,15%
+Payback Period (months),4,3,2
+
+PRICING BREAKDOWN (% of customers)
+
+Plan,Price/Month,Year 1,Year 2,Year 3
+Starter,299,60%,50%,40%
+Professional,899,30%,35%,40%
+Enterprise,2999,10%,15%,20%
+
+REVENUE STREAMS
+
+Stream,Year 1,Year 2,Year 3,% of Total Y3
+SaaS Subscriptions,630000,2790000,11160000,70%
+Professional Services,126000,558000,2232000,14%
+White-Label Licenses,63000,279000,1116000,7%
+API Licenses,31500,139500,558000,3.5%
+Other,31500,139500,558000,3.5%
+Total Revenue,882000,3906000,15624000,100%
+
+COST STRUCTURE
+
+Category,Year 1,Year 2,Year 3
+Personnel,280000,600000,1200000
+Cloud & Infrastructure,60000,120000,240000
+Marketing & Sales,140000,390000,780000
+R&D,80000,150000,300000
+Legal & Compliance,40000,60000,90000
+Operations & Admin,70000,120000,180000
+Office & Facilities,30000,60000,90000
+Total Costs,700000,1500000,2880000
+
+PERSONNEL BREAKDOWN
+
+Role,Year 1 FTE,Year 1 Cost,Year 2 FTE,Year 2 Cost,Year 3 FTE,Year 3 Cost
+CTO/Tech Lead,1,90000,1,95000,1,100000
+Full-Stack Developers,2,140000,4,300000,8,640000
+Legal/Compliance PM,0.8,60000,1,75000,2,160000
+UX/UI Designer,1,65000,1,70000,2,150000
+Sales Manager,0.5,35000,1,80000,2,180000
+Marketing Manager,0,0,1,70000,2,150000
+Customer Success,0,0,2,120000,4,260000
+Data Scientist,0,0,0,0,1,85000
+Total,5.3,390000,11,810000,22,1725000
+
+P&L STATEMENT
+
+Item,Year 1,Year 2,Year 3
+Revenue,882000,3906000,15624000
+Cost of Goods Sold (15%),132300,585900,2343600
+Gross Profit,749700,3320100,13280400
+Gross Margin,85%,85%,85%
+
+Operating Expenses:
+R&D,80000,150000,300000
+Sales & Marketing,140000,390000,780000
+General & Admin,140000,240000,360000
+Total OpEx,360000,780000,1440000
+
+EBITDA,389700,2540100,11840400
+EBITDA Margin,44%,65%,76%
+
+Depreciation,10000,20000,40000
+EBIT,379700,2520100,11800400
+Interest,0,0,0
+Taxes (25%),94925,630025,2950100
+Net Income,284775,1890075,8850300
+Net Margin,32%,48%,57%
+
+CASH FLOW STATEMENT
+
+Item,Year 1,Year 2,Year 3
+Cash from Operations,294775,1910075,8890300
+Cash from Investing,-50000,-100000,-200000
+Cash from Financing,500000,0,0
+Net Cash Flow,744775,1810075,8690300
+Cumulative Cash,744775,2554850,11245150
+
+KEY METRICS
+
+Metric,Year 1,Year 2,Year 3
+Monthly Burn Rate,58333,125000,240000
+Runway (months),8.6,20.4,46.9
+LTV (Lifetime Value),65625,121944,231800
+CAC (Customer Acquisition Cost),4000,3500,3000
+LTV:CAC Ratio,16.4,34.8,77.3
+Months to Recover CAC,3,2,2
+Churn Rate (annual),5%,4%,3%
+Net Revenue Retention,105%,110%,115%
+Rule of 40,129%,145%,151%
+Cash Conversion Rate,95%,96%,97%
+
+UNIT ECONOMICS
+
+Metric,Value
+Average Selling Price (ASP) Year 1,€1094/month
+Customer Lifetime,5 years
+Gross Margin per Customer,85%
+Support Cost per Customer,€200/year
+Net Margin per Customer,75%
+
+SCENARIO ANALYSIS
+
+Scenario,ARR Year 3,Net Income Year 3,Assumptions
+Base Case,11592000,8850300,As modeled above
+Best Case (+30%),15069600,11505390,Faster adoption 30% more customers
+Worst Case (-30%),8114400,6195210,Slower adoption 30% fewer customers
+
+BREAK-EVEN ANALYSIS
+
+Metric,Value
+Monthly Fixed Costs,120000
+Average Revenue per Customer,1094
+Contribution Margin per Customer,930
+Break-Even Customers,129
+Break-Even Month,Month 18
+
+VALUATION BENCHMARKS
+
+Method,Multiple,Year 3 ARR,Valuation
+ARR Multiple (Conservative),8x,11592000,92736000
+ARR Multiple (Market),10x,11592000,115920000
+ARR Multiple (Aggressive),12x,11592000,139104000
+DCF (Discounted Cash Flow),N/A,N/A,95000000
+
+FUNDING REQUIREMENTS
+
+Round,Amount,Timing,Use of Funds,Dilution
+Seed,500000,Month 0,"Team, Product, GTM",20%
+Series A,2500000,Month 18,"Scale Sales, Product, International",15%
+Series B,10000000,Month 36,"Enterprise, M&A, Global",12%
+
+WATERFALL ANALYSIS (Exit Year 5 at €100M)
+
+Stakeholder,Ownership,Payout
+Founders,53%,53000000
+Seed Investors,20%,20000000
+Series A,15%,15000000
+Series B,12%,12000000
+Employee Options Pool (10%),10%,10000000
+
+ROI FOR SEED INVESTORS
+
+Investment,500000
+Exit Value (Year 5),20000000
+Multiple,40x
+IRR,148%
