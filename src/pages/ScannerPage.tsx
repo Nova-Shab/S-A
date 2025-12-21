@@ -1,53 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import api from '../services/api';
+
+interface ScanFinding {
+  category: string;
+  title: string;
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  description: string;
+  recommendation: string;
+  articleReference?: string;
+}
+
+interface ScanAnalysis {
+  riskLevel: string;
+  riskScore: number;
+  findings: ScanFinding[];
+  summary: string;
+  detectedFeatures: string[];
+  complianceGaps: string[];
+  nextSteps: string[];
+}
+
+interface ScanResult {
+  success: boolean;
+  scanId: number;
+  riskLevel: string;
+  riskLevelLabel: string;
+  riskScore: number;
+  summary: string;
+  findingsCount: number;
+  criticalCount: number;
+  highCount: number;
+  analysis: ScanAnalysis;
+}
 
 interface ScannerPageProps {
   onBack?: () => void;
 }
 
-interface AnalysisResult {
-  riskLevel: string;
-  nonConformitiesCount: number;
-  reportId: string;
-  details?: string[];
-}
+const SEVERITY_CONFIG = {
+  critical: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300', label: 'Kritisch' },
+  high: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300', label: 'Hoch' },
+  medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-300', label: 'Mittel' },
+  low: { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300', label: 'Niedrig' },
+  info: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-300', label: 'Info' },
+};
+
+const RISK_CONFIG: Record<string, { bg: string; text: string; gradient: string }> = {
+  PROHIBITED: { bg: 'bg-red-600', text: 'text-white', gradient: 'from-red-600 to-red-800' },
+  HIGH_RISK: { bg: 'bg-orange-500', text: 'text-white', gradient: 'from-orange-500 to-orange-700' },
+  LIMITED_RISK: { bg: 'bg-yellow-500', text: 'text-white', gradient: 'from-yellow-500 to-yellow-600' },
+  MINIMAL_RISK: { bg: 'bg-green-500', text: 'text-white', gradient: 'from-green-500 to-green-600' },
+  UNKNOWN: { bg: 'bg-gray-500', text: 'text-white', gradient: 'from-gray-500 to-gray-600' },
+};
 
 export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
-  const [inputType, setInputType] = useState<'url' | 'description'>('url');
+  const [inputType, setInputType] = useState<'url' | 'description'>('description');
   const [inputValue, setInputValue] = useState('');
-  const [apiUrl, setApiUrl] = useState('');
+  const [systemName, setSystemName] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showConfig, setShowConfig] = useState(false);
-
-  useEffect(() => {
-    // Load saved API URL from localStorage
-    const savedApiUrl = localStorage.getItem('scannerApiUrl');
-    if (savedApiUrl) {
-      setApiUrl(savedApiUrl);
-    }
-  }, []);
-
-  const handleApiUrlChange = (url: string) => {
-    setApiUrl(url);
-    localStorage.setItem('scannerApiUrl', url);
-  };
-
-  const getRiskBadgeClass = (riskLevel: string) => {
-    const level = riskLevel.toLowerCase();
-    if (level.includes('unacceptable') || level.includes('prohibited')) {
-      return 'bg-red-600 text-white';
-    }
-    if (level.includes('high')) {
-      return 'bg-orange-500 text-white';
-    }
-    if (level.includes('limited')) {
-      return 'bg-yellow-500 text-white';
-    }
-    return 'bg-green-500 text-white';
-  };
+  const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,450 +70,385 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
     setResult(null);
 
     if (!inputValue.trim()) {
-      setError('Bitte geben Sie eine URL oder Beschreibung ein.');
+      setError('Bitte geben Sie eine Beschreibung Ihres KI-Systems ein.');
       return;
     }
 
-    if (!apiUrl.trim()) {
-      setError('Bitte konfigurieren Sie zuerst die n8n Webhook URL.');
-      setShowConfig(true);
+    if (inputValue.trim().length < 50) {
+      setError('Die Beschreibung sollte mindestens 50 Zeichen lang sein für eine aussagekräftige Analyse.');
       return;
     }
 
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch(`${apiUrl}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputType,
-          [inputType]: inputValue,
-        }),
+      const response = await api.post<ScanResult>('/scanner/analyze', {
+        inputType,
+        inputValue,
+        systemName: systemName || undefined,
       });
 
-      if (!response.ok) {
-        throw new Error('Analyse fehlgeschlagen. Bitte überprüfen Sie die API-Konfiguration.');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setResult({
-          riskLevel: data.riskLevel || 'Unbekannt',
-          nonConformitiesCount: data.nonConformitiesCount || 0,
-          reportId: data.reportId || `RPT-${Date.now()}`,
-          details: data.details,
+      if (response.data.success) {
+        setResult(response.data);
+        // Expand critical and high findings by default
+        const toExpand = new Set<number>();
+        response.data.analysis.findings.forEach((f, idx) => {
+          if (f.severity === 'critical' || f.severity === 'high') {
+            toExpand.add(idx);
+          }
         });
+        setExpandedFindings(toExpand);
       } else {
-        throw new Error(data.message || 'Analyse fehlgeschlagen');
+        throw new Error('Analyse fehlgeschlagen');
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten.');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } }; message?: string };
+      setError(error.response?.data?.error || error.message || 'Ein unbekannter Fehler ist aufgetreten.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handleDownloadReport = async () => {
-    if (!result?.reportId || !apiUrl) return;
-
-    try {
-      const response = await fetch(`${apiUrl}/download/${result.reportId}`);
-
-      if (!response.ok) {
-        throw new Error('Download fehlgeschlagen');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `eu-ai-act-report-${result.reportId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setError('Report-Download fehlgeschlagen. Bitte versuchen Sie es später erneut.');
+  const toggleFinding = (idx: number) => {
+    const newExpanded = new Set(expandedFindings);
+    if (newExpanded.has(idx)) {
+      newExpanded.delete(idx);
+    } else {
+      newExpanded.add(idx);
     }
+    setExpandedFindings(newExpanded);
   };
 
+  const handleNewScan = () => {
+    setResult(null);
+    setInputValue('');
+    setSystemName('');
+    setError(null);
+  };
+
+  const riskConfig = result ? RISK_CONFIG[result.riskLevel] || RISK_CONFIG.UNKNOWN : null;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
                 </button>
               )}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <span className="mr-2">🇪🇺</span>
+                  <span className="mr-3">🇪🇺</span>
                   EU AI Act Compliance Scanner
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Automatisierte KI-System-Analyse auf EU AI Act Konformität
+                  Automatisierte Risikoanalyse für KI-Systeme
                 </p>
               </div>
             </div>
-
-            <button
-              onClick={() => setShowConfig(!showConfig)}
-              className="flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              Konfiguration
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Configuration Panel */}
-        {showConfig && (
-          <Card className="mb-6 bg-yellow-50 border border-yellow-200">
-            <div className="flex items-start space-x-3">
-              <svg
-                className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                  API Konfiguration
-                </h3>
-                <p className="text-sm text-yellow-700 mb-4">
-                  Geben Sie die URL Ihres n8n Webhook-Endpoints ein, um die Analyse-Funktion zu nutzen.
-                </p>
-                <div className="flex space-x-4">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {!result ? (
+          // Input Form
+          <>
+            <Card className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                KI-System analysieren
+              </h2>
+
+              {/* Input Type Selection */}
+              <div className="flex space-x-4 mb-6">
+                <button
+                  onClick={() => setInputType('description')}
+                  className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                    inputType === 'description'
+                      ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-medium">Beschreibung</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setInputType('url')}
+                  className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                    inputType === 'url'
+                      ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <span className="font-medium">Website URL</span>
+                  </div>
+                </button>
+              </div>
+
+              {/* Input Form */}
+              <form onSubmit={handleAnalyze}>
+                {/* System Name (optional) */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Systemname <span className="text-gray-400">(optional)</span>
+                  </label>
                   <input
-                    type="url"
-                    value={apiUrl}
-                    onChange={(e) => handleApiUrlChange(e.target.value)}
-                    placeholder="http://localhost:5678/webhook"
-                    className="flex-1 px-4 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    type="text"
+                    value={systemName}
+                    onChange={(e) => setSystemName(e.target.value)}
+                    placeholder="z.B. Kunden-Chatbot, HR-Screening-Tool"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
-                  <button
-                    onClick={() => setShowConfig(false)}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                  >
-                    Speichern
-                  </button>
                 </div>
-                <p className="text-xs text-yellow-600 mt-2">
-                  Standard: http://localhost:5678/webhook oder Ihre ngrok URL
-                </p>
-              </div>
+
+                {/* Main Input */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {inputType === 'description' ? 'Beschreibung des KI-Systems' : 'Website URL'}
+                  </label>
+                  {inputType === 'description' ? (
+                    <textarea
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder={`Beschreiben Sie Ihr KI-System detailliert:
+
+• Welchen Zweck erfüllt das System?
+• Welche Daten werden verarbeitet?
+• In welchem Bereich wird es eingesetzt? (z.B. HR, Finanzen, Gesundheit)
+• Werden automatisierte Entscheidungen getroffen?
+• Werden biometrische Daten verwendet?
+
+Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbungen. Es analysiert Lebensläufe und erstellt ein Ranking basierend auf Qualifikationen, Berufserfahrung und Soft Skills. Die Enderstellung obliegt dem HR-Team, aber die Top-10 Kandidaten werden automatisch vorselektiert."`}
+                      rows={8}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                    />
+                  ) : (
+                    <input
+                      type="url"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="https://example.com/ki-system"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  )}
+                  <p className="mt-2 text-sm text-gray-500">
+                    {inputType === 'description'
+                      ? 'Je detaillierter die Beschreibung, desto genauer die Analyse. Mindestens 50 Zeichen.'
+                      : 'Die URL wird analysiert, um Informationen über das KI-System zu extrahieren.'}
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center text-red-700">
+                      <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{error}</span>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={isAnalyzing}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
+                  {isAnalyzing ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Analysiere KI-System...
+                    </span>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                      Analyse starten
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Card>
+
+            {/* Info Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { icon: '🔍', title: 'Automatische Analyse', desc: 'Erkennung von Risikoindikatoren' },
+                { icon: '📊', title: 'EU AI Act konform', desc: 'Basierend auf Regulation 2024/1689' },
+                { icon: '📋', title: 'Detaillierter Report', desc: 'Konkrete Handlungsempfehlungen' },
+              ].map((item, idx) => (
+                <Card key={idx} className="text-center">
+                  <div className="text-3xl mb-2">{item.icon}</div>
+                  <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                  <p className="text-sm text-gray-500">{item.desc}</p>
+                </Card>
+              ))}
             </div>
-          </Card>
+          </>
+        ) : (
+          // Results View
+          <>
+            {/* Risk Level Header */}
+            <Card className={`mb-6 bg-gradient-to-r ${riskConfig?.gradient} text-white`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-80 mb-1">Risikoklassifizierung</p>
+                  <h2 className="text-3xl font-bold">{result.riskLevelLabel}</h2>
+                  <p className="mt-2 opacity-90">{result.summary}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-6xl font-bold opacity-90">{result.riskScore}</div>
+                  <div className="text-sm opacity-80">Risiko-Score</div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <Card className="text-center">
+                <div className="text-3xl font-bold text-gray-900">{result.findingsCount}</div>
+                <div className="text-sm text-gray-500">Befunde gesamt</div>
+              </Card>
+              <Card className="text-center">
+                <div className="text-3xl font-bold text-red-600">{result.criticalCount}</div>
+                <div className="text-sm text-gray-500">Kritisch</div>
+              </Card>
+              <Card className="text-center">
+                <div className="text-3xl font-bold text-orange-600">{result.highCount}</div>
+                <div className="text-sm text-gray-500">Hoch</div>
+              </Card>
+            </div>
+
+            {/* Findings */}
+            <Card className="mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Befunde</h3>
+              <div className="space-y-3">
+                {result.analysis.findings.map((finding, idx) => {
+                  const severityConfig = SEVERITY_CONFIG[finding.severity];
+                  const isExpanded = expandedFindings.has(idx);
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`border rounded-lg overflow-hidden ${severityConfig.border}`}
+                    >
+                      <button
+                        onClick={() => toggleFinding(idx)}
+                        className={`w-full px-4 py-3 flex items-center justify-between ${severityConfig.bg} hover:opacity-90 transition-opacity`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${severityConfig.bg} ${severityConfig.text}`}>
+                            {severityConfig.label}
+                          </span>
+                          <span className="font-medium text-gray-900">{finding.title}</span>
+                        </div>
+                        <svg
+                          className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-white space-y-4">
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-1">Kategorie</h4>
+                            <p className="text-gray-900">{finding.category}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-1">Beschreibung</h4>
+                            <p className="text-gray-700">{finding.description}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-1">Empfehlung</h4>
+                            <p className="text-gray-700">{finding.recommendation}</p>
+                          </div>
+                          {finding.articleReference && (
+                            <div className="pt-2 border-t">
+                              <span className="text-xs text-indigo-600 font-medium">
+                                📖 {finding.articleReference}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {/* Next Steps */}
+            <Card className="mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Nächste Schritte</h3>
+              <div className="space-y-2">
+                {result.analysis.nextSteps.map((step, idx) => (
+                  <div key={idx} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                      {idx + 1}
+                    </span>
+                    <span className="text-gray-700">{step}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Detected Features */}
+            {result.analysis.detectedFeatures.length > 0 && (
+              <Card className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Erkannte Merkmale</h3>
+                <div className="flex flex-wrap gap-2">
+                  {result.analysis.detectedFeatures.map((feature, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-4">
+              <Button onClick={handleNewScan} variant="secondary" className="flex-1">
+                Neue Analyse starten
+              </Button>
+            </div>
+
+            {/* Disclaimer */}
+            <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-600 text-center">
+              <strong>Hinweis:</strong> Diese Analyse dient nur zur Orientierung und ersetzt keine rechtliche Beratung.
+              Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.
+            </div>
+          </>
         )}
-
-        {/* Main Analysis Card */}
-        <Card>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            KI-System analysieren
-          </h2>
-
-          {/* Input Type Selection */}
-          <div className="flex space-x-4 mb-6">
-            <button
-              onClick={() => setInputType('url')}
-              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                inputType === 'url'
-                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                  />
-                </svg>
-                <span className="font-medium">Website URL</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setInputType('description')}
-              className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                inputType === 'description'
-                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span className="font-medium">Beschreibung</span>
-              </div>
-            </button>
-          </div>
-
-          {/* Input Form */}
-          <form onSubmit={handleAnalyze}>
-            {inputType === 'url' ? (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Website URL des KI-Systems
-                </label>
-                <input
-                  type="url"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="https://example.com/ki-produkt"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-                <p className="mt-2 text-sm text-gray-500">
-                  URL zur Website oder App mit integriertem KI-System
-                </p>
-              </div>
-            ) : (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  KI-System Beschreibung
-                </label>
-                <textarea
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Beschreiben Sie Ihr KI-System, z.B.: 'Unser KI-System nutzt Gesichtserkennung zur automatischen Zugangsgewährung in Gebäuden. Es verarbeitet biometrische Daten in Echtzeit und trifft Zugriffsentscheidungen ohne menschliche Aufsicht.'"
-                  rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                />
-                <p className="mt-2 text-sm text-gray-500">
-                  Je detaillierter die Beschreibung, desto genauer die Analyse
-                </p>
-              </div>
-            )}
-
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center text-red-700">
-                  <svg
-                    className="w-5 h-5 mr-2 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={isAnalyzing}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-            >
-              {isAnalyzing ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Analysiere... (30-60 Sekunden)
-                </span>
-              ) : (
-                'Analyse starten'
-              )}
-            </Button>
-          </form>
-
-          {/* Results */}
-          {result && (
-            <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Analyse abgeschlossen
-                </h3>
-                <span className="text-green-600">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg">
-                  <span className="text-gray-600">Risikostufe:</span>
-                  <span className={`px-4 py-1 rounded-full font-semibold ${getRiskBadgeClass(result.riskLevel)}`}>
-                    {result.riskLevel}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg">
-                  <span className="text-gray-600">Non-Konformitäten:</span>
-                  <span className="font-semibold text-gray-900">
-                    {result.nonConformitiesCount} gefunden
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg">
-                  <span className="text-gray-600">Report ID:</span>
-                  <span className="font-mono text-sm text-gray-700">
-                    {result.reportId}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleDownloadReport}
-                className="mt-6 w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all flex items-center justify-center"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                PDF Report herunterladen
-              </button>
-            </div>
-          )}
-        </Card>
-
-        {/* Info Card */}
-        <Card className="mt-6">
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0">
-              <svg
-                className="w-8 h-8 text-indigo-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Powered by n8n & OpenAI GPT-4
-              </h3>
-              <p className="text-gray-600">
-                Die Analyse basiert auf der EU AI Act Regulation (EU) 2024/1689.
-                Sie ersetzt keine rechtliche Beratung, bietet jedoch eine erste
-                Orientierung zur Konformität Ihres KI-Systems.
-              </p>
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );

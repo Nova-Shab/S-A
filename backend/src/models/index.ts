@@ -7,6 +7,7 @@ import File from './File';
 import AuditHistory from './AuditHistory';
 import AuditShare from './AuditShare';
 import DemoLead from './DemoLead';
+import ScanResult from './ScanResult';
 
 // Export all models
 export {
@@ -18,6 +19,7 @@ export {
   AuditHistory,
   AuditShare,
   DemoLead,
+  ScanResult,
 };
 
 // Sync database
