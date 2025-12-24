@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
+import { RiskSuggestionCard } from "../components/RiskSuggestionCard";
 import { useAudit } from "../context/AuditContext";
 import {
   AiSystemInfo,
@@ -17,6 +18,7 @@ import {
   classifyRisk,
   getRiskClassDescription,
   getNextStepsForRisk,
+  suggestRiskClass,
 } from "../utils/riskClassification";
 
 const STEPS = [
@@ -74,6 +76,16 @@ export const RiskAssessmentPage: React.FC = () => {
 
   const [showResult, setShowResult] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{ field: string; message: string }[]>([]);
+
+  // V-01: Automatische Risikovorschau berechnen
+  const riskSuggestion = useMemo(() => {
+    return suggestRiskClass(
+      annexIIICategories,
+      euAiActRole,
+      primaryPurpose,
+      biometricOrSurveillance
+    );
+  }, [annexIIICategories, euAiActRole, primaryPurpose, biometricOrSurveillance]);
 
   // Toggle Kategorie-Auswahl
   const toggleCategory = (category: AnnexIIICategory) => {
@@ -393,6 +405,14 @@ export const RiskAssessmentPage: React.FC = () => {
           {getFieldError("annexIIICategories") && (
             <p className="text-red-500 text-sm mt-2">{getFieldError("annexIIICategories")}</p>
           )}
+        </div>
+
+        {/* V-01: Risikovorschau */}
+        <div className="my-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Vorläufige Risikoeinschätzung
+          </label>
+          <RiskSuggestionCard suggestion={riskSuggestion} />
         </div>
 
         {/* Vorgesehene Nutzer */}

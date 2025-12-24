@@ -1,4 +1,180 @@
-import { AiSystemInfo, RiskClass, AnnexIIICategory } from "../models/types";
+import { AiSystemInfo, RiskClass, AnnexIIICategory, EuAiActRole } from "../models/types";
+
+/**
+ * V-01: Risikoklassen-Vorschlag basierend auf partiellen Eingaben
+ * Zeigt frühzeitig eine Einschätzung der wahrscheinlichen Risikoklasse
+ */
+export interface RiskSuggestion {
+  suggestedRisk: RiskClass | null;
+  confidence: "low" | "medium" | "high";
+  reasons: string[];
+  warnings: string[];
+}
+
+export function suggestRiskClass(
+  annexIIICategories: AnnexIIICategory[],
+  euAiActRole: EuAiActRole | "",
+  primaryPurpose: string,
+  biometricOrSurveillance?: boolean
+): RiskSuggestion {
+  const reasons: string[] = [];
+  const warnings: string[] = [];
+  let suggestedRisk: RiskClass | null = null;
+  let confidence: "low" | "medium" | "high" = "low";
+
+  // Keine Kategorien ausgewählt
+  if (annexIIICategories.length === 0) {
+    return {
+      suggestedRisk: null,
+      confidence: "low",
+      reasons: ["Wählen Sie Kategorien aus für eine Risikoeinschätzung"],
+      warnings: [],
+    };
+  }
+
+  // Hochrisiko-Kategorien nach Anhang III
+  const highRiskCategories: AnnexIIICategory[] = [
+    "BIOMETRIC_IDENTIFICATION",
+    "CRITICAL_INFRASTRUCTURE",
+    "EDUCATION_VOCATIONAL",
+    "EMPLOYMENT_HR",
+    "ESSENTIAL_SERVICES",
+    "LAW_ENFORCEMENT",
+    "MIGRATION_ASYLUM",
+    "JUSTICE_DEMOCRACY",
+  ];
+
+  const selectedHighRisk = annexIIICategories.filter((cat) =>
+    highRiskCategories.includes(cat)
+  );
+
+  // Prüfe auf verbotene Praktiken
+  const purposeLower = primaryPurpose.toLowerCase();
+  if (
+    purposeLower.includes("social scoring") ||
+    purposeLower.includes("unterschwellig") ||
+    purposeLower.includes("manipulation")
+  ) {
+    suggestedRisk = "PROHIBITED";
+    confidence = "high";
+    reasons.push("Hinweise auf verbotene KI-Praktiken im Zweck erkannt");
+    warnings.push("ACHTUNG: Dieses System könnte nach Art. 5 EU AI Act verboten sein!");
+  }
+
+  // Biometrie + Strafverfolgung = potenziell verboten
+  if (
+    biometricOrSurveillance &&
+    annexIIICategories.includes("LAW_ENFORCEMENT")
+  ) {
+    suggestedRisk = "PROHIBITED";
+    confidence = "high";
+    reasons.push("Biometrie in Strafverfolgung ist stark reglementiert");
+    warnings.push("Echtzeit-Fernidentifikation im öffentlichen Raum ist grundsätzlich verboten");
+  }
+
+  // Hochrisiko-Kategorien
+  if (!suggestedRisk && selectedHighRisk.length > 0) {
+    suggestedRisk = "HIGH_RISK";
+    confidence = selectedHighRisk.length >= 2 ? "high" : "medium";
+
+    const categoryNames: Record<AnnexIIICategory, string> = {
+      BIOMETRIC_IDENTIFICATION: "Biometrische Identifizierung",
+      CRITICAL_INFRASTRUCTURE: "Kritische Infrastruktur",
+      EDUCATION_VOCATIONAL: "Bildung",
+      EMPLOYMENT_HR: "Beschäftigung/HR",
+      ESSENTIAL_SERVICES: "Wesentliche Dienste",
+      LAW_ENFORCEMENT: "Strafverfolgung",
+      MIGRATION_ASYLUM: "Migration/Asyl",
+      JUSTICE_DEMOCRACY: "Justiz",
+      OTHER: "Sonstiges",
+    };
+
+    reasons.push(
+      `Hochrisiko-Kategorie${selectedHighRisk.length > 1 ? "n" : ""}: ${selectedHighRisk
+        .map((c) => categoryNames[c])
+        .join(", ")}`
+    );
+
+    // Rollenspezifische Hinweise
+    if (euAiActRole === "PROVIDER") {
+      warnings.push("Als Anbieter tragen Sie die volle Verantwortung für Konformitätsbewertung");
+    } else if (euAiActRole === "DEPLOYER") {
+      warnings.push("Als Betreiber müssen Sie die Anweisungen des Anbieters befolgen");
+    }
+  }
+
+  // Nur "Sonstiges" gewählt
+  if (!suggestedRisk && annexIIICategories.includes("OTHER") && annexIIICategories.length === 1) {
+    // Prüfe auf Limited Risk Indikatoren
+    if (
+      purposeLower.includes("chatbot") ||
+      purposeLower.includes("assistent") ||
+      purposeLower.includes("generierung") ||
+      purposeLower.includes("deepfake")
+    ) {
+      suggestedRisk = "LIMITED_RISK";
+      confidence = "medium";
+      reasons.push("Transparenzpflichtige Anwendung erkannt (z.B. Chatbot, Generierung)");
+    } else {
+      suggestedRisk = "MINIMAL_RISK";
+      confidence = "low";
+      reasons.push("Keine Hochrisiko-Kategorie ausgewählt");
+      reasons.push("Weitere Details zur Risikobewertung erforderlich");
+    }
+  }
+
+  // Biometrie erhöht immer das Risiko
+  if (biometricOrSurveillance && suggestedRisk !== "PROHIBITED") {
+    if (suggestedRisk !== "HIGH_RISK") {
+      suggestedRisk = "HIGH_RISK";
+    }
+    confidence = "high";
+    reasons.push("Biometrische Datenverarbeitung ist grundsätzlich Hochrisiko");
+  }
+
+  return {
+    suggestedRisk,
+    confidence,
+    reasons,
+    warnings,
+  };
+}
+
+/**
+ * Gibt eine Kurzbezeichnung für die Risikoklasse zurück
+ */
+export function getRiskClassLabel(riskClass: RiskClass): string {
+  switch (riskClass) {
+    case "PROHIBITED":
+      return "Verboten";
+    case "HIGH_RISK":
+      return "Hochrisiko";
+    case "LIMITED_RISK":
+      return "Begrenztes Risiko";
+    case "MINIMAL_RISK":
+      return "Minimales Risiko";
+  }
+}
+
+/**
+ * Gibt die Farbe für die Risikoklasse zurück
+ */
+export function getRiskClassColor(riskClass: RiskClass): {
+  bg: string;
+  text: string;
+  border: string;
+} {
+  switch (riskClass) {
+    case "PROHIBITED":
+      return { bg: "bg-red-100", text: "text-red-800", border: "border-red-500" };
+    case "HIGH_RISK":
+      return { bg: "bg-orange-100", text: "text-orange-800", border: "border-orange-500" };
+    case "LIMITED_RISK":
+      return { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-500" };
+    case "MINIMAL_RISK":
+      return { bg: "bg-green-100", text: "text-green-800", border: "border-green-500" };
+  }
+}
 
 /**
  * Risikoklassifizierung gemäß EU AI Act
