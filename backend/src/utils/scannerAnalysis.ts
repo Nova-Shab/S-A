@@ -1,3 +1,5 @@
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 import { RiskLevel, ScanFinding, ScanAnalysis } from '../models/ScanResult';
 
 // Keywords and patterns for detecting AI system characteristics
@@ -56,12 +58,92 @@ const TRANSPARENCY_KEYWORDS = [
   'personalization', 'personalisierung',
 ];
 
+// AI-related keywords to detect if a page is about AI systems
+const AI_CONTEXT_KEYWORDS = [
+  'artificial intelligence', 'künstliche intelligenz', 'ki', 'ai',
+  'machine learning', 'maschinelles lernen', 'deep learning',
+  'neural network', 'neuronales netzwerk',
+  'natural language processing', 'nlp',
+  'computer vision', 'bildverarbeitung',
+  'automation', 'automatisierung',
+  'algorithm', 'algorithmus',
+  'data processing', 'datenverarbeitung',
+  'predictive', 'vorhersage',
+];
+
+// Fetch and extract text from URL
+async function fetchUrlContent(url: string): Promise<{ text: string; title: string; metaDescription: string }> {
+  try {
+    // Validate URL
+    const urlObj = new URL(url);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      throw new Error('Nur HTTP und HTTPS URLs werden unterstützt');
+    }
+
+    // Fetch with timeout and headers
+    const response = await axios.get(url, {
+      timeout: 15000,
+      headers: {
+        'User-Agent': 'EU-AI-Act-Scanner/1.0 (Compliance Analysis Bot)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'de,en;q=0.9',
+      },
+      maxRedirects: 5,
+      validateStatus: (status) => status < 400,
+    });
+
+    const html = response.data;
+    const $ = cheerio.load(html);
+
+    // Remove script, style, and other non-content elements
+    $('script, style, nav, footer, header, aside, noscript, iframe, svg').remove();
+
+    // Extract title
+    const title = $('title').text().trim() ||
+                  $('h1').first().text().trim() ||
+                  '';
+
+    // Extract meta description
+    const metaDescription = $('meta[name="description"]').attr('content') ||
+                            $('meta[property="og:description"]').attr('content') ||
+                            '';
+
+    // Extract main content
+    const mainContent = $('main, article, .content, .main, #content, #main').text();
+    const bodyText = mainContent || $('body').text();
+
+    // Clean up text
+    const text = bodyText
+      .replace(/\s+/g, ' ')
+      .replace(/\n+/g, ' ')
+      .trim()
+      .substring(0, 50000); // Limit to prevent memory issues
+
+    return { text, title, metaDescription };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Zeitüberschreitung beim Laden der URL');
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Zugriff auf URL verweigert (403)');
+      }
+      if (error.response?.status === 404) {
+        throw new Error('Seite nicht gefunden (404)');
+      }
+      throw new Error(`Fehler beim Laden der URL: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
 // Analyze text for risk indicators
 function analyzeText(text: string): {
   prohibitedMatches: string[];
   highRiskMatches: string[];
   limitedRiskMatches: string[];
   transparencyMatches: string[];
+  aiContextMatches: string[];
 } {
   const lowerText = text.toLowerCase();
 
@@ -69,8 +151,9 @@ function analyzeText(text: string): {
   const highRiskMatches = HIGH_RISK_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
   const limitedRiskMatches = LIMITED_RISK_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
   const transparencyMatches = TRANSPARENCY_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
+  const aiContextMatches = AI_CONTEXT_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
 
-  return { prohibitedMatches, highRiskMatches, limitedRiskMatches, transparencyMatches };
+  return { prohibitedMatches, highRiskMatches, limitedRiskMatches, transparencyMatches, aiContextMatches };
 }
 
 // Determine risk level based on matches
@@ -112,8 +195,32 @@ function calculateRiskScore(matches: ReturnType<typeof analyzeText>, riskLevel: 
 }
 
 // Generate findings based on analysis
-function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: RiskLevel): ScanFinding[] {
+function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: RiskLevel, isUrlScan: boolean, pageTitle?: string): ScanFinding[] {
   const findings: ScanFinding[] = [];
+
+  // Add URL scan info if applicable
+  if (isUrlScan && pageTitle) {
+    findings.push({
+      category: 'Scan-Information',
+      title: `Webseite analysiert: ${pageTitle.substring(0, 100)}`,
+      severity: 'info',
+      description: `Der Inhalt der Webseite wurde erfolgreich extrahiert und analysiert.`,
+      recommendation: 'Prüfen Sie, ob alle relevanten Seiten des Systems gescannt wurden.',
+      articleReference: '',
+    });
+  }
+
+  // Check if page is about AI
+  if (isUrlScan && matches.aiContextMatches.length === 0) {
+    findings.push({
+      category: 'Hinweis',
+      title: 'Kein KI-Bezug erkannt',
+      severity: 'info',
+      description: 'Auf dieser Seite wurden keine expliziten Hinweise auf KI-Systeme gefunden. Dies könnte bedeuten, dass die Seite nicht KI-bezogen ist oder die KI-Funktionalität nicht beschrieben wird.',
+      recommendation: 'Überprüfen Sie, ob die richtige Seite gescannt wurde. Versuchen Sie ggf. eine Produktbeschreibungs- oder Feature-Seite.',
+      articleReference: '',
+    });
+  }
 
   // Prohibited findings
   if (matches.prohibitedMatches.length > 0) {
@@ -220,7 +327,7 @@ function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: Ri
   }
 
   // Add positive finding for minimal risk
-  if (riskLevel === 'MINIMAL_RISK' && findings.length === 0) {
+  if (riskLevel === 'MINIMAL_RISK' && findings.filter(f => f.severity !== 'info').length === 0) {
     findings.push({
       category: 'Risikoklassifizierung',
       title: 'Minimales Risiko identifiziert',
@@ -235,36 +342,36 @@ function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: Ri
 }
 
 // Generate summary text
-function generateSummary(riskLevel: RiskLevel, findings: ScanFinding[]): string {
+function generateSummary(riskLevel: RiskLevel, findings: ScanFinding[], isUrlScan: boolean): string {
   const criticalCount = findings.filter(f => f.severity === 'critical').length;
   const highCount = findings.filter(f => f.severity === 'high').length;
   const mediumCount = findings.filter(f => f.severity === 'medium').length;
 
-  let summary = '';
+  let summary = isUrlScan ? 'Der Inhalt der Webseite wurde analysiert. ' : '';
 
   switch (riskLevel) {
     case 'PROHIBITED':
-      summary = `ACHTUNG: Das System weist Merkmale auf, die nach dem EU AI Act verboten sind. `;
+      summary += `ACHTUNG: Das System weist Merkmale auf, die nach dem EU AI Act verboten sind. `;
       summary += `${criticalCount} kritische Befunde erfordern sofortige Maßnahmen. `;
       summary += `Der Betrieb dieses Systems in der EU ist in der aktuellen Form nicht zulässig.`;
       break;
     case 'HIGH_RISK':
-      summary = `Das System wird als Hochrisiko-KI-System eingestuft. `;
+      summary += `Das System wird als Hochrisiko-KI-System eingestuft. `;
       summary += `${highCount} Hochrisiko-Befunde und ${mediumCount} mittlere Befunde wurden identifiziert. `;
       summary += `Vor Inbetriebnahme ist eine vollständige Konformitätsbewertung nach Kapitel 3 EU AI Act erforderlich.`;
       break;
     case 'LIMITED_RISK':
-      summary = `Das System unterliegt Transparenzpflichten nach Art. 50 EU AI Act. `;
+      summary += `Das System unterliegt Transparenzpflichten nach Art. 50 EU AI Act. `;
       summary += `${mediumCount} Befunde weisen auf Handlungsbedarf hin. `;
       summary += `Hauptsächlich sind Informationspflichten gegenüber Nutzern zu beachten.`;
       break;
     case 'MINIMAL_RISK':
-      summary = `Das System scheint ein minimales Risiko darzustellen. `;
+      summary += `Das System scheint ein minimales Risiko darzustellen. `;
       summary += `Es unterliegt keinen spezifischen Anforderungen des EU AI Act. `;
       summary += `Freiwillige Verhaltenskodizes und ethische Grundsätze werden empfohlen.`;
       break;
     default:
-      summary = `Die Risikoklassifizierung konnte nicht eindeutig bestimmt werden. `;
+      summary += `Die Risikoklassifizierung konnte nicht eindeutig bestimmt werden. `;
       summary += `Eine manuelle Prüfung wird empfohlen.`;
   }
 
@@ -313,17 +420,46 @@ function generateNextSteps(riskLevel: RiskLevel): string[] {
   return steps;
 }
 
-// Main analysis function
-export function analyzeSystem(inputType: 'url' | 'description', inputValue: string): ScanAnalysis {
-  // For URL, we would ideally fetch and analyze the page content
-  // For now, we analyze the provided text
-  const textToAnalyze = inputValue;
+// Main analysis function - now async for URL fetching
+export async function analyzeSystem(inputType: 'url' | 'description', inputValue: string): Promise<ScanAnalysis> {
+  let textToAnalyze: string;
+  let pageTitle: string | undefined;
+  let isUrlScan = false;
+
+  if (inputType === 'url') {
+    isUrlScan = true;
+    try {
+      const urlContent = await fetchUrlContent(inputValue);
+      textToAnalyze = `${urlContent.title} ${urlContent.metaDescription} ${urlContent.text}`;
+      pageTitle = urlContent.title;
+    } catch (error) {
+      // If URL fetch fails, return an error analysis
+      return {
+        riskLevel: 'UNKNOWN',
+        riskScore: 0,
+        findings: [{
+          category: 'Fehler',
+          title: 'URL konnte nicht geladen werden',
+          severity: 'info',
+          description: error instanceof Error ? error.message : 'Unbekannter Fehler beim Laden der URL',
+          recommendation: 'Überprüfen Sie die URL und versuchen Sie es erneut. Stellen Sie sicher, dass die Seite öffentlich zugänglich ist.',
+          articleReference: '',
+        }],
+        summary: `Die URL konnte nicht analysiert werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`,
+        detectedFeatures: [],
+        complianceGaps: [],
+        nextSteps: ['URL-Zugriff prüfen', 'Alternative Eingabemethode nutzen (Beschreibung)'],
+      };
+    }
+  } else {
+    textToAnalyze = inputValue;
+  }
 
   const matches = analyzeText(textToAnalyze);
   const riskLevel = determineRiskLevel(matches);
   const riskScore = calculateRiskScore(matches, riskLevel);
-  const findings = generateFindings(matches, riskLevel);
-  const summary = generateSummary(riskLevel, findings);
+  const findings = generateFindings(matches, riskLevel, isUrlScan, pageTitle);
+  const summary = generateSummary(riskLevel, findings, isUrlScan);
   const nextSteps = generateNextSteps(riskLevel);
 
   // Collect detected features
@@ -332,6 +468,11 @@ export function analyzeSystem(inputType: 'url' | 'description', inputValue: stri
     ...matches.highRiskMatches,
     ...matches.limitedRiskMatches,
   ];
+
+  // Add AI context if detected
+  if (matches.aiContextMatches.length > 0) {
+    detectedFeatures.push(...matches.aiContextMatches.slice(0, 5)); // Add top 5 AI keywords
+  }
 
   // Identify compliance gaps
   const complianceGaps: string[] = [];

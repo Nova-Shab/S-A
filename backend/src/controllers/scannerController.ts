@@ -27,8 +27,8 @@ export const performScan = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Perform analysis
-    const analysis = analyzeSystem(inputType, inputValue);
+    // Perform analysis (now async for URL scraping)
+    const analysis = await analyzeSystem(inputType, inputValue);
 
     // Get user ID if authenticated
     const userId = req.user?.id;
