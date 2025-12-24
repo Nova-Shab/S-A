@@ -3,6 +3,7 @@ import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { RiskSuggestionCard } from "../components/RiskSuggestionCard";
+import { SystemImportModal } from "../components/SystemImportModal";
 import { useAudit } from "../context/AuditContext";
 import {
   AiSystemInfo,
@@ -76,6 +77,35 @@ export const RiskAssessmentPage: React.FC = () => {
 
   const [showResult, setShowResult] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{ field: string; message: string }[]>([]);
+
+  // V-02: Import-Modal
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  // V-02: Import-Handler
+  const handleImport = (imported: Partial<AiSystemInfo>) => {
+    // System-Identifikation
+    if (imported.systemName) setSystemName(imported.systemName);
+    if (imported.systemVersion) setSystemVersion(imported.systemVersion);
+    if (imported.systemProvider) setSystemProvider(imported.systemProvider);
+    if (imported.euAiActRole) setEuAiActRole(imported.euAiActRole);
+
+    // Zweckbestimmung
+    if (imported.primaryPurpose) setPrimaryPurpose(imported.primaryPurpose);
+    if (imported.annexIIICategories) setAnnexIIICategories(imported.annexIIICategories);
+    if (imported.intendedUsers) setIntendedUsers(imported.intendedUsers);
+    if (imported.prohibitedUses) setProhibitedUses(imported.prohibitedUses);
+    if (imported.foreseenMisuse) setForeseenMisuse(imported.foreseenMisuse);
+
+    // Systemabgrenzung
+    if (imported.systemBoundaries) setSystemBoundaries(imported.systemBoundaries);
+
+    // Risikobewertung
+    if (imported.domain) setDomain(imported.domain);
+    if (imported.useCase) setUseCase(imported.useCase);
+    if (imported.impactLevel) setImpactLevel(imported.impactLevel);
+    if (imported.biometricOrSurveillance !== undefined) setBiometricOrSurveillance(imported.biometricOrSurveillance);
+    if (imported.euImpact !== undefined) setEuImpact(imported.euImpact);
+  };
 
   // V-01: Automatische Risikovorschau berechnen
   const riskSuggestion = useMemo(() => {
@@ -230,12 +260,26 @@ export const RiskAssessmentPage: React.FC = () => {
   const renderSystemStep = () => (
     <Card>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          1. KI-System identifizieren
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Definieren Sie das zu prüfende KI-System eindeutig.
-        </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              1. KI-System identifizieren
+            </h2>
+            <p className="text-gray-600 text-sm">
+              Definieren Sie das zu prüfende KI-System eindeutig.
+            </p>
+          </div>
+          {/* V-02: Import-Button */}
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Importieren
+          </button>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -996,6 +1040,13 @@ export const RiskAssessmentPage: React.FC = () => {
 
         {renderFormStep()}
       </div>
+
+      {/* V-02: Import-Modal */}
+      <SystemImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImport}
+      />
     </div>
   );
 };
