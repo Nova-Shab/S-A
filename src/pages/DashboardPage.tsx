@@ -7,6 +7,7 @@ import authService from '../services/authService';
 import { useSystems } from '../context/SystemsContext';
 import { SYSTEM_STATUS_CONFIG } from '../models/types';
 import { getRiskClassLabel } from '../utils/riskClassification';
+import api from '../services/api';
 
 interface DashboardPageProps {
   onCreateAudit: () => void;
@@ -24,8 +25,44 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [quickScanText, setQuickScanText] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
   const user = authService.getCurrentUser();
   const { systems, stats } = useSystems();
+
+  const handleQuickScan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setScanError(null);
+
+    if (!quickScanText.trim()) {
+      setScanError('Bitte geben Sie eine Beschreibung ein.');
+      return;
+    }
+
+    if (quickScanText.trim().length < 50) {
+      setScanError('Die Beschreibung sollte mindestens 50 Zeichen lang sein.');
+      return;
+    }
+
+    setIsScanning(true);
+
+    try {
+      const response = await api.post('/scanner/analyze', {
+        inputType: 'description',
+        inputValue: quickScanText,
+        systemName: 'Schnell-Scan',
+      });
+
+      if (response.data.success) {
+        navigate('/scanner', { state: { scanResult: response.data } });
+      }
+    } catch {
+      setScanError('Fehler bei der Analyse. Bitte versuchen Sie es erneut.');
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   useEffect(() => {
     loadAudits();
@@ -109,6 +146,64 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Scanner Quick Access Widget */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-xl p-6 mb-6 text-white">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex items-center">
+              <span className="text-4xl mr-4">🔍</span>
+              <div>
+                <h2 className="text-xl font-semibold">KI-System Scanner</h2>
+                <p className="text-indigo-200 text-sm">
+                  Sofortige EU AI Act Risikoanalyse mit KI-Unterstützung
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleQuickScan} className="flex-1 lg:max-w-xl">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={quickScanText}
+                    onChange={(e) => setQuickScanText(e.target.value)}
+                    placeholder="Beschreiben Sie Ihr KI-System kurz..."
+                    className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-indigo-200 focus:ring-2 focus:ring-white focus:border-transparent"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isScanning}
+                  className="px-5 py-2.5 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
+                >
+                  {isScanning ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Analysiere...
+                    </>
+                  ) : (
+                    'Schnell-Scan'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/scanner')}
+                  className="px-5 py-2.5 bg-white/10 border border-white/30 text-white font-medium rounded-lg hover:bg-white/20 transition-colors whitespace-nowrap"
+                >
+                  Erweitert
+                </button>
+              </div>
+              {scanError && (
+                <div className="mt-2 p-2 bg-red-500/20 border border-red-300/30 rounded text-red-100 text-sm">
+                  {scanError}
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+
         {/* V-03: Systems Overview */}
         {systems.length > 0 && (
           <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
