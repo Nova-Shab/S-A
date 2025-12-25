@@ -2,10 +2,364 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for print */
+/* ============================================
+   EU AI Act Audit Tool - Design System
+   ============================================ */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+/* ============================================
+   Base Layer - Typography & Colors
+   ============================================ */
+@layer base {
+  /* Root variables for easy theming */
+  :root {
+    --color-deep: #2B3D4F;
+    --color-steel: #354A5F;
+    --color-cool: #5D6D7E;
+    --color-light: #BDC3C7;
+    --color-bg: #EDF1F2;
+    --color-white: #FFFFFF;
+  }
+
+  /* Base HTML styling */
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-sans text-audit-deep bg-audit-bg;
+    line-height: 1.6;
+  }
+
+  /* Heading hierarchy */
+  h1 {
+    @apply text-h1 text-audit-deep mb-6;
+  }
+
+  h2 {
+    @apply text-h2 text-audit-deep mb-4;
+  }
+
+  h3 {
+    @apply text-h3 text-audit-steel mb-3;
+  }
+
+  h4 {
+    @apply text-h4 text-audit-steel mb-2;
+  }
+
+  /* Paragraph and body text */
+  p {
+    @apply text-body text-audit-deep mb-4 max-w-prose;
+  }
+
+  /* Links */
+  a {
+    @apply text-audit-steel hover:text-audit-deep transition-colors;
+  }
+
+  /* Lists */
+  ul, ol {
+    @apply mb-4 pl-6;
+  }
+
+  li {
+    @apply mb-2;
+  }
+
+  /* Form elements */
+  input, textarea, select {
+    @apply font-sans text-body text-audit-deep;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-audit-cool;
+  }
+
+  /* Focus states - accessible and calm */
+  input:focus,
+  textarea:focus,
+  select:focus,
+  button:focus {
+    @apply outline-none ring-2 ring-audit-steel ring-offset-2;
+  }
+
+  /* Tables */
+  table {
+    @apply w-full text-left;
+  }
+
+  th {
+    @apply text-label text-audit-steel font-medium pb-3 border-b border-audit-light;
+  }
+
+  td {
+    @apply py-3 border-b border-audit-light/50;
+  }
+
+  /* Code and monospace */
+  code {
+    @apply font-mono text-meta text-audit-cool bg-audit-bg px-1.5 py-0.5 rounded;
+  }
+
+  pre {
+    @apply font-mono text-meta bg-audit-bg p-4 rounded-audit overflow-x-auto mb-4;
+  }
+}
+
+/* ============================================
+   Component Layer - Reusable UI Patterns
+   ============================================ */
+@layer components {
+  /* Card component */
+  .audit-card {
+    @apply bg-white rounded-audit shadow-audit p-6 border border-audit-light/50;
+  }
+
+  .audit-card-header {
+    @apply text-h4 text-audit-deep mb-4 pb-3 border-b border-audit-light;
+  }
+
+  /* Button variants */
+  .audit-btn {
+    @apply inline-flex items-center justify-center px-4 py-2.5
+           text-label font-medium rounded-audit
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .audit-btn-primary {
+    @apply audit-btn bg-audit-deep text-white
+           hover:bg-audit-steel
+           focus:ring-audit-steel;
+  }
+
+  .audit-btn-secondary {
+    @apply audit-btn bg-white text-audit-deep
+           border border-audit-light
+           hover:bg-audit-bg hover:border-audit-cool
+           focus:ring-audit-cool;
+  }
+
+  .audit-btn-ghost {
+    @apply audit-btn bg-transparent text-audit-steel
+           hover:bg-audit-bg hover:text-audit-deep
+           focus:ring-audit-cool;
+  }
+
+  /* Form inputs */
+  .audit-input {
+    @apply w-full px-4 py-2.5
+           bg-white text-audit-deep
+           border border-audit-light rounded-audit
+           placeholder:text-audit-cool
+           hover:border-audit-cool
+           focus:border-audit-steel focus:ring-2 focus:ring-audit-steel/20;
+  }
+
+  .audit-label {
+    @apply block text-label text-audit-deep mb-2;
+  }
+
+  .audit-helper {
+    @apply text-meta text-audit-cool mt-1.5;
+  }
+
+  /* Status indicators - calm, no alarm colors */
+  .audit-status {
+    @apply inline-flex items-center px-3 py-1
+           text-meta font-medium rounded-full;
+  }
+
+  .audit-status-info {
+    @apply audit-status bg-audit-bg text-audit-steel
+           border-l-4 border-audit-steel;
+  }
+
+  .audit-status-success {
+    @apply audit-status bg-audit-bg text-audit-deep
+           border-l-4 border-audit-deep;
+  }
+
+  .audit-status-warning {
+    @apply audit-status bg-audit-bg text-audit-cool
+           border-l-4 border-audit-cool;
+  }
+
+  .audit-status-error {
+    @apply audit-status bg-audit-bg text-audit-steel
+           border-l-4 border-audit-steel;
+  }
+
+  /* Alert boxes - subtle, professional */
+  .audit-alert {
+    @apply p-4 rounded-audit border-l-4 bg-white;
+  }
+
+  .audit-alert-info {
+    @apply audit-alert border-audit-steel;
+  }
+
+  .audit-alert-success {
+    @apply audit-alert border-audit-deep;
+  }
+
+  .audit-alert-warning {
+    @apply audit-alert border-audit-cool;
+  }
+
+  .audit-alert-error {
+    @apply audit-alert border-audit-steel;
+  }
+
+  /* Legal citation styling */
+  .audit-citation {
+    @apply font-serif text-legal text-audit-deep
+           pl-4 border-l-3 border-audit-light
+           italic my-4;
+  }
+
+  /* Reference ID styling */
+  .audit-ref {
+    @apply font-mono text-meta text-audit-cool;
+  }
+
+  /* Navigation items */
+  .audit-nav-item {
+    @apply flex items-center px-4 py-2.5
+           text-label text-audit-cool
+           rounded-audit transition-colors
+           hover:bg-audit-bg hover:text-audit-deep;
+  }
+
+  .audit-nav-item-active {
+    @apply audit-nav-item bg-audit-bg/80 text-audit-deep font-medium;
+  }
+
+  /* Section dividers */
+  .audit-divider {
+    @apply border-t border-audit-light my-6;
+  }
+
+  /* Metadata row */
+  .audit-meta {
+    @apply flex items-center gap-2 text-meta text-audit-cool;
+  }
+
+  /* Badge */
+  .audit-badge {
+    @apply inline-flex items-center px-2.5 py-0.5
+           text-meta font-medium
+           bg-audit-bg text-audit-steel
+           rounded-full border border-audit-light;
+  }
+
+  /* Progress indicator - neutral */
+  .audit-progress {
+    @apply h-2 bg-audit-light rounded-full overflow-hidden;
+  }
+
+  .audit-progress-bar {
+    @apply h-full bg-audit-steel transition-all duration-300;
+  }
+
+  /* Table styling */
+  .audit-table {
+    @apply w-full;
+  }
+
+  .audit-table th {
+    @apply text-left text-label text-audit-steel font-medium
+           px-4 py-3 bg-audit-bg border-b border-audit-light;
+  }
+
+  .audit-table td {
+    @apply px-4 py-3 text-body text-audit-deep
+           border-b border-audit-light/50;
+  }
+
+  .audit-table tr:hover {
+    @apply bg-audit-bg/50;
+  }
+
+  /* Panel/Section container */
+  .audit-panel {
+    @apply bg-white rounded-audit shadow-audit
+           border border-audit-light/50 overflow-hidden;
+  }
+
+  .audit-panel-header {
+    @apply px-6 py-4 bg-audit-bg border-b border-audit-light;
+  }
+
+  .audit-panel-body {
+    @apply p-6;
+  }
+
+  /* Scanner widget - prominent but professional */
+  .audit-scanner-widget {
+    @apply bg-audit-deep rounded-audit shadow-audit-lg p-6 text-white;
+  }
+
+  .audit-scanner-input {
+    @apply w-full px-4 py-3
+           bg-white/10 text-white
+           border border-white/20 rounded-audit
+           placeholder:text-white/60
+           focus:bg-white/15 focus:border-white/40 focus:ring-2 focus:ring-white/20;
+  }
+
+  .audit-scanner-btn {
+    @apply px-5 py-3
+           bg-white text-audit-deep
+           font-medium rounded-audit
+           hover:bg-audit-bg
+           focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-audit-deep;
+  }
+}
+
+/* ============================================
+   Utility Layer - Additional Helpers
+   ============================================ */
+@layer utilities {
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Border left for status indicators */
+  .border-l-3 {
+    border-left-width: 3px;
+  }
+
+  /* Audit-specific utilities */
+  .audit-transition {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  /* Max width for readable content */
+  .max-w-readable {
+    max-width: 75ch;
+  }
+
+  /* Subtle hover effect */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-0.5;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
 @media print {
   body {
     background: white;
+    color: black;
   }
 
   .print\:hidden {
@@ -14,5 +368,20 @@
 
   .print\:block {
     display: block !important;
+  }
+
+  .audit-card,
+  .audit-panel {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  .audit-citation {
+    font-style: italic;
+    border-left: 2px solid #666;
   }
 }

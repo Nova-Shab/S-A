@@ -20,39 +20,45 @@ export const Navigation: React.FC<NavigationProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: 'scanner', label: 'Scanner', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', highlight: true },
+    { id: 'scanner', label: 'Scanner', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', primary: true },
     { id: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { id: 'systems', label: 'KI-Systeme', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   ];
 
   const isActive = (id: string) => currentView === id;
 
+  // Design system navigation button styles
+  const getNavButtonClass = (item: typeof navItems[0]) => {
+    if (item.primary) {
+      // Primary action (Scanner) - prominent but calm
+      return isActive(item.id)
+        ? 'bg-audit-deep text-white shadow-audit'
+        : 'bg-audit-steel text-white hover:bg-audit-deep hover:shadow-audit';
+    }
+    // Regular nav items
+    return isActive(item.id)
+      ? 'bg-audit-bg text-audit-deep font-medium'
+      : 'text-audit-cool hover:bg-audit-bg hover:text-audit-deep';
+  };
+
   return (
-    <nav className="bg-white shadow-lg border-b border-gray-200">
+    <nav className="bg-white shadow-audit border-b border-audit-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <span className="text-2xl mr-2">🇪🇺</span>
-              <span className="font-bold text-xl text-gray-900">EU AI Act</span>
+              <span className="font-semibold text-xl text-audit-deep">EU AI Act</span>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:ml-10 md:flex md:space-x-4">
+            <div className="hidden md:ml-10 md:flex md:space-x-2">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
-                  className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    item.highlight
-                      ? isActive(item.id)
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
-                        : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-md'
-                      : isActive(item.id)
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
+                  className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-audit transition-all duration-200 ${getNavButtonClass(item)}`}
                 >
                   <svg
                     className="w-5 h-5 mr-2"
@@ -74,15 +80,15 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
 
           {/* Right side: Demo Button & User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Audit Tools (Demo) Button */}
             {demoEnabled && (
               <button
                 onClick={() => onNavigate(hasDemoAccess ? 'audit-tools' : 'demo-access')}
-                className={`hidden md:inline-flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                className={`hidden md:inline-flex items-center px-4 py-2 text-sm font-medium rounded-audit transition-all duration-200 ${
                   isActive('audit-tools') || isActive('demo-access')
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
-                    : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 hover:shadow-md'
+                    ? 'bg-audit-deep text-white shadow-audit'
+                    : 'bg-audit-steel text-white hover:bg-audit-deep'
                 }`}
               >
                 <svg
@@ -100,7 +106,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </svg>
                 Audit Tools
                 {!hasDemoAccess && (
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-400 text-yellow-900 rounded-full">
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-audit-bg text-audit-steel rounded-full border border-audit-light">
                     Demo
                   </span>
                 )}
@@ -109,9 +115,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             {/* User Info */}
             {userName && (
-              <div className="hidden md:flex items-center text-sm text-gray-600">
+              <div className="hidden md:flex items-center text-sm text-audit-cool">
                 <svg
-                  className="w-5 h-5 mr-2 text-gray-400"
+                  className="w-5 h-5 mr-2 text-audit-light"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -130,7 +136,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Logout Button */}
             <button
               onClick={onLogout}
-              className="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              className="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-audit-cool hover:text-audit-deep hover:bg-audit-bg rounded-audit transition-colors"
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -151,7 +157,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-audit text-audit-cool hover:text-audit-deep hover:bg-audit-bg"
             >
               <svg
                 className="h-6 w-6"
@@ -182,7 +188,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200">
+        <div className="md:hidden border-t border-audit-light">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <button
@@ -191,14 +197,14 @@ export const Navigation: React.FC<NavigationProps> = ({
                   onNavigate(item.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center px-3 py-2 text-base font-medium rounded-md ${
-                  item.highlight
+                className={`w-full flex items-center px-3 py-2.5 text-base font-medium rounded-audit transition-colors ${
+                  item.primary
                     ? isActive(item.id)
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
-                      : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white'
+                      ? 'bg-audit-deep text-white'
+                      : 'bg-audit-steel text-white'
                     : isActive(item.id)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-audit-bg text-audit-deep'
+                      : 'text-audit-cool hover:bg-audit-bg hover:text-audit-deep'
                 }`}
               >
                 <svg
@@ -224,7 +230,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   onNavigate(hasDemoAccess ? 'audit-tools' : 'demo-access');
                   setMobileMenuOpen(false);
                 }}
-                className="w-full flex items-center px-3 py-2 text-base font-medium rounded-md bg-gradient-to-r from-purple-500 to-indigo-500 text-white"
+                className="w-full flex items-center px-3 py-2.5 text-base font-medium rounded-audit bg-audit-steel text-white"
               >
                 <svg
                   className="w-5 h-5 mr-3"
@@ -243,9 +249,9 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
             )}
 
-            <div className="border-t border-gray-200 pt-2 mt-2">
+            <div className="border-t border-audit-light pt-2 mt-2">
               {userName && (
-                <div className="px-3 py-2 text-sm text-gray-500">
+                <div className="px-3 py-2 text-sm text-audit-cool">
                   Angemeldet als: {userName}
                 </div>
               )}
@@ -254,7 +260,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   onLogout();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full flex items-center px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md"
+                className="w-full flex items-center px-3 py-2.5 text-base font-medium text-audit-steel hover:bg-audit-bg rounded-audit"
               >
                 <svg
                   className="w-5 h-5 mr-3"
