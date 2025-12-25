@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { RiskLevel, ScanFinding, ScanAnalysis } from '../models/ScanResult';
 import { analyzeWithGPT, isGPTAvailable } from './gptAnalysis';
+import { analyzeWithOllama, isOllamaAvailable } from './ollamaAnalysis';
 
 // Keywords and patterns for detecting AI system characteristics
 const PROHIBITED_KEYWORDS = [
@@ -520,7 +521,19 @@ export async function analyzeSystem(inputType: 'url' | 'description', inputValue
       const gptResult = await analyzeWithGPT(inputType, textToAnalyze, pageTitle);
       return gptResult;
     } catch (error) {
-      console.error('GPT analysis failed, falling back to keyword analysis:', error);
+      console.error('GPT analysis failed:', error);
+      // Fall through to try Ollama or keyword analysis
+    }
+  }
+
+  // Try Ollama analysis if available
+  if (await isOllamaAvailable()) {
+    try {
+      console.log('Using Ollama local analysis...');
+      const ollamaResult = await analyzeWithOllama(inputType, textToAnalyze, pageTitle);
+      return ollamaResult;
+    } catch (error) {
+      console.error('Ollama analysis failed:', error);
       // Fall through to keyword analysis
     }
   }
