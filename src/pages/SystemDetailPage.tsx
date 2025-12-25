@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSystems } from "../context/SystemsContext";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
+import { ChangeHistoryPanel } from "../components/ChangeHistoryPanel";
 import {
   RegisteredAiSystem,
   SYSTEM_STATUS_CONFIG,
@@ -16,16 +17,20 @@ import { getRiskClassLabel, getRiskClassColor } from "../utils/riskClassificatio
 
 // =============================================================================
 // V-03: SystemDetailPage - Einzelansicht und Bearbeitung eines KI-Systems
+// V-04: Erweitert um Änderungshistorie
 // =============================================================================
+
+type DetailTab = "overview" | "history";
 
 export const SystemDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getSystemById, updateSystem, deleteSystem } = useSystems();
+  const { getSystemById, updateSystemWithHistory, deleteSystem } = useSystems();
 
   const [system, setSystem] = useState<RegisteredAiSystem | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [activeTab, setActiveTab] = useState<DetailTab>("overview");
 
   // Form state for editing
   const [formData, setFormData] = useState<Partial<RegisteredAiSystem>>({});
@@ -51,9 +56,12 @@ export const SystemDetailPage: React.FC = () => {
 
   const handleSave = () => {
     if (id && formData) {
-      updateSystem(id, formData);
-      const updated = getSystemById(id);
-      setSystem(updated || null);
+      updateSystemWithHistory(id, formData, true);
+      // Small delay to allow state to update
+      setTimeout(() => {
+        const updated = getSystemById(id);
+        setSystem(updated || null);
+      }, 100);
       setIsEditing(false);
       navigate(`/systems/${id}`);
     }
@@ -370,6 +378,49 @@ export const SystemDetailPage: React.FC = () => {
         ) : (
           // View Mode
           <div className="space-y-6">
+            {/* V-04: Tab Navigation */}
+            <div className="border-b border-gray-200">
+              <nav className="flex gap-4" aria-label="Tabs">
+                <button
+                  onClick={() => setActiveTab("overview")}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === "overview"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Übersicht
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("history")}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === "history"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Änderungshistorie
+                    {system.changeHistory && system.changeHistory.length > 0 && (
+                      <span className="ml-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                        {system.changeHistory.length}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </nav>
+            </div>
+
+            {activeTab === "overview" ? (
+              <>
             {/* Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card className="text-center">
@@ -480,6 +531,22 @@ export const SystemDetailPage: React.FC = () => {
                 )}
               </dl>
             </Card>
+              </>
+            ) : (
+              // V-04: History Tab
+              <Card>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Änderungshistorie</h2>
+                  <span className="text-sm text-gray-500">
+                    {system.changeHistory?.length || 0} Änderungen erfasst
+                  </span>
+                </div>
+                <ChangeHistoryPanel
+                  history={system.changeHistory || []}
+                  showFilters={true}
+                />
+              </Card>
+            )}
           </div>
         )}
       </div>

@@ -324,7 +324,144 @@ export interface RegisteredAiSystem {
   department?: string;                   // Zuständige Abteilung
   responsiblePerson?: string;            // Verantwortliche Person
   notes?: string;                        // Interne Notizen
+  changeHistory?: ChangeHistoryEntry[];  // V-04: Änderungshistorie
 }
+
+// =============================================================================
+// V-04: Änderungshistorie
+// Protokolliert alle Änderungen an Systemdefinitionen
+// =============================================================================
+
+// Art der Änderung
+export type ChangeAction =
+  | "CREATE"      // System erstellt
+  | "UPDATE"      // Feld aktualisiert
+  | "STATUS"      // Status geändert
+  | "RISK_CLASS"  // Risikoklasse geändert
+  | "AUDIT"       // Audit durchgeführt
+  | "DELETE";     // System gelöscht (für Archiv)
+
+// Einzelner Änderungseintrag
+export interface ChangeHistoryEntry {
+  id: string;                    // Eindeutige ID des Eintrags
+  timestamp: string;             // Zeitpunkt der Änderung (ISO)
+  action: ChangeAction;          // Art der Änderung
+  userId?: string;               // Benutzer-ID (falls verfügbar)
+  userName?: string;             // Benutzername für Anzeige
+  field?: string;                // Geändertes Feld (bei UPDATE)
+  fieldLabel?: string;           // Anzeigename des Feldes
+  oldValue?: string;             // Vorheriger Wert (serialisiert)
+  newValue?: string;             // Neuer Wert (serialisiert)
+  description?: string;          // Optionale Beschreibung der Änderung
+}
+
+// Konfiguration für Feld-Labels
+export const FIELD_LABELS: Record<string, string> = {
+  "systemInfo.systemName": "Systemname",
+  "systemInfo.systemVersion": "Version",
+  "systemInfo.systemProvider": "Anbieter",
+  "systemInfo.domain": "Domäne",
+  "systemInfo.useCase": "Anwendungsfall",
+  "systemInfo.euAiActRole": "EU AI Act Rolle",
+  "systemInfo.primaryPurpose": "Primärer Zweck",
+  "systemInfo.annexIIICategories": "Annex III Kategorien",
+  "systemInfo.intendedUsers": "Zielgruppe",
+  "systemInfo.prohibitedUses": "Verbotene Nutzungen",
+  "systemInfo.foreseenMisuse": "Vorhersehbarer Missbrauch",
+  "systemInfo.biometricOrSurveillance": "Biometrie/Überwachung",
+  "systemInfo.impactLevel": "Auswirkungsstufe",
+  "status": "Status",
+  "riskClass": "Risikoklasse",
+  "complianceScore": "Compliance-Score",
+  "department": "Abteilung",
+  "responsiblePerson": "Verantwortliche Person",
+  "tags": "Tags",
+  "notes": "Notizen",
+  "nextAuditDue": "Nächstes Audit"
+};
+
+// Helper: Änderungseintrag erstellen
+export function createChangeEntry(
+  action: ChangeAction,
+  field?: string,
+  oldValue?: unknown,
+  newValue?: unknown,
+  userName?: string
+): ChangeHistoryEntry {
+  return {
+    id: `chg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    timestamp: new Date().toISOString(),
+    action,
+    userName: userName || "System",
+    field,
+    fieldLabel: field ? FIELD_LABELS[field] || field : undefined,
+    oldValue: oldValue !== undefined ? JSON.stringify(oldValue) : undefined,
+    newValue: newValue !== undefined ? JSON.stringify(newValue) : undefined
+  };
+}
+
+// Helper: Wert für Anzeige formatieren
+export function formatHistoryValue(value: string | undefined, field?: string): string {
+  if (!value) return "-";
+
+  try {
+    const parsed = JSON.parse(value);
+
+    // Arrays formatieren
+    if (Array.isArray(parsed)) {
+      if (parsed.length === 0) return "(leer)";
+      return parsed.join(", ");
+    }
+
+    // Booleans formatieren
+    if (typeof parsed === "boolean") {
+      return parsed ? "Ja" : "Nein";
+    }
+
+    // Status formatieren
+    if (field === "status" && SYSTEM_STATUS_CONFIG[parsed as SystemStatus]) {
+      return SYSTEM_STATUS_CONFIG[parsed as SystemStatus].label;
+    }
+
+    // Risikoklasse formatieren
+    if (field === "riskClass") {
+      const riskLabels: Record<string, string> = {
+        PROHIBITED: "Verboten",
+        HIGH_RISK: "Hochrisiko",
+        LIMITED_RISK: "Begrenztes Risiko",
+        MINIMAL_RISK: "Minimales Risiko"
+      };
+      return riskLabels[parsed] || parsed;
+    }
+
+    // EU AI Act Rolle formatieren
+    if (field === "systemInfo.euAiActRole") {
+      const roleLabels: Record<string, string> = {
+        PROVIDER: "Anbieter",
+        DEPLOYER: "Betreiber",
+        IMPORTER: "Importeur",
+        DISTRIBUTOR: "Händler",
+        AUTHORIZED_REP: "Bevollmächtigter",
+        PRODUCT_MANUFACTURER: "Produkthersteller"
+      };
+      return roleLabels[parsed] || parsed;
+    }
+
+    return String(parsed);
+  } catch {
+    return value;
+  }
+}
+
+// Action Labels für Anzeige
+export const CHANGE_ACTION_LABELS: Record<ChangeAction, { label: string; icon: string; color: string }> = {
+  CREATE: { label: "Erstellt", icon: "plus", color: "text-green-600 bg-green-100" },
+  UPDATE: { label: "Aktualisiert", icon: "pencil", color: "text-blue-600 bg-blue-100" },
+  STATUS: { label: "Status geändert", icon: "refresh", color: "text-purple-600 bg-purple-100" },
+  RISK_CLASS: { label: "Risikoklasse geändert", icon: "exclamation", color: "text-orange-600 bg-orange-100" },
+  AUDIT: { label: "Audit durchgeführt", icon: "clipboard-check", color: "text-indigo-600 bg-indigo-100" },
+  DELETE: { label: "Gelöscht", icon: "trash", color: "text-red-600 bg-red-100" }
+};
 
 // Statistiken für das Multi-System-Dashboard
 export interface SystemRegistryStats {
@@ -370,8 +507,11 @@ export const SYSTEM_STATUS_CONFIG: Record<SystemStatus, { label: string; color: 
 };
 
 // Helper: Neues System erstellen
-export function createNewSystem(partialInfo?: Partial<AiSystemInfo>): RegisteredAiSystem {
+export function createNewSystem(partialInfo?: Partial<AiSystemInfo>, userName?: string): RegisteredAiSystem {
   const now = new Date().toISOString();
+  const initialEntry = createChangeEntry("CREATE", undefined, undefined, undefined, userName);
+  initialEntry.description = "System wurde erstellt";
+
   return {
     id: `sys_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     createdAt: now,
@@ -402,7 +542,8 @@ export function createNewSystem(partialInfo?: Partial<AiSystemInfo>): Registered
     nextAuditDue: undefined,
     department: undefined,
     responsiblePerson: undefined,
-    notes: undefined
+    notes: undefined,
+    changeHistory: [initialEntry]
   };
 }
 

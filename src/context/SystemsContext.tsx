@@ -8,8 +8,11 @@ import {
   createNewSystem,
   calculateRegistryStats,
   AiSystemInfo,
-  RiskClass
+  RiskClass,
+  ChangeHistoryEntry,
+  createChangeEntry
 } from "../models/types";
+import authService from "../services/authService";
 
 // =============================================================================
 // V-03: SystemsContext - Multi-System-Verwaltung
@@ -26,6 +29,7 @@ interface SystemsContextType {
   // CRUD Operations
   addSystem: (partialInfo?: Partial<AiSystemInfo>) => RegisteredAiSystem;
   updateSystem: (id: string, updates: Partial<RegisteredAiSystem>) => void;
+  updateSystemWithHistory: (id: string, updates: Partial<RegisteredAiSystem>, trackChanges?: boolean) => void;
   deleteSystem: (id: string) => void;
   duplicateSystem: (id: string) => RegisteredAiSystem | null;
 
@@ -37,6 +41,10 @@ interface SystemsContextType {
   updateSystemStatus: (id: string, status: SystemStatus) => void;
   updateSystemRiskClass: (id: string, riskClass: RiskClass) => void;
   updateSystemComplianceScore: (id: string, score: number) => void;
+
+  // V-04: History
+  getSystemHistory: (id: string) => ChangeHistoryEntry[];
+  addHistoryEntry: (id: string, entry: ChangeHistoryEntry) => void;
 
   // Filtering & Sorting
   filter: SystemListFilter;
@@ -86,13 +94,21 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Calculate stats
   const stats = calculateRegistryStats(systems);
 
-  // CRUD Operations
-  const addSystem = useCallback((partialInfo?: Partial<AiSystemInfo>): RegisteredAiSystem => {
-    const newSystem = createNewSystem(partialInfo);
-    setSystems(prev => [...prev, newSystem]);
-    return newSystem;
+  // Helper: Get current user name
+  const getCurrentUserName = useCallback((): string => {
+    const user = authService.getCurrentUser();
+    return user ? `${user.firstName} ${user.lastName}` : "System";
   }, []);
 
+  // CRUD Operations
+  const addSystem = useCallback((partialInfo?: Partial<AiSystemInfo>): RegisteredAiSystem => {
+    const userName = getCurrentUserName();
+    const newSystem = createNewSystem(partialInfo, userName);
+    setSystems(prev => [...prev, newSystem]);
+    return newSystem;
+  }, [getCurrentUserName]);
+
+  // Basic update without history tracking (internal use)
   const updateSystem = useCallback((id: string, updates: Partial<RegisteredAiSystem>) => {
     setSystems(prev => prev.map(sys => {
       if (sys.id === id) {
@@ -113,6 +129,92 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return prev;
     });
   }, []);
+
+  // V-04: Update with history tracking
+  const updateSystemWithHistory = useCallback((
+    id: string,
+    updates: Partial<RegisteredAiSystem>,
+    trackChanges: boolean = true
+  ) => {
+    const userName = getCurrentUserName();
+
+    setSystems(prev => prev.map(sys => {
+      if (sys.id !== id) return sys;
+
+      const newHistory: ChangeHistoryEntry[] = [...(sys.changeHistory || [])];
+
+      if (trackChanges) {
+        // Track status changes
+        if (updates.status && updates.status !== sys.status) {
+          newHistory.push(createChangeEntry("STATUS", "status", sys.status, updates.status, userName));
+        }
+
+        // Track risk class changes
+        if (updates.riskClass !== undefined && updates.riskClass !== sys.riskClass) {
+          newHistory.push(createChangeEntry("RISK_CLASS", "riskClass", sys.riskClass, updates.riskClass, userName));
+        }
+
+        // Track systemInfo changes
+        if (updates.systemInfo) {
+          const oldInfo = sys.systemInfo;
+          const newInfo = updates.systemInfo;
+
+          // Compare each field
+          const infoFields: (keyof AiSystemInfo)[] = [
+            "systemName", "systemVersion", "systemProvider", "domain", "useCase",
+            "euAiActRole", "primaryPurpose", "annexIIICategories", "intendedUsers",
+            "prohibitedUses", "foreseenMisuse", "biometricOrSurveillance", "impactLevel"
+          ];
+
+          for (const field of infoFields) {
+            const oldVal = oldInfo[field];
+            const newVal = newInfo[field];
+
+            // Deep compare for arrays
+            const oldStr = JSON.stringify(oldVal);
+            const newStr = JSON.stringify(newVal);
+
+            if (oldStr !== newStr) {
+              newHistory.push(createChangeEntry("UPDATE", `systemInfo.${field}`, oldVal, newVal, userName));
+            }
+          }
+        }
+
+        // Track other field changes
+        const trackableFields: (keyof RegisteredAiSystem)[] = [
+          "department", "responsiblePerson", "tags", "notes", "nextAuditDue", "complianceScore"
+        ];
+
+        for (const field of trackableFields) {
+          if (updates[field] !== undefined) {
+            const oldVal = sys[field];
+            const newVal = updates[field];
+            const oldStr = JSON.stringify(oldVal);
+            const newStr = JSON.stringify(newVal);
+
+            if (oldStr !== newStr) {
+              newHistory.push(createChangeEntry("UPDATE", field, oldVal, newVal, userName));
+            }
+          }
+        }
+      }
+
+      return {
+        ...sys,
+        ...updates,
+        updatedAt: new Date().toISOString(),
+        changeHistory: newHistory
+      };
+    }));
+
+    // Update selected if it's the same system
+    setSelectedSystem(prev => {
+      if (prev?.id === id) {
+        return { ...prev, ...updates, updatedAt: new Date().toISOString() };
+      }
+      return prev;
+    });
+  }, [getCurrentUserName]);
 
   const deleteSystem = useCallback((id: string) => {
     setSystems(prev => prev.filter(sys => sys.id !== id));
@@ -147,18 +249,37 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return systems.find(sys => sys.id === id);
   }, [systems]);
 
-  // Status Management
+  // Status Management (with history tracking)
   const updateSystemStatus = useCallback((id: string, status: SystemStatus) => {
-    updateSystem(id, { status });
-  }, [updateSystem]);
+    updateSystemWithHistory(id, { status });
+  }, [updateSystemWithHistory]);
 
   const updateSystemRiskClass = useCallback((id: string, riskClass: RiskClass) => {
-    updateSystem(id, { riskClass });
-  }, [updateSystem]);
+    updateSystemWithHistory(id, { riskClass });
+  }, [updateSystemWithHistory]);
 
   const updateSystemComplianceScore = useCallback((id: string, score: number) => {
-    updateSystem(id, { complianceScore: Math.max(0, Math.min(100, score)) });
-  }, [updateSystem]);
+    updateSystemWithHistory(id, { complianceScore: Math.max(0, Math.min(100, score)) });
+  }, [updateSystemWithHistory]);
+
+  // V-04: History functions
+  const getSystemHistory = useCallback((id: string): ChangeHistoryEntry[] => {
+    const system = systems.find(sys => sys.id === id);
+    return system?.changeHistory || [];
+  }, [systems]);
+
+  const addHistoryEntry = useCallback((id: string, entry: ChangeHistoryEntry) => {
+    setSystems(prev => prev.map(sys => {
+      if (sys.id === id) {
+        return {
+          ...sys,
+          changeHistory: [...(sys.changeHistory || []), entry],
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return sys;
+    }));
+  }, []);
 
   // Filtering & Sorting
   const filteredSystems = React.useMemo(() => {
@@ -283,6 +404,7 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     isLoading,
     addSystem,
     updateSystem,
+    updateSystemWithHistory,
     deleteSystem,
     duplicateSystem,
     selectSystem,
@@ -290,6 +412,8 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSystemStatus,
     updateSystemRiskClass,
     updateSystemComplianceScore,
+    getSystemHistory,
+    addHistoryEntry,
     filter,
     setFilter,
     sort,
