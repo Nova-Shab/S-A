@@ -17,6 +17,7 @@ import fileRoutes from './routes/fileRoutes';
 import historyRoutes from './routes/historyRoutes';
 import demoRoutes from './routes/demoRoutes';
 import scannerRoutes from './routes/scannerRoutes';
+import systemAuditRoutes from './routes/systemAuditRoutes';
 
 // Import database
 import { syncDatabase } from './models';
@@ -48,6 +49,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/audits', auditRoutes);
+app.use('/api/system-audits', systemAuditRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/history', historyRoutes);
@@ -104,6 +106,7 @@ const startServer = async () => {
       console.log(`    → http://localhost:${PORT}/api/health`);
       console.log(`    → http://localhost:${PORT}/api/auth/*`);
       console.log(`    → http://localhost:${PORT}/api/audits/*`);
+      console.log(`    → http://localhost:${PORT}/api/system-audits/*`);
       console.log(`    → http://localhost:${PORT}/api/scanner/*`);
       console.log(`    → http://localhost:${PORT}/api/demo/*`);
       console.log('');
