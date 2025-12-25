@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import api from '../services/api';
@@ -56,6 +57,7 @@ const RISK_CONFIG: Record<string, { bg: string; text: string; gradient: string }
 };
 
 export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
+  const location = useLocation();
   const [inputType, setInputType] = useState<'url' | 'description'>('description');
   const [inputValue, setInputValue] = useState('');
   const [systemName, setSystemName] = useState('');
@@ -63,6 +65,24 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
+
+  // Handle incoming scan result from landing page quick-scan
+  useEffect(() => {
+    const state = location.state as { scanResult?: ScanResult } | null;
+    if (state?.scanResult) {
+      setResult(state.scanResult);
+      // Expand critical and high findings by default
+      const toExpand = new Set<number>();
+      state.scanResult.analysis.findings.forEach((f, idx) => {
+        if (f.severity === 'critical' || f.severity === 'high') {
+          toExpand.add(idx);
+        }
+      });
+      setExpandedFindings(toExpand);
+      // Clear the state to prevent re-rendering on navigation
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();

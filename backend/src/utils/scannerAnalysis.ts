@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { RiskLevel, ScanFinding, ScanAnalysis } from '../models/ScanResult';
+import { analyzeWithGPT, isGPTAvailable } from './gptAnalysis';
 
 // Keywords and patterns for detecting AI system characteristics
 const PROHIBITED_KEYWORDS = [
@@ -420,7 +421,64 @@ function generateNextSteps(riskLevel: RiskLevel): string[] {
   return steps;
 }
 
-// Main analysis function - now async for URL fetching
+// Keyword-based analysis (fallback when GPT is not available)
+function analyzeWithKeywords(
+  textToAnalyze: string,
+  isUrlScan: boolean,
+  pageTitle?: string
+): ScanAnalysis {
+  const matches = analyzeText(textToAnalyze);
+  const riskLevel = determineRiskLevel(matches);
+  const riskScore = calculateRiskScore(matches, riskLevel);
+  const findings = generateFindings(matches, riskLevel, isUrlScan, pageTitle);
+  const summary = generateSummary(riskLevel, findings, isUrlScan);
+  const nextSteps = generateNextSteps(riskLevel);
+
+  // Collect detected features
+  const detectedFeatures: string[] = [
+    ...matches.prohibitedMatches,
+    ...matches.highRiskMatches,
+    ...matches.limitedRiskMatches,
+  ];
+
+  // Add AI context if detected
+  if (matches.aiContextMatches.length > 0) {
+    detectedFeatures.push(...matches.aiContextMatches.slice(0, 5));
+  }
+
+  // Identify compliance gaps
+  const complianceGaps: string[] = [];
+  if (riskLevel === 'HIGH_RISK') {
+    complianceGaps.push('Konformitätsbewertung ausstehend');
+    complianceGaps.push('Risikomanagement-System erforderlich');
+    complianceGaps.push('Technische Dokumentation erforderlich');
+  }
+  if (riskLevel === 'LIMITED_RISK' || riskLevel === 'HIGH_RISK') {
+    complianceGaps.push('Transparenzpflichten prüfen');
+  }
+
+  // Add info about analysis method
+  findings.unshift({
+    category: 'Analyse-Information',
+    title: 'Keyword-basierte Analyse',
+    severity: 'info',
+    description: 'Diese Analyse wurde mit Keyword-Matching durchgeführt. Für eine tiefgehendere Analyse konfigurieren Sie einen OpenAI API-Key.',
+    recommendation: 'Erwägen Sie die Aktivierung der GPT-gestützten Analyse für präzisere Ergebnisse.',
+    articleReference: '',
+  });
+
+  return {
+    riskLevel,
+    riskScore,
+    findings,
+    summary,
+    detectedFeatures: [...new Set(detectedFeatures)],
+    complianceGaps,
+    nextSteps,
+  };
+}
+
+// Main analysis function - uses GPT when available, falls back to keywords
 export async function analyzeSystem(inputType: 'url' | 'description', inputValue: string): Promise<ScanAnalysis> {
   let textToAnalyze: string;
   let pageTitle: string | undefined;
@@ -455,45 +513,21 @@ export async function analyzeSystem(inputType: 'url' | 'description', inputValue
     textToAnalyze = inputValue;
   }
 
-  const matches = analyzeText(textToAnalyze);
-  const riskLevel = determineRiskLevel(matches);
-  const riskScore = calculateRiskScore(matches, riskLevel);
-  const findings = generateFindings(matches, riskLevel, isUrlScan, pageTitle);
-  const summary = generateSummary(riskLevel, findings, isUrlScan);
-  const nextSteps = generateNextSteps(riskLevel);
-
-  // Collect detected features
-  const detectedFeatures: string[] = [
-    ...matches.prohibitedMatches,
-    ...matches.highRiskMatches,
-    ...matches.limitedRiskMatches,
-  ];
-
-  // Add AI context if detected
-  if (matches.aiContextMatches.length > 0) {
-    detectedFeatures.push(...matches.aiContextMatches.slice(0, 5)); // Add top 5 AI keywords
+  // Try GPT analysis first if available
+  if (isGPTAvailable()) {
+    try {
+      console.log('Using GPT-powered analysis...');
+      const gptResult = await analyzeWithGPT(inputType, textToAnalyze, pageTitle);
+      return gptResult;
+    } catch (error) {
+      console.error('GPT analysis failed, falling back to keyword analysis:', error);
+      // Fall through to keyword analysis
+    }
   }
 
-  // Identify compliance gaps
-  const complianceGaps: string[] = [];
-  if (riskLevel === 'HIGH_RISK') {
-    complianceGaps.push('Konformitätsbewertung ausstehend');
-    complianceGaps.push('Risikomanagement-System erforderlich');
-    complianceGaps.push('Technische Dokumentation erforderlich');
-  }
-  if (riskLevel === 'LIMITED_RISK' || riskLevel === 'HIGH_RISK') {
-    complianceGaps.push('Transparenzpflichten prüfen');
-  }
-
-  return {
-    riskLevel,
-    riskScore,
-    findings,
-    summary,
-    detectedFeatures: [...new Set(detectedFeatures)], // Remove duplicates
-    complianceGaps,
-    nextSteps,
-  };
+  // Fallback to keyword-based analysis
+  console.log('Using keyword-based analysis...');
+  return analyzeWithKeywords(textToAnalyze, isUrlScan, pageTitle);
 }
 
 // Risk level display helpers
