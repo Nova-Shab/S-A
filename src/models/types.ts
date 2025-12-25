@@ -293,3 +293,180 @@ export const defaultAiSystemInfo: Partial<AiSystemInfo> = {
   foreseenMisuse: "",
   systemBoundaries: defaultSystemBoundaries
 };
+
+// =============================================================================
+// V-03: Multi-System-Registry
+// Ermöglicht zentrale Verwaltung mehrerer KI-Systeme für Unternehmen
+// =============================================================================
+
+// Status eines registrierten KI-Systems
+export type SystemStatus =
+  | "DRAFT"              // System in Erfassung
+  | "ACTIVE"             // Aktives System
+  | "UNDER_REVIEW"       // Wird geprüft
+  | "COMPLIANT"          // EU AI Act konform
+  | "NON_COMPLIANT"      // Nicht konform, Maßnahmen erforderlich
+  | "DEPRECATED";        // Außer Betrieb
+
+// Registriertes KI-System in der Unternehmensverwaltung
+export interface RegisteredAiSystem {
+  id: string;                            // Eindeutige ID
+  createdAt: string;                     // Erstellungsdatum (ISO)
+  updatedAt: string;                     // Letzte Aktualisierung (ISO)
+  status: SystemStatus;                  // Aktueller Status
+  systemInfo: AiSystemInfo;              // Vollständige System-Informationen
+  riskClass: RiskClass | null;           // Ermittelte Risikoklasse
+  complianceScore?: number;              // Compliance-Score (0-100)
+  lastAuditDate?: string;                // Letztes Audit-Datum
+  nextAuditDue?: string;                 // Nächstes geplantes Audit
+  auditCount: number;                    // Anzahl durchgeführter Audits
+  tags: string[];                        // Kategorisierungs-Tags
+  department?: string;                   // Zuständige Abteilung
+  responsiblePerson?: string;            // Verantwortliche Person
+  notes?: string;                        // Interne Notizen
+}
+
+// Statistiken für das Multi-System-Dashboard
+export interface SystemRegistryStats {
+  totalSystems: number;
+  byStatus: Record<SystemStatus, number>;
+  byRiskClass: Record<RiskClass | "UNCLASSIFIED", number>;
+  averageComplianceScore: number;
+  systemsRequiringAction: number;
+  upcomingAudits: number;
+}
+
+// Filter für die System-Liste
+export interface SystemListFilter {
+  status?: SystemStatus[];
+  riskClass?: RiskClass[];
+  department?: string;
+  tags?: string[];
+  searchTerm?: string;
+}
+
+// Sortierung für die System-Liste
+export type SystemSortField =
+  | "systemName"
+  | "createdAt"
+  | "updatedAt"
+  | "riskClass"
+  | "complianceScore"
+  | "nextAuditDue";
+
+export interface SystemListSort {
+  field: SystemSortField;
+  direction: "asc" | "desc";
+}
+
+// Status-Label und Farben
+export const SYSTEM_STATUS_CONFIG: Record<SystemStatus, { label: string; color: string; bgColor: string }> = {
+  DRAFT: { label: "Entwurf", color: "text-gray-600", bgColor: "bg-gray-100" },
+  ACTIVE: { label: "Aktiv", color: "text-blue-600", bgColor: "bg-blue-100" },
+  UNDER_REVIEW: { label: "In Prüfung", color: "text-purple-600", bgColor: "bg-purple-100" },
+  COMPLIANT: { label: "Konform", color: "text-green-600", bgColor: "bg-green-100" },
+  NON_COMPLIANT: { label: "Nicht konform", color: "text-red-600", bgColor: "bg-red-100" },
+  DEPRECATED: { label: "Außer Betrieb", color: "text-gray-400", bgColor: "bg-gray-50" }
+};
+
+// Helper: Neues System erstellen
+export function createNewSystem(partialInfo?: Partial<AiSystemInfo>): RegisteredAiSystem {
+  const now = new Date().toISOString();
+  return {
+    id: `sys_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    createdAt: now,
+    updatedAt: now,
+    status: "DRAFT",
+    systemInfo: {
+      systemName: partialInfo?.systemName || "",
+      systemVersion: partialInfo?.systemVersion || "",
+      systemProvider: partialInfo?.systemProvider || "",
+      domain: partialInfo?.domain || "",
+      useCase: partialInfo?.useCase || "",
+      impactLevel: partialInfo?.impactLevel || "low",
+      biometricOrSurveillance: partialInfo?.biometricOrSurveillance || false,
+      euImpact: partialInfo?.euImpact ?? true,
+      euAiActRole: partialInfo?.euAiActRole || "DEPLOYER",
+      primaryPurpose: partialInfo?.primaryPurpose || "",
+      annexIIICategories: partialInfo?.annexIIICategories || [],
+      intendedUsers: partialInfo?.intendedUsers || "",
+      prohibitedUses: partialInfo?.prohibitedUses || "",
+      foreseenMisuse: partialInfo?.foreseenMisuse || "",
+      systemBoundaries: partialInfo?.systemBoundaries || defaultSystemBoundaries
+    },
+    riskClass: null,
+    auditCount: 0,
+    tags: [],
+    complianceScore: undefined,
+    lastAuditDate: undefined,
+    nextAuditDue: undefined,
+    department: undefined,
+    responsiblePerson: undefined,
+    notes: undefined
+  };
+}
+
+// Helper: Statistiken berechnen
+export function calculateRegistryStats(systems: RegisteredAiSystem[]): SystemRegistryStats {
+  const stats: SystemRegistryStats = {
+    totalSystems: systems.length,
+    byStatus: {
+      DRAFT: 0,
+      ACTIVE: 0,
+      UNDER_REVIEW: 0,
+      COMPLIANT: 0,
+      NON_COMPLIANT: 0,
+      DEPRECATED: 0
+    },
+    byRiskClass: {
+      PROHIBITED: 0,
+      HIGH_RISK: 0,
+      LIMITED_RISK: 0,
+      MINIMAL_RISK: 0,
+      UNCLASSIFIED: 0
+    },
+    averageComplianceScore: 0,
+    systemsRequiringAction: 0,
+    upcomingAudits: 0
+  };
+
+  let scoreSum = 0;
+  let scoreCount = 0;
+  const now = new Date();
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  for (const sys of systems) {
+    // Status zählen
+    stats.byStatus[sys.status]++;
+
+    // Risikoklasse zählen
+    if (sys.riskClass) {
+      stats.byRiskClass[sys.riskClass]++;
+    } else {
+      stats.byRiskClass.UNCLASSIFIED++;
+    }
+
+    // Compliance-Score summieren
+    if (typeof sys.complianceScore === "number") {
+      scoreSum += sys.complianceScore;
+      scoreCount++;
+    }
+
+    // Systeme mit Handlungsbedarf
+    if (sys.status === "NON_COMPLIANT" || sys.status === "UNDER_REVIEW") {
+      stats.systemsRequiringAction++;
+    }
+
+    // Anstehende Audits (nächste 30 Tage)
+    if (sys.nextAuditDue) {
+      const auditDate = new Date(sys.nextAuditDue);
+      if (auditDate <= thirtyDaysFromNow && auditDate >= now) {
+        stats.upcomingAudits++;
+      }
+    }
+  }
+
+  stats.averageComplianceScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0;
+
+  return stats;
+}
