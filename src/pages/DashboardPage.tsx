@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import auditService, { AuditData } from '../services/auditService';
 import authService from '../services/authService';
+import { useSystems } from '../context/SystemsContext';
+import { SYSTEM_STATUS_CONFIG } from '../models/types';
+import { getRiskClassLabel } from '../utils/riskClassification';
 
 interface DashboardPageProps {
   onCreateAudit: () => void;
@@ -15,11 +19,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onOpenAudit,
   onLogout,
 }) => {
+  const navigate = useNavigate();
   const [audits, setAudits] = useState<AuditData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const user = authService.getCurrentUser();
+  const { systems, stats } = useSystems();
 
   useEffect(() => {
     loadAudits();
@@ -103,6 +109,102 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* V-03: Systems Overview */}
+        {systems.length > 0 && (
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                KI-Systeme Übersicht
+              </h2>
+              <Button variant="secondary" onClick={() => navigate('/systems')}>
+                Alle Systeme verwalten
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+              <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-2xl font-bold text-gray-900">{stats.totalSystems}</div>
+                <div className="text-xs text-gray-500">Systeme</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-2xl font-bold text-green-600">{stats.byStatus.COMPLIANT}</div>
+                <div className="text-xs text-gray-500">Konform</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-2xl font-bold text-red-600">{stats.byStatus.NON_COMPLIANT}</div>
+                <div className="text-xs text-gray-500">Nicht konform</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-2xl font-bold text-orange-600">{stats.byRiskClass.HIGH_RISK}</div>
+                <div className="text-xs text-gray-500">Hochrisiko</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-2xl font-bold text-purple-600">{stats.systemsRequiringAction}</div>
+                <div className="text-xs text-gray-500">Handlungsbedarf</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-2xl font-bold text-blue-600">{stats.upcomingAudits}</div>
+                <div className="text-xs text-gray-500">Audits fällig</div>
+              </div>
+            </div>
+            {/* Quick list of systems requiring attention */}
+            {stats.systemsRequiringAction > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <h3 className="text-sm font-medium text-yellow-800 mb-2">
+                  Systeme mit Handlungsbedarf
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {systems
+                    .filter(s => s.status === 'NON_COMPLIANT' || s.status === 'UNDER_REVIEW')
+                    .slice(0, 5)
+                    .map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => navigate(`/systems/${s.id}`)}
+                        className="inline-flex items-center px-3 py-1 bg-white border border-yellow-300 rounded-full text-sm hover:bg-yellow-100 transition-colors"
+                      >
+                        <span className={`w-2 h-2 rounded-full mr-2 ${SYSTEM_STATUS_CONFIG[s.status].bgColor}`}></span>
+                        {s.systemInfo.systemName || 'Unbenannt'}
+                        {s.riskClass && (
+                          <span className={`ml-2 px-1.5 py-0.5 text-xs rounded ${getRiskClassColor(s.riskClass as string)}`}>
+                            {getRiskClassLabel(s.riskClass)}
+                          </span>
+                        )}
+                      </button>
+                    ))
+                  }
+                  {stats.systemsRequiringAction > 5 && (
+                    <button
+                      onClick={() => navigate('/systems')}
+                      className="text-sm text-yellow-700 hover:text-yellow-900 underline"
+                    >
+                      +{stats.systemsRequiringAction - 5} weitere
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Empty state for no systems */}
+        {systems.length === 0 && (
+          <Card className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                  KI-Systeme Verwaltung
+                </h2>
+                <p className="text-gray-600">
+                  Registrieren Sie Ihre KI-Systeme für eine zentrale EU AI Act Compliance-Verwaltung.
+                </p>
+              </div>
+              <Button onClick={() => navigate('/systems')}>
+                System registrieren
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Filters */}
         <Card className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

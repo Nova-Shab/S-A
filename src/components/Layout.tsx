@@ -22,6 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const getCurrentView = (): string => {
     const path = location.pathname;
     if (path === '/dashboard' || path === '/') return 'dashboard';
+    if (path.startsWith('/systems')) return 'systems';
     if (path === '/scanner') return 'scanner';
     if (path === '/demo-access') return 'demo-access';
     if (path === '/audit-tools') return 'audit-tools';
@@ -33,6 +34,9 @@ export const Layout: React.FC<LayoutProps> = ({
     switch (targetView) {
       case 'dashboard':
         navigate('/dashboard');
+        break;
+      case 'systems':
+        navigate('/systems');
         break;
       case 'scanner':
         navigate('/scanner');

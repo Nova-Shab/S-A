@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuditProvider, useAudit } from "./context/AuditContext";
+import { SystemsProvider } from "./context/SystemsContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -14,6 +15,8 @@ import { ActionPlanPage } from "./pages/ActionPlanPage";
 import { ScannerPage } from "./pages/ScannerPage";
 import { DemoAccessPage } from "./pages/DemoAccessPage";
 import { AuditToolsPage } from "./pages/AuditToolsPage";
+import { SystemsListPage } from "./pages/SystemsListPage";
+import { SystemDetailPage } from "./pages/SystemDetailPage";
 import authService from "./services/authService";
 import demoService, { DemoLead } from "./services/demoService";
 
@@ -167,6 +170,10 @@ const AppContent: React.FC = () => {
         <Route path="/scanner" element={
           <ScannerPage onBack={() => navigate('/dashboard')} />
         } />
+        {/* V-03: Multi-System-Verwaltung */}
+        <Route path="/systems" element={<SystemsListPage />} />
+        <Route path="/systems/:id" element={<SystemDetailPage />} />
+        <Route path="/systems/:id/edit" element={<SystemDetailPage />} />
       </Route>
 
       {/* Demo Access Page (protected but doesn't require demo access) */}
@@ -305,7 +312,9 @@ function App() {
   return (
     <ErrorBoundary>
       <AuditProvider>
-        <AppContent />
+        <SystemsProvider>
+          <AppContent />
+        </SystemsProvider>
       </AuditProvider>
     </ErrorBoundary>
   );
