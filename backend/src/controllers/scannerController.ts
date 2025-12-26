@@ -268,7 +268,7 @@ export const generateReport = async (req: Request, res: Response): Promise<void>
     // Generate PDF
     const doc = generatePdfReport({
       scanId: scanResult.id,
-      systemName: scanResult.systemName,
+      systemName: scanResult.systemName || 'Unbekanntes System',
       inputType: scanResult.inputType,
       inputValue: scanResult.inputValue,
       createdAt: scanResult.createdAt,
@@ -277,7 +277,8 @@ export const generateReport = async (req: Request, res: Response): Promise<void>
     });
 
     // Set response headers for PDF download
-    const filename = `EU_AI_Act_Report_${scanResult.systemName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const systemNameSafe = (scanResult.systemName || 'Unknown_System').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `EU_AI_Act_Report_${systemNameSafe}_${new Date().toISOString().split('T')[0]}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
