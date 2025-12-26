@@ -179,7 +179,7 @@ export const NovaChatBot: React.FC = () => {
             </div>
             <div>
               <h3 className="font-semibold text-lg">Nova</h3>
-              <p className="text-xs text-blue-100">EU AI Act Assistent</p>
+              <p className="text-xs text-blue-100">Ihr freundlicher EU AI Act Helfer</p>
             </div>
           </div>
 
@@ -195,11 +195,11 @@ export const NovaChatBot: React.FC = () => {
                 </div>
                 <h4 className="font-medium text-gray-900 mb-2">Hallo! Ich bin Nova</h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Ihr EU AI Act Compliance-Assistent. Wie kann ich Ihnen helfen?
+                  Ich helfe Ihnen beim EU AI Act - einfach und verständlich erklärt!
                 </p>
                 {suggestions.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500 mb-2">Häufige Fragen:</p>
+                    <p className="text-xs text-gray-500 mb-2">Fragen Sie mich z.B.:</p>
                     {suggestions.slice(0, 4).map((suggestion, idx) => (
                       <button
                         key={idx}
@@ -272,7 +272,7 @@ export const NovaChatBot: React.FC = () => {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ihre Frage zum EU AI Act..."
+                placeholder="Fragen Sie mich einfach..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                   text-sm"
