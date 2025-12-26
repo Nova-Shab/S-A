@@ -238,11 +238,34 @@ export interface Requirement {
   riskLevel: RiskClass[];     // Für welche Risikoklassen gilt diese Anforderung
 }
 
+// Dokument mit KI-Analyse
+export interface RequirementDocument {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+  aiAnalysis?: DocumentAIAnalysis;
+}
+
+// KI-Analyse-Ergebnis für ein Dokument
+export interface DocumentAIAnalysis {
+  relevanceScore: number;           // 0-100: Relevanz für die Anforderung
+  completenessScore: number;        // 0-100: Vollständigkeit der Abdeckung
+  status: 'analyzing' | 'completed' | 'failed';
+  findings: string[];               // Gefundene relevante Inhalte
+  gaps: string[];                   // Identifizierte Lücken
+  recommendations: string[];        // Empfehlungen
+  analyzedAt: string;
+  summary?: string;                 // Kurze Zusammenfassung
+}
+
 // Antwort/Bewertung einer Anforderung
 export interface AuditAnswer {
   requirementId: string;
   status: RequirementStatus;
   notes: string;
+  documents?: RequirementDocument[];  // Hochgeladene Evidenz-Dokumente
 }
 
 // Maßnahme/Empfehlung

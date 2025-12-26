@@ -3,11 +3,12 @@ import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { useAudit } from "../context/AuditContext";
-import { Requirement, RequirementStatus } from "../models/types";
+import { Requirement, RequirementStatus, RequirementDocument } from "../models/types";
 import {
   getRequirementsForRisk,
   groupRequirementsByCategory,
 } from "../utils/requirements";
+import { RequirementDocumentUpload } from "../components/RequirementDocumentUpload";
 
 const STEPS = [
   { number: 1, title: "Risiko einstufen" },
@@ -60,6 +61,7 @@ export const AuditPage: React.FC = () => {
       requirementId: reqId,
       status,
       notes: existing?.notes || "",
+      documents: existing?.documents || [],
     });
   };
 
@@ -69,6 +71,17 @@ export const AuditPage: React.FC = () => {
       requirementId: reqId,
       status: existing?.status || "non_compliant",
       notes,
+      documents: existing?.documents || [],
+    });
+  };
+
+  const handleDocumentsChange = (reqId: string, documents: RequirementDocument[]) => {
+    const existing = getAnswerForRequirement(reqId);
+    updateAuditAnswer({
+      requirementId: reqId,
+      status: existing?.status || "non_compliant",
+      notes: existing?.notes || "",
+      documents,
     });
   };
 
@@ -243,6 +256,14 @@ export const AuditPage: React.FC = () => {
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             />
                           </div>
+
+                          {/* Document Upload with AI Analysis */}
+                          <RequirementDocumentUpload
+                            requirementId={req.id}
+                            requirementTitle={req.title}
+                            documents={answer?.documents || []}
+                            onDocumentsChange={(docs) => handleDocumentsChange(req.id, docs)}
+                          />
                         </div>
                       );
                     })}
