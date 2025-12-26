@@ -21,6 +21,7 @@ import { AuditWizardPage } from "./pages/AuditWizardPage";
 import { AuditHistoryPage } from "./pages/AuditHistoryPage";
 import authService from "./services/authService";
 import demoService, { DemoLead } from "./services/demoService";
+import { NovaChatBot } from "./components/NovaChatBot";
 
 const AppContent: React.FC = () => {
   const { state, setCurrentStep, resetAudit } = useAudit();
@@ -320,6 +321,7 @@ function App() {
       <AuditProvider>
         <SystemsProvider>
           <AppContent />
+          <NovaChatBot />
         </SystemsProvider>
       </AuditProvider>
     </ErrorBoundary>

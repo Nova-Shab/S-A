@@ -19,6 +19,7 @@ import demoRoutes from './routes/demoRoutes';
 import scannerRoutes from './routes/scannerRoutes';
 import systemAuditRoutes from './routes/systemAuditRoutes';
 import documentAnalysisRoutes from './routes/documentAnalysisRoutes';
+import chatRoutes from './routes/chatRoutes';
 
 // Import database
 import { syncDatabase } from './models';
@@ -57,6 +58,7 @@ app.use('/api/history', historyRoutes);
 app.use('/api/demo', demoRoutes);
 app.use('/api/scanner', scannerRoutes);
 app.use('/api/documents', documentAnalysisRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
@@ -111,6 +113,7 @@ const startServer = async () => {
       console.log(`    → http://localhost:${PORT}/api/system-audits/*`);
       console.log(`    → http://localhost:${PORT}/api/scanner/*`);
       console.log(`    → http://localhost:${PORT}/api/documents/*`);
+      console.log(`    → http://localhost:${PORT}/api/chat/*`);
       console.log(`    → http://localhost:${PORT}/api/demo/*`);
       console.log('');
       console.log(`  Demo Mode: ${process.env.DEMO_ENABLED !== 'false' ? 'ENABLED' : 'DISABLED'}`);
