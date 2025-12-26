@@ -100,7 +100,7 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
         systemInfo: state.systemInfo,
         riskClass: state.riskClass,
       });
-      setSaveMessage({ type: "success", text: "Erfolgreich gespeichert!" });
+      setSaveMessage({ type: "success", text: "Gespeichert!" });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error("Fehler beim Speichern:", error);
@@ -165,63 +165,45 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
 
   return (
     <>
-      {/* Floating Save Bar */}
-      <div className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 print:hidden ${className}`}>
-        <div className="max-w-5xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            {/* Left: Status Info */}
-            <div className="flex items-center gap-3">
-              {saveMessage && (
-                <span className={`text-sm font-medium ${
-                  saveMessage.type === "success" ? "text-green-600" : "text-red-600"
-                }`}>
-                  {saveMessage.text}
-                </span>
-              )}
-              {latestVersion && !saveMessage && (
-                <span className="text-sm text-gray-500">
-                  Letzte Version: v{latestVersion.version}
-                </span>
-              )}
-              {!latestVersion && !saveMessage && currentAuditId && (
-                <span className="text-sm text-gray-500">
-                  Audit-ID: {currentAuditId}
-                </span>
-              )}
-              {!latestVersion && !saveMessage && !currentAuditId && (
-                <span className="text-sm text-gray-400">
-                  Noch nicht gespeichert
-                </span>
-              )}
-            </div>
+      {/* Header Buttons - Inline */}
+      <div className={`flex items-center gap-2 print:hidden ${className}`}>
+        {/* Status Info */}
+        {saveMessage && (
+          <span className={`text-sm font-medium mr-2 ${
+            saveMessage.type === "success" ? "text-green-600" : "text-red-600"
+          }`}>
+            {saveMessage.text}
+          </span>
+        )}
+        {latestVersion && !saveMessage && (
+          <span className="text-xs text-gray-500 mr-2">
+            v{latestVersion.version}
+          </span>
+        )}
 
-            {/* Right: Action Buttons */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="primary"
-                onClick={handleSaveAudit}
-                disabled={isSaving}
-                className="text-sm px-4 py-2"
-              >
-                {isSaving ? "..." : "💾 Speichern"}
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowVersionModal(true)}
-                className="text-sm px-3 py-2"
-              >
-                📸 Version
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleViewHistory}
-                className="text-sm px-3 py-2"
-              >
-                📜 Historie
-              </Button>
-            </div>
-          </div>
-        </div>
+        {/* Action Buttons */}
+        <Button
+          variant="primary"
+          onClick={handleSaveAudit}
+          disabled={isSaving}
+          className="text-sm"
+        >
+          {isSaving ? "..." : "💾 Speichern"}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => setShowVersionModal(true)}
+          className="text-sm"
+        >
+          📸 Version
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleViewHistory}
+          className="text-sm"
+        >
+          📜 Historie
+        </Button>
       </div>
 
       {/* Version Modal */}
@@ -276,9 +258,6 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
           </div>
         </div>
       )}
-
-      {/* Spacer for fixed bar */}
-      <div className="h-16 print:hidden" />
     </>
   );
 };

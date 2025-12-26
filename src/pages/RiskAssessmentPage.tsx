@@ -1016,12 +1016,18 @@ export const RiskAssessmentPage: React.FC = () => {
       <StepIndicator currentStep={1} steps={STEPS} />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Schritt 1: Risikostufe bestimmen
-        </h1>
-        <p className="text-gray-600 mb-4">
-          Definieren Sie das KI-System und ermitteln Sie die Risikoklasse.
-        </p>
+        {/* Header mit Save-Buttons */}
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Schritt 1: Risikostufe bestimmen
+            </h1>
+            <p className="text-gray-600">
+              Definieren Sie das KI-System und ermitteln Sie die Risikoklasse.
+            </p>
+          </div>
+          <AuditSaveBar />
+        </div>
 
         {/* Progress-Anzeige */}
         {!showResult && (
@@ -1048,9 +1054,6 @@ export const RiskAssessmentPage: React.FC = () => {
         onClose={() => setShowImportModal(false)}
         onImport={handleImport}
       />
-
-      {/* Floating Save Bar */}
-      <AuditSaveBar />
     </div>
   );
 };

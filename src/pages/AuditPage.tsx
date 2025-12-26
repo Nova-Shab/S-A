@@ -130,13 +130,19 @@ export const AuditPage: React.FC = () => {
       <StepIndicator currentStep={2} steps={STEPS} />
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Schritt 2: Anforderungen prüfen
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Bewerten Sie den Erfüllungsgrad jeder Anforderung für Ihr{" "}
-          <strong>{state.riskClass}</strong>-System.
-        </p>
+        {/* Header mit Save-Buttons */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Schritt 2: Anforderungen prüfen
+            </h1>
+            <p className="text-gray-600">
+              Bewerten Sie den Erfüllungsgrad jeder Anforderung für Ihr{" "}
+              <strong>{state.riskClass}</strong>-System.
+            </p>
+          </div>
+          <AuditSaveBar />
+        </div>
 
         {/* Progress Bar */}
         <Card className="mb-6">
@@ -300,9 +306,6 @@ export const AuditPage: React.FC = () => {
             </p>
           )}
         </Card>
-
-        {/* Floating Save Bar */}
-        <AuditSaveBar />
       </div>
     </div>
   );

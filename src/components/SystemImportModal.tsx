@@ -63,9 +63,40 @@ export const SystemImportModal: React.FC<SystemImportModalProps> = ({
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setTextInput(content);
-      parseContent(content, importFormat);
+      // Auto-detect format based on content
+      autoParseContent(content);
     };
     reader.readAsText(file);
+  };
+
+  // Versucht automatisch das Format zu erkennen und zu parsen
+  const autoParseContent = (content: string) => {
+    setError(null);
+    setParseResult(null);
+
+    const trimmed = content.trim();
+
+    // Versuche zuerst JSON zu parsen (auch wenn Format auf "text" steht)
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const validated = validateAndMapJson(parsed);
+        setParseResult(validated);
+        setImportFormat("json"); // Update Format-Anzeige
+        return;
+      } catch {
+        // Kein gültiges JSON, weiter mit Textextraktion
+      }
+    }
+
+    // Fallback: Als Text parsen
+    try {
+      const extracted = extractFromText(content);
+      setParseResult(extracted);
+      setImportFormat("text");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fehler beim Parsen");
+    }
   };
 
   const parseContent = (content: string, format: ImportFormat) => {
@@ -74,17 +105,31 @@ export const SystemImportModal: React.FC<SystemImportModalProps> = ({
 
     try {
       if (format === "json") {
-        const parsed = JSON.parse(content);
+        // Versuche JSON zu parsen, auch wenn es in einem Text-File war
+        const trimmed = content.trim();
+        const parsed = JSON.parse(trimmed);
         const validated = validateAndMapJson(parsed);
         setParseResult(validated);
       } else if (format === "text") {
+        // Versuche zuerst JSON, falls es wie JSON aussieht
+        const trimmed = content.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            const validated = validateAndMapJson(parsed);
+            setParseResult(validated);
+            return;
+          } catch {
+            // Kein JSON, weiter mit Text-Extraktion
+          }
+        }
         const extracted = extractFromText(content);
         setParseResult(extracted);
       } else if (format === "template") {
         setParseResult(SYSTEM_INFO_TEMPLATE);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Parsen");
+      setError(err instanceof Error ? err.message : "Fehler beim Parsen. Stellen Sie sicher, dass das JSON-Format korrekt ist.");
     }
   };
 
@@ -428,15 +473,18 @@ export const SystemImportModal: React.FC<SystemImportModalProps> = ({
               {/* Datei-Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Datei hochladen
+                  Datei hochladen (JSON, TXT, MD)
                 </label>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept={importFormat === "json" ? ".json" : ".txt,.md,.doc"}
+                  accept=".json,.txt,.md,.text,application/json,text/plain"
                   onChange={handleFileUpload}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  JSON-Dateien werden automatisch erkannt, auch mit .txt Endung
+                </p>
               </div>
 
               {/* Text-Eingabe */}
