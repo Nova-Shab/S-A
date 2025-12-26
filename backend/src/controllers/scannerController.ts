@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import ScanResult from '../models/ScanResult';
 import { analyzeSystem, RISK_LEVEL_INFO } from '../utils/scannerAnalysis';
+import generatePdfReport from '../utils/pdfReportGenerator';
 
 // Perform a new scan
 export const performScan = async (req: Request, res: Response): Promise<void> => {
@@ -209,10 +210,11 @@ export const deleteScan = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// Generate PDF report (placeholder - returns JSON for now)
+// Generate PDF report and download
 export const generateReport = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const { format } = req.query; // 'pdf' or 'json'
 
     const scanResult = await ScanResult.findByPk(id);
 
@@ -226,40 +228,63 @@ export const generateReport = async (req: Request, res: Response): Promise<void>
 
     const riskInfo = RISK_LEVEL_INFO[scanResult.analysis.riskLevel];
 
-    // For now, return a structured report as JSON
-    // In production, this could generate a PDF
-    const report = {
-      title: 'EU AI Act Compliance Report',
-      generatedAt: new Date().toISOString(),
+    // If JSON format requested, return structured data
+    if (format === 'json') {
+      const report = {
+        title: 'EU AI Act Compliance Report',
+        generatedAt: new Date().toISOString(),
+        systemName: scanResult.systemName,
+        scanDate: scanResult.createdAt,
+
+        executiveSummary: {
+          riskLevel: scanResult.analysis.riskLevel,
+          riskLevelLabel: riskInfo.label,
+          riskScore: scanResult.analysis.riskScore,
+          summary: scanResult.analysis.summary,
+        },
+
+        findings: scanResult.analysis.findings.map((f, idx) => ({
+          number: idx + 1,
+          ...f,
+        })),
+
+        detectedFeatures: scanResult.analysis.detectedFeatures,
+        complianceGaps: scanResult.analysis.complianceGaps,
+        recommendedActions: scanResult.analysis.nextSteps,
+
+        disclaimer: 'Dieser Bericht dient nur zur Orientierung und ersetzt keine rechtliche Beratung. ' +
+          'Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.',
+
+        legalBasis: 'EU AI Act - Regulation (EU) 2024/1689',
+      };
+
+      res.json({
+        success: true,
+        report,
+      });
+      return;
+    }
+
+    // Generate PDF
+    const doc = generatePdfReport({
+      scanId: scanResult.id,
       systemName: scanResult.systemName,
-      scanDate: scanResult.createdAt,
-
-      executiveSummary: {
-        riskLevel: scanResult.analysis.riskLevel,
-        riskLevelLabel: riskInfo.label,
-        riskScore: scanResult.analysis.riskScore,
-        summary: scanResult.analysis.summary,
-      },
-
-      findings: scanResult.analysis.findings.map((f, idx) => ({
-        number: idx + 1,
-        ...f,
-      })),
-
-      detectedFeatures: scanResult.analysis.detectedFeatures,
-      complianceGaps: scanResult.analysis.complianceGaps,
-      recommendedActions: scanResult.analysis.nextSteps,
-
-      disclaimer: 'Dieser Bericht dient nur zur Orientierung und ersetzt keine rechtliche Beratung. ' +
-        'Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.',
-
-      legalBasis: 'EU AI Act - Regulation (EU) 2024/1689',
-    };
-
-    res.json({
-      success: true,
-      report,
+      inputType: scanResult.inputType,
+      inputValue: scanResult.inputValue,
+      createdAt: scanResult.createdAt,
+      analysis: scanResult.analysis,
+      riskLevelLabel: riskInfo.label,
     });
+
+    // Set response headers for PDF download
+    const filename = `EU_AI_Act_Report_${scanResult.systemName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Pipe the PDF to the response
+    doc.pipe(res);
+    doc.end();
   } catch (error) {
     console.error('Generate report error:', error);
     res.status(500).json({
