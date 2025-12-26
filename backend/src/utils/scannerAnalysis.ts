@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import { RiskLevel, ScanFinding, ScanAnalysis } from '../models/ScanResult';
 import { analyzeWithGPT, isGPTAvailable } from './gptAnalysis';
 import { analyzeWithOllama, isOllamaAvailable } from './ollamaAnalysis';
+import { advancedWebScrape, DetectedAIFeature } from './advancedWebScraper';
 
 // Keywords and patterns for detecting AI system characteristics
 const PROHIBITED_KEYWORDS = [
@@ -479,18 +480,57 @@ function analyzeWithKeywords(
   };
 }
 
+// Convert detected AI features to findings
+function featuresToFindings(features: DetectedAIFeature[]): ScanFinding[] {
+  return features.map(feature => {
+    let severity: ScanFinding['severity'] = 'medium';
+    if (feature.type === 'biometric' || feature.type === 'decision') {
+      severity = 'high';
+    } else if (feature.type === 'chatbot' || feature.type === 'generation') {
+      severity = 'medium';
+    } else {
+      severity = 'low';
+    }
+
+    return {
+      category: `KI-Feature: ${feature.type}`,
+      title: feature.name,
+      severity,
+      description: `${feature.description}. Gefunden auf: ${feature.location}`,
+      recommendation: feature.euAiActRelevance,
+      articleReference: feature.riskIndicators.join(', '),
+    };
+  });
+}
+
 // Main analysis function - uses GPT when available, falls back to keywords
 export async function analyzeSystem(inputType: 'url' | 'description', inputValue: string): Promise<ScanAnalysis> {
   let textToAnalyze: string;
   let pageTitle: string | undefined;
   let isUrlScan = false;
+  let advancedFeatures: DetectedAIFeature[] = [];
+  let scrapedPages: string[] = [];
 
   if (inputType === 'url') {
     isUrlScan = true;
     try {
-      const urlContent = await fetchUrlContent(inputValue);
-      textToAnalyze = `${urlContent.title} ${urlContent.metaDescription} ${urlContent.text}`;
-      pageTitle = urlContent.title;
+      // Use advanced multi-page scraping
+      console.log('Starting advanced web scrape...');
+      const scrapeResult = await advancedWebScrape(inputValue, { maxPages: 5, maxDepth: 2 });
+
+      textToAnalyze = scrapeResult.totalContent;
+      pageTitle = `Website-Analyse (${scrapeResult.pagesScraped} Seiten)`;
+      advancedFeatures = scrapeResult.detectedFeatures;
+      scrapedPages = scrapeResult.scrapedUrls;
+
+      console.log(`Scraped ${scrapeResult.pagesScraped} pages, found ${advancedFeatures.length} AI features`);
+
+      // If no content found, try single page fallback
+      if (!textToAnalyze || textToAnalyze.length < 100) {
+        const urlContent = await fetchUrlContent(inputValue);
+        textToAnalyze = `${urlContent.title} ${urlContent.metaDescription} ${urlContent.text}`;
+        pageTitle = urlContent.title;
+      }
     } catch (error) {
       // If URL fetch fails, return an error analysis
       return {
@@ -531,6 +571,15 @@ export async function analyzeSystem(inputType: 'url' | 'description', inputValue
     try {
       console.log('Using Ollama local analysis...');
       const ollamaResult = await analyzeWithOllama(inputType, textToAnalyze, pageTitle);
+      // Merge with advanced features if available
+      if (advancedFeatures.length > 0) {
+        const featureFindings = featuresToFindings(advancedFeatures);
+        ollamaResult.findings = [...featureFindings, ...ollamaResult.findings];
+        ollamaResult.detectedFeatures = [
+          ...advancedFeatures.map(f => f.name),
+          ...ollamaResult.detectedFeatures,
+        ];
+      }
       return ollamaResult;
     } catch (error) {
       console.error('Ollama analysis failed:', error);
@@ -540,7 +589,48 @@ export async function analyzeSystem(inputType: 'url' | 'description', inputValue
 
   // Fallback to keyword-based analysis
   console.log('Using keyword-based analysis...');
-  return analyzeWithKeywords(textToAnalyze, isUrlScan, pageTitle);
+  const keywordResult = analyzeWithKeywords(textToAnalyze, isUrlScan, pageTitle);
+
+  // Merge with advanced features from web scraping
+  if (advancedFeatures.length > 0) {
+    const featureFindings = featuresToFindings(advancedFeatures);
+
+    // Add scraped pages info
+    if (scrapedPages.length > 1) {
+      featureFindings.unshift({
+        category: 'Multi-Page-Analyse',
+        title: `${scrapedPages.length} Seiten analysiert`,
+        severity: 'info',
+        description: `Folgende Seiten wurden untersucht: ${scrapedPages.slice(0, 5).join(', ')}${scrapedPages.length > 5 ? ` und ${scrapedPages.length - 5} weitere` : ''}`,
+        recommendation: 'Die Analyse basiert auf mehreren Unterseiten der Website.',
+        articleReference: '',
+      });
+    }
+
+    // Merge findings - advanced features first
+    keywordResult.findings = [...featureFindings, ...keywordResult.findings];
+
+    // Add advanced feature names to detected features
+    keywordResult.detectedFeatures = [
+      ...advancedFeatures.map(f => f.name),
+      ...keywordResult.detectedFeatures,
+    ];
+
+    // Update summary to include feature count
+    if (advancedFeatures.length > 0) {
+      keywordResult.summary = `${advancedFeatures.length} KI-Feature(s) erkannt. ` + keywordResult.summary;
+    }
+
+    // Adjust risk level based on advanced features
+    const hasBiometric = advancedFeatures.some(f => f.type === 'biometric');
+    const hasDecision = advancedFeatures.some(f => f.type === 'decision');
+    if ((hasBiometric || hasDecision) && keywordResult.riskLevel === 'MINIMAL_RISK') {
+      keywordResult.riskLevel = 'HIGH_RISK';
+      keywordResult.riskScore = Math.max(keywordResult.riskScore, 70);
+    }
+  }
+
+  return keywordResult;
 }
 
 // Risk level display helpers
