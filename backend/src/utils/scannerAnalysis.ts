@@ -24,10 +24,21 @@ const HIGH_RISK_KEYWORDS = [
   'critical infrastructure', 'kritische infrastruktur', 'energy grid', 'stromnetz',
   'water supply', 'wasserversorgung', 'traffic management', 'verkehrssteuerung',
 
-  // Education & Employment
+  // Education & Employment - HR/Recruitment (Anhang III Nr. 4)
   'educational assessment', 'bildungsbewertung', 'exam scoring', 'prüfungsbewertung',
   'recruitment', 'einstellung', 'hiring decision', 'einstellungsentscheidung',
   'employee monitoring', 'mitarbeiterüberwachung', 'performance evaluation', 'leistungsbewertung',
+  // Additional HR keywords
+  'bewerbung', 'bewerbungen', 'bewerber', 'bewerberin', 'bewerberinnen',
+  'lebenslauf', 'lebensläufe', 'cv', 'resume', 'résumé',
+  'personalauswahl', 'personalentscheidung', 'hr screening', 'screening tool',
+  'applicant', 'applicants', 'candidate', 'kandidat', 'kandidaten',
+  'job application', 'stellenbewerbung', 'bewerbungsverfahren',
+  'applicant tracking', 'bewerbermanagement', 'talent acquisition',
+  'ranking', 'bewerberranking', 'kandidatenranking',
+  'hiring', 'einstellungsprozess', 'recruiting', 'rekrutierung',
+  'human resources', 'personalwesen', 'hr-system', 'hr system',
+  'qualifikation', 'qualifikationen', 'berufserfahrung', 'soft skills',
 
   // Essential Services
   'credit scoring', 'kreditbewertung', 'loan decision', 'kreditentscheidung',
@@ -260,14 +271,22 @@ function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: Ri
       });
     }
 
-    if (matches.highRiskMatches.some(m => m.includes('employment') || m.includes('recruitment') || m.includes('einstellung'))) {
+    // HR/Employment/Recruitment detection - Anhang III Nr. 4
+    const hrKeywords = [
+      'employment', 'recruitment', 'einstellung', 'hiring', 'rekrutierung',
+      'bewerbung', 'bewerber', 'lebenslauf', 'cv', 'resume',
+      'personalauswahl', 'hr', 'human resources', 'personalwesen',
+      'applicant', 'candidate', 'kandidat', 'ranking', 'screening',
+      'qualifikation', 'berufserfahrung', 'soft skills'
+    ];
+    if (matches.highRiskMatches.some(m => hrKeywords.some(kw => m.includes(kw)))) {
       findings.push({
-        category: 'Beschäftigung',
-        title: 'KI im Beschäftigungskontext',
-        severity: 'high',
-        description: 'Das System wird im Beschäftigungskontext eingesetzt. Dies ist ein Hochrisiko-Bereich nach Anhang III Nr. 4.',
-        recommendation: 'Transparenz gegenüber Bewerbern/Mitarbeitern sicherstellen. Diskriminierungsfreiheit nachweisen. Menschliche Aufsicht bei Entscheidungen gewährleisten.',
-        articleReference: 'Anhang III Nr. 4 EU AI Act',
+        category: 'Beschäftigung & Personalwesen',
+        title: 'Hochrisiko: KI im Beschäftigungs-/Rekrutierungskontext',
+        severity: 'critical',
+        description: 'Das System wird für Personalentscheidungen eingesetzt (z.B. Bewerbungs-Screening, CV-Analyse, Bewerber-Ranking). Dies ist ein HOCHRISIKO-Bereich nach Anhang III Nr. 4 EU AI Act. KI-Systeme zur Einstellung, Auswahl oder Bewertung von Bewerbern unterliegen strengen Anforderungen.',
+        recommendation: 'PFLICHTEN: 1) Risikomanagement-System implementieren, 2) Diskriminierungsfreiheit nachweisen, 3) Transparenz gegenüber Bewerbern, 4) Menschliche Aufsicht bei allen Entscheidungen, 5) Technische Dokumentation erstellen, 6) Konformitätsbewertung vor Inbetriebnahme.',
+        articleReference: 'Anhang III Nr. 4, Art. 6, Art. 9-15 EU AI Act',
       });
     }
 
