@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuditProvider, useAudit } from "./context/AuditContext";
 import { SystemsProvider } from "./context/SystemsContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -318,12 +319,14 @@ const AuditFlowPage: React.FC<AuditFlowPageProps> = ({ step, onBack }) => {
 function App() {
   return (
     <ErrorBoundary>
-      <AuditProvider>
-        <SystemsProvider>
-          <AppContent />
-          <NovaChatBot />
-        </SystemsProvider>
-      </AuditProvider>
+      <LanguageProvider>
+        <AuditProvider>
+          <SystemsProvider>
+            <AppContent />
+            <NovaChatBot />
+          </SystemsProvider>
+        </AuditProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }

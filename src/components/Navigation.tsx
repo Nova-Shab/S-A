@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface NavigationProps {
   currentView: string;
