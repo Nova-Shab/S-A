@@ -49,7 +49,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <img
-                src="/images/logo.png"
+                src="/images/logo.svg"
                 alt="EU AI Act Audit Platform"
                 className="h-10 w-auto"
               />

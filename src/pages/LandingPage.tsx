@@ -55,9 +55,9 @@ export const LandingPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <img
-            src="/images/logo.png"
+            src="/images/logo.svg"
             alt="EU AI Act Audit Platform"
-            className="h-20 w-auto mx-auto mb-6"
+            className="h-24 w-auto mx-auto mb-6"
           />
           <p className="text-body text-audit-cool max-w-2xl mx-auto">
             Prototyp zur Unterstützung bei der Prüfung von KI-Systemen
