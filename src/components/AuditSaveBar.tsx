@@ -42,7 +42,7 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
     }
   }, [currentAuditId]);
 
-  // Neues Audit erstellen falls noch keine ID vorhanden
+  // Neues Audit erstellen oder existierendes finden
   const createNewAuditIfNeeded = async (): Promise<number | null> => {
     if (currentAuditId) {
       return parseInt(currentAuditId);
@@ -54,14 +54,30 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
       return null;
     }
 
+    const systemName = state.systemInfo.systemName.trim();
+
+    try {
+      // Prüfe ob bereits ein Audit mit diesem Systemnamen existiert
+      const { found, audit: existingAudit } = await auditService.findBySystemName(systemName);
+
+      if (found && existingAudit) {
+        // Existierendes Audit verwenden
+        setCurrentAuditId(String(existingAudit.id));
+        setSearchParams({ auditId: String(existingAudit.id) });
+        setSaveMessage({ type: "success", text: "Existierendes Audit gefunden und wird aktualisiert." });
+        return existingAudit.id;
+      }
+    } catch (error) {
+      // Ignoriere Fehler bei der Suche - erstelle einfach ein neues Audit
+      console.warn("Fehler bei der Suche nach existierendem Audit:", error);
+    }
+
     // Erstelle ein neues Audit
-    const auditTitle = state.systemInfo.systemName
-      ? `Audit: ${state.systemInfo.systemName}`
-      : `Audit vom ${new Date().toLocaleDateString("de-DE")}`;
+    const auditTitle = `Audit: ${systemName}`;
 
     // Erstelle vollständiges systemInfo mit Standardwerten
     const completeSystemInfo = {
-      systemName: state.systemInfo.systemName || "",
+      systemName: systemName,
       systemVersion: state.systemInfo.systemVersion || "",
       systemProvider: state.systemInfo.systemProvider || "",
       euAiActRole: state.systemInfo.euAiActRole || "DEPLOYER" as const,

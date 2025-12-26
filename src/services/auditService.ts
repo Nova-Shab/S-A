@@ -98,6 +98,12 @@ class AuditService {
     return response.data;
   }
 
+  // Existierendes Audit nach Systemname finden
+  async findBySystemName(systemName: string): Promise<{ found: boolean; audit: AuditData | null }> {
+    const response = await api.get('/audits/find-by-system', { params: { systemName } });
+    return response.data;
+  }
+
   async createAudit(data: CreateAuditData): Promise<{ audit: AuditData; message: string }> {
     const response = await api.post('/audits', data);
     return response.data;

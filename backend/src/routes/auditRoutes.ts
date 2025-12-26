@@ -16,6 +16,7 @@ import {
   updateActionItems,
   getActionItems,
   getAuditHistoryLog,
+  findAuditBySystemName,
 } from '../controllers/auditController';
 import { authenticate } from '../middleware/auth';
 
@@ -27,6 +28,7 @@ router.use(authenticate);
 // Audit CRUD
 router.post('/', createAudit);
 router.get('/', getAudits);
+router.get('/find-by-system', findAuditBySystemName); // Muss vor /:id sein!
 router.get('/:id', getAudit);
 router.put('/:id', updateAudit);
 router.delete('/:id', deleteAudit);

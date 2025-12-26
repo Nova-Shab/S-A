@@ -55,6 +55,54 @@ export const createAudit = async (req: Request, res: Response): Promise<void> =>
 };
 
 /**
+ * Find existing audit by systemName for current user
+ */
+export const findAuditBySystemName = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { systemName } = req.query;
+
+    if (!systemName) {
+      res.status(400).json({ error: 'systemName is required' });
+      return;
+    }
+
+    // Find audit by systemName in systemInfo JSON
+    const audits = await Audit.findAll({
+      where: {
+        userId: req.user.id,
+      },
+      order: [['updatedAt', 'DESC']],
+    });
+
+    // Filter by systemName (JSON field)
+    const matchingAudit = audits.find(audit => {
+      const sysInfo = audit.systemInfo as any;
+      return sysInfo?.systemName === systemName;
+    });
+
+    if (matchingAudit) {
+      res.status(200).json({
+        found: true,
+        audit: matchingAudit,
+      });
+    } else {
+      res.status(200).json({
+        found: false,
+        audit: null,
+      });
+    }
+  } catch (error) {
+    console.error('Find audit by systemName error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Get all audits for current user (owned + shared)
  */
 export const getAudits = async (req: Request, res: Response): Promise<void> => {
@@ -554,7 +602,58 @@ export const removeShare = async (req: Request, res: Response): Promise<void> =>
 };
 
 /**
- * Save complete audit state (answers + action items)
+ * Calculate step-based completion percentage
+ * Step 1: System Info (15%)
+ * Step 2: Risk Classification (15%)
+ * Step 3: Compliance Answers (40%)
+ * Step 4: Action Items (30%)
+ */
+function calculateStepBasedProgress(
+  systemInfo: any,
+  riskClass: string | null,
+  answersCount: number,
+  completedAnswersCount: number,
+  actionItemsCount: number,
+  completedActionItemsCount: number
+): number {
+  let progress = 0;
+
+  // Step 1: SystemInfo ausgefüllt (15%)
+  if (systemInfo) {
+    const hasBasicInfo = systemInfo.systemName && systemInfo.systemName.trim() !== '';
+    const hasDetailedInfo = systemInfo.primaryPurpose || systemInfo.domain || systemInfo.useCase;
+    if (hasBasicInfo) progress += 10;
+    if (hasDetailedInfo) progress += 5;
+  }
+
+  // Step 2: Risikoklasse bestimmt (15%)
+  if (riskClass && riskClass !== 'LIMITED_RISK') {
+    // LIMITED_RISK ist der Standard, zählt nicht voll
+    progress += 15;
+  } else if (riskClass === 'LIMITED_RISK') {
+    progress += 5; // Teilpunkte für Standard
+  }
+
+  // Step 3: Compliance-Antworten (40%)
+  if (answersCount > 0) {
+    const answersProgress = (completedAnswersCount / answersCount) * 40;
+    progress += Math.round(answersProgress);
+  }
+
+  // Step 4: Maßnahmen (30%)
+  if (actionItemsCount > 0) {
+    const actionProgress = (completedActionItemsCount / actionItemsCount) * 30;
+    progress += Math.round(actionProgress);
+  } else if (answersCount > 0 && completedAnswersCount === answersCount) {
+    // Alle Antworten fertig, keine Maßnahmen nötig = 100%
+    progress += 30;
+  }
+
+  return Math.min(100, progress);
+}
+
+/**
+ * Save complete audit state (answers + action items + systemInfo + riskClass)
  */
 export const saveCompleteAudit = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -564,7 +663,7 @@ export const saveCompleteAudit = async (req: Request, res: Response): Promise<vo
     }
 
     const { id } = req.params;
-    const { answers, actionItems, status } = req.body;
+    const { answers, actionItems, status, systemInfo, riskClass } = req.body;
 
     const audit = await Audit.findByPk(id);
     if (!audit) {
@@ -581,6 +680,19 @@ export const saveCompleteAudit = async (req: Request, res: Response): Promise<vo
     if (!isOwner && share?.permission !== 'editor' && share?.permission !== 'admin') {
       res.status(403).json({ error: 'Insufficient permissions' });
       return;
+    }
+
+    // Update systemInfo if provided
+    if (systemInfo) {
+      audit.systemInfo = {
+        ...audit.systemInfo,
+        ...systemInfo,
+      };
+    }
+
+    // Update riskClass if provided
+    if (riskClass) {
+      audit.riskClass = riskClass;
     }
 
     // Save answers
@@ -623,18 +735,31 @@ export const saveCompleteAudit = async (req: Request, res: Response): Promise<vo
       audit.status = status;
     }
 
-    // Calculate completion percentage
+    // Calculate step-based completion percentage
     const totalAnswers = await AuditAnswer.count({ where: { auditId: id } });
     const completedAnswers = await AuditAnswer.count({
       where: {
         auditId: id,
-        status: { [Op.ne]: 'non_compliant' },
+        status: { [Op.in]: ['compliant', 'partially_compliant', 'not_applicable'] },
       },
     });
 
-    audit.completionPercentage = totalAnswers > 0
-      ? Math.round((completedAnswers / totalAnswers) * 100)
-      : 0;
+    const totalActionItems = await ActionItem.count({ where: { auditId: id } });
+    const completedActionItems = await ActionItem.count({
+      where: {
+        auditId: id,
+        status: 'completed',
+      },
+    });
+
+    audit.completionPercentage = calculateStepBasedProgress(
+      audit.systemInfo,
+      audit.riskClass,
+      totalAnswers,
+      completedAnswers,
+      totalActionItems,
+      completedActionItems
+    );
 
     await audit.save();
 
