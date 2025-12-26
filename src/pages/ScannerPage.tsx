@@ -463,7 +463,7 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
               <Button
                 onClick={() => {
                   // Download PDF report
-                  const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/scanner/${result.scanId}/report`;
+                  const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/scanner/report/${result.scanId}`;
                   window.open(url, '_blank');
                 }}
                 className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
