@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 
 interface ScanFinding {
@@ -58,6 +59,7 @@ const RISK_CONFIG: Record<string, { bg: string; text: string; gradient: string }
 
 export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
   const location = useLocation();
+  const { t } = useLanguage();
   const [inputType, setInputType] = useState<'url' | 'description'>('description');
   const [inputValue, setInputValue] = useState('');
   const [systemName, setSystemName] = useState('');
@@ -65,6 +67,15 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
+
+  // Dynamic severity labels based on language
+  const severityLabels: Record<string, string> = {
+    critical: t('scanner.critical'),
+    high: t('scanner.high'),
+    medium: t('scanner.medium'),
+    low: t('scanner.low'),
+    info: t('scanner.info'),
+  };
 
   // Handle incoming scan result from landing page quick-scan
   useEffect(() => {
@@ -90,12 +101,12 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
     setResult(null);
 
     if (!inputValue.trim()) {
-      setError('Bitte geben Sie eine Beschreibung Ihres KI-Systems ein.');
+      setError(t('scanner.emptyError'));
       return;
     }
 
     if (inputValue.trim().length < 50) {
-      setError('Die Beschreibung sollte mindestens 50 Zeichen lang sein für eine aussagekräftige Analyse.');
+      setError(t('scanner.minCharsError'));
       return;
     }
 
@@ -168,10 +179,10 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                   <span className="mr-3">🇪🇺</span>
-                  EU AI Act Compliance Scanner
+                  {t('scanner.title')}
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Automatisierte Risikoanalyse für KI-Systeme
+                  {t('scanner.subtitle')}
                 </p>
               </div>
             </div>
@@ -185,7 +196,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
           <>
             <Card className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                KI-System analysieren
+                {t('scanner.analyzeTitle')}
               </h2>
 
               {/* Input Type Selection */}
@@ -202,7 +213,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span className="font-medium">Beschreibung</span>
+                    <span className="font-medium">{t('scanner.description')}</span>
                   </div>
                 </button>
 
@@ -218,7 +229,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
-                    <span className="font-medium">Website URL</span>
+                    <span className="font-medium">{t('scanner.websiteUrl')}</span>
                   </div>
                 </button>
               </div>
@@ -228,13 +239,13 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                 {/* System Name (optional) */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Systemname <span className="text-gray-400">(optional)</span>
+                    {t('scanner.systemName')} <span className="text-gray-400">{t('scanner.optional')}</span>
                   </label>
                   <input
                     type="text"
                     value={systemName}
                     onChange={(e) => setSystemName(e.target.value)}
-                    placeholder="z.B. Kunden-Chatbot, HR-Screening-Tool"
+                    placeholder={t('scanner.systemNamePlaceholder')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
@@ -242,7 +253,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                 {/* Main Input */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {inputType === 'description' ? 'Beschreibung des KI-Systems' : 'Website URL'}
+                    {inputType === 'description' ? t('scanner.descriptionLabel') : t('scanner.urlLabel')}
                   </label>
                   {inputType === 'description' ? (
                     <textarea
@@ -271,8 +282,8 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                   )}
                   <p className="mt-2 text-sm text-gray-500">
                     {inputType === 'description'
-                      ? 'Je detaillierter die Beschreibung, desto genauer die Analyse. Mindestens 50 Zeichen.'
-                      : 'Die URL wird analysiert, um Informationen über das KI-System zu extrahieren.'}
+                      ? t('scanner.descriptionHint')
+                      : t('scanner.urlHint')}
                   </p>
                 </div>
 
@@ -298,14 +309,14 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Analysiere KI-System...
+                      {t('scanner.analyzingSystem')}
                     </span>
                   ) : (
                     <>
                       <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                       </svg>
-                      Analyse starten
+                      {t('scanner.startAnalysis')}
                     </>
                   )}
                 </Button>
@@ -315,9 +326,9 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
             {/* Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { icon: '🔍', title: 'Automatische Analyse', desc: 'Erkennung von Risikoindikatoren' },
-                { icon: '📊', title: 'EU AI Act konform', desc: 'Basierend auf Regulation 2024/1689' },
-                { icon: '📋', title: 'Detaillierter Report', desc: 'Konkrete Handlungsempfehlungen' },
+                { icon: '🔍', title: t('scanner.autoAnalysis'), desc: t('scanner.autoAnalysisDesc') },
+                { icon: '📊', title: t('scanner.euAiActCompliant'), desc: t('scanner.euAiActCompliantDesc') },
+                { icon: '📋', title: t('scanner.detailedReport'), desc: t('scanner.detailedReportDesc') },
               ].map((item, idx) => (
                 <Card key={idx} className="text-center">
                   <div className="text-3xl mb-2">{item.icon}</div>
@@ -334,13 +345,13 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
             <Card className={`mb-6 bg-gradient-to-r ${riskConfig?.gradient} text-white`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-80 mb-1">Risikoklassifizierung</p>
+                  <p className="text-sm opacity-80 mb-1">{t('scanner.riskClassification')}</p>
                   <h2 className="text-3xl font-bold">{result.riskLevelLabel}</h2>
                   <p className="mt-2 opacity-90">{result.summary}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-6xl font-bold opacity-90">{result.riskScore}</div>
-                  <div className="text-sm opacity-80">Risiko-Score</div>
+                  <div className="text-sm opacity-80">{t('scanner.riskScore')}</div>
                 </div>
               </div>
             </Card>
@@ -349,21 +360,21 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
             <div className="grid grid-cols-3 gap-4 mb-6">
               <Card className="text-center">
                 <div className="text-3xl font-bold text-gray-900">{result.findingsCount}</div>
-                <div className="text-sm text-gray-500">Befunde gesamt</div>
+                <div className="text-sm text-gray-500">{t('scanner.findingsTotal')}</div>
               </Card>
               <Card className="text-center">
                 <div className="text-3xl font-bold text-red-600">{result.criticalCount}</div>
-                <div className="text-sm text-gray-500">Kritisch</div>
+                <div className="text-sm text-gray-500">{t('scanner.critical')}</div>
               </Card>
               <Card className="text-center">
                 <div className="text-3xl font-bold text-orange-600">{result.highCount}</div>
-                <div className="text-sm text-gray-500">Hoch</div>
+                <div className="text-sm text-gray-500">{t('scanner.high')}</div>
               </Card>
             </div>
 
             {/* Findings */}
             <Card className="mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Befunde</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('scanner.findings')}</h3>
               <div className="space-y-3">
                 {result.analysis.findings.map((finding, idx) => {
                   const severityConfig = SEVERITY_CONFIG[finding.severity];
@@ -380,7 +391,7 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                       >
                         <div className="flex items-center space-x-3">
                           <span className={`px-2 py-1 rounded text-xs font-semibold ${severityConfig.bg} ${severityConfig.text}`}>
-                            {severityConfig.label}
+                            {severityLabels[finding.severity]}
                           </span>
                           <span className="font-medium text-gray-900">{finding.title}</span>
                         </div>
@@ -397,15 +408,15 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                       {isExpanded && (
                         <div className="px-4 py-4 bg-white space-y-4">
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-500 mb-1">Kategorie</h4>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-1">{t('scanner.category')}</h4>
                             <p className="text-gray-900">{finding.category}</p>
                           </div>
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-500 mb-1">Beschreibung</h4>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-1">{t('scanner.descriptionLabel2')}</h4>
                             <p className="text-gray-700">{finding.description}</p>
                           </div>
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-500 mb-1">Empfehlung</h4>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-1">{t('scanner.recommendation')}</h4>
                             <p className="text-gray-700">{finding.recommendation}</p>
                           </div>
                           {finding.articleReference && (
@@ -425,7 +436,7 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
 
             {/* Next Steps */}
             <Card className="mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Nächste Schritte</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('scanner.nextSteps')}</h3>
               <div className="space-y-2">
                 {result.analysis.nextSteps.map((step, idx) => (
                   <div key={idx} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
@@ -441,7 +452,7 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
             {/* Detected Features */}
             {result.analysis.detectedFeatures.length > 0 && (
               <Card className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Erkannte Merkmale</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('scanner.detectedFeatures')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {result.analysis.detectedFeatures.map((feature, idx) => (
                     <span
@@ -458,7 +469,7 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
             {/* Actions */}
             <div className="flex gap-4">
               <Button onClick={handleNewScan} variant="secondary" className="flex-1">
-                Neue Analyse starten
+                {t('scanner.newAnalysis')}
               </Button>
               <Button
                 onClick={() => {
@@ -471,14 +482,13 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                 <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                PDF Report herunterladen
+                {t('scanner.downloadPdf')}
               </Button>
             </div>
 
             {/* Disclaimer */}
             <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-600 text-center">
-              <strong>Hinweis:</strong> Diese Analyse dient nur zur Orientierung und ersetzt keine rechtliche Beratung.
-              Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.
+              {t('scanner.disclaimer')}
             </div>
           </>
         )}

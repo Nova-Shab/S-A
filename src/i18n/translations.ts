@@ -99,6 +99,43 @@ export interface TranslationKeys {
     recommendations: string;
     downloadPdf: string;
     scanAgain: string;
+    // Extended
+    analyzeTitle: string;
+    description: string;
+    websiteUrl: string;
+    systemName: string;
+    optional: string;
+    systemNamePlaceholder: string;
+    descriptionLabel: string;
+    urlLabel: string;
+    descriptionHint: string;
+    urlHint: string;
+    minCharsError: string;
+    emptyError: string;
+    analyzingSystem: string;
+    startAnalysis: string;
+    riskClassification: string;
+    riskScore: string;
+    findings: string;
+    findingsTotal: string;
+    critical: string;
+    high: string;
+    medium: string;
+    low: string;
+    info: string;
+    category: string;
+    descriptionLabel2: string;
+    recommendation: string;
+    nextSteps: string;
+    detectedFeatures: string;
+    newAnalysis: string;
+    disclaimer: string;
+    autoAnalysis: string;
+    autoAnalysisDesc: string;
+    euAiActCompliant: string;
+    euAiActCompliantDesc: string;
+    detailedReport: string;
+    detailedReportDesc: string;
   };
 
   // Nova Chatbot
@@ -257,8 +294,8 @@ const de: TranslationKeys = {
   },
 
   scanner: {
-    title: 'KI-Scanner',
-    subtitle: 'Analysieren Sie Websites auf KI-Funktionen',
+    title: 'EU AI Act Compliance Scanner',
+    subtitle: 'Automatisierte Risikoanalyse für KI-Systeme',
     enterUrl: 'URL eingeben',
     scanButton: 'Scannen',
     scanning: 'Scanning läuft...',
@@ -267,8 +304,45 @@ const de: TranslationKeys = {
     aiFeatures: 'Erkannte KI-Funktionen',
     riskIndicators: 'Risikoindikatoren',
     recommendations: 'Empfehlungen',
-    downloadPdf: 'PDF-Report herunterladen',
+    downloadPdf: 'PDF Report herunterladen',
     scanAgain: 'Erneut scannen',
+    // Extended
+    analyzeTitle: 'KI-System analysieren',
+    description: 'Beschreibung',
+    websiteUrl: 'Website URL',
+    systemName: 'Systemname',
+    optional: '(optional)',
+    systemNamePlaceholder: 'z.B. Kunden-Chatbot, HR-Screening-Tool',
+    descriptionLabel: 'Beschreibung des KI-Systems',
+    urlLabel: 'Website URL',
+    descriptionHint: 'Je detaillierter die Beschreibung, desto genauer die Analyse. Mindestens 50 Zeichen.',
+    urlHint: 'Die URL wird analysiert, um Informationen über das KI-System zu extrahieren.',
+    minCharsError: 'Die Beschreibung sollte mindestens 50 Zeichen lang sein für eine aussagekräftige Analyse.',
+    emptyError: 'Bitte geben Sie eine Beschreibung Ihres KI-Systems ein.',
+    analyzingSystem: 'Analysiere KI-System...',
+    startAnalysis: 'Analyse starten',
+    riskClassification: 'Risikoklassifizierung',
+    riskScore: 'Risiko-Score',
+    findings: 'Befunde',
+    findingsTotal: 'Befunde gesamt',
+    critical: 'Kritisch',
+    high: 'Hoch',
+    medium: 'Mittel',
+    low: 'Niedrig',
+    info: 'Info',
+    category: 'Kategorie',
+    descriptionLabel2: 'Beschreibung',
+    recommendation: 'Empfehlung',
+    nextSteps: 'Nächste Schritte',
+    detectedFeatures: 'Erkannte Merkmale',
+    newAnalysis: 'Neue Analyse starten',
+    disclaimer: 'Hinweis: Diese Analyse dient nur zur Orientierung und ersetzt keine rechtliche Beratung. Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.',
+    autoAnalysis: 'Automatische Analyse',
+    autoAnalysisDesc: 'Erkennung von Risikoindikatoren',
+    euAiActCompliant: 'EU AI Act konform',
+    euAiActCompliantDesc: 'Basierend auf Regulation 2024/1689',
+    detailedReport: 'Detaillierter Report',
+    detailedReportDesc: 'Konkrete Handlungsempfehlungen',
   },
 
   nova: {
@@ -421,8 +495,8 @@ const en: TranslationKeys = {
   },
 
   scanner: {
-    title: 'AI Scanner',
-    subtitle: 'Analyze websites for AI features',
+    title: 'EU AI Act Compliance Scanner',
+    subtitle: 'Automated Risk Analysis for AI Systems',
     enterUrl: 'Enter URL',
     scanButton: 'Scan',
     scanning: 'Scanning...',
@@ -433,6 +507,43 @@ const en: TranslationKeys = {
     recommendations: 'Recommendations',
     downloadPdf: 'Download PDF Report',
     scanAgain: 'Scan Again',
+    // Extended
+    analyzeTitle: 'Analyze AI System',
+    description: 'Description',
+    websiteUrl: 'Website URL',
+    systemName: 'System Name',
+    optional: '(optional)',
+    systemNamePlaceholder: 'e.g. Customer Chatbot, HR Screening Tool',
+    descriptionLabel: 'AI System Description',
+    urlLabel: 'Website URL',
+    descriptionHint: 'The more detailed the description, the more accurate the analysis. Minimum 50 characters.',
+    urlHint: 'The URL will be analyzed to extract information about the AI system.',
+    minCharsError: 'The description should be at least 50 characters long for a meaningful analysis.',
+    emptyError: 'Please enter a description of your AI system.',
+    analyzingSystem: 'Analyzing AI system...',
+    startAnalysis: 'Start Analysis',
+    riskClassification: 'Risk Classification',
+    riskScore: 'Risk Score',
+    findings: 'Findings',
+    findingsTotal: 'Total findings',
+    critical: 'Critical',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
+    info: 'Info',
+    category: 'Category',
+    descriptionLabel2: 'Description',
+    recommendation: 'Recommendation',
+    nextSteps: 'Next Steps',
+    detectedFeatures: 'Detected Features',
+    newAnalysis: 'Start New Analysis',
+    disclaimer: 'Note: This analysis is for guidance only and does not replace legal advice. For a binding assessment, please consult qualified legal advisors.',
+    autoAnalysis: 'Automatic Analysis',
+    autoAnalysisDesc: 'Detection of risk indicators',
+    euAiActCompliant: 'EU AI Act compliant',
+    euAiActCompliantDesc: 'Based on Regulation 2024/1689',
+    detailedReport: 'Detailed Report',
+    detailedReportDesc: 'Concrete recommendations for action',
   },
 
   nova: {
