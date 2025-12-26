@@ -20,11 +20,12 @@ export const Navigation: React.FC<NavigationProps> = ({
   demoEnabled = true,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   const navItems = [
-    { id: 'scanner', label: 'Scanner', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', primary: true },
-    { id: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    { id: 'systems', label: 'KI-Systeme', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+    { id: 'scanner', labelKey: 'nav.scanner', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', primary: true },
+    { id: 'dashboard', labelKey: 'nav.dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { id: 'systems', labelKey: 'nav.systems', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   ];
 
   const isActive = (id: string) => currentView === id;
@@ -78,14 +79,16 @@ export const Navigation: React.FC<NavigationProps> = ({
                       d={item.icon}
                     />
                   </svg>
-                  {item.label}
+                  {t(item.labelKey)}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Right side: Demo Button & User Menu */}
+          {/* Right side: Language Switcher, Demo Button & User Menu */}
           <div className="flex items-center space-x-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
             {/* Audit Tools (Demo) Button */}
             {demoEnabled && (
               <button
@@ -156,7 +159,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
               </svg>
-              Abmelden
+              {t('nav.logout')}
             </button>
 
             {/* Mobile menu button */}
@@ -225,7 +228,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                     d={item.icon}
                   />
                 </svg>
-                {item.label}
+                {t(item.labelKey)}
               </button>
             ))}
 
@@ -255,9 +258,13 @@ export const Navigation: React.FC<NavigationProps> = ({
             )}
 
             <div className="border-t border-audit-light pt-2 mt-2">
+              {/* Mobile Language Switcher */}
+              <div className="px-3 py-2">
+                <LanguageSwitcher />
+              </div>
               {userName && (
                 <div className="px-3 py-2 text-sm text-audit-cool">
-                  Angemeldet als: {userName}
+                  {userName}
                 </div>
               )}
               <button
@@ -280,7 +287,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
-                Abmelden
+                {t('nav.logout')}
               </button>
             </div>
           </div>

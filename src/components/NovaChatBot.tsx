@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -16,6 +17,7 @@ export const NovaChatBot: React.FC = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { language, t } = useLanguage();
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -29,14 +31,14 @@ export const NovaChatBot: React.FC = () => {
     }
   }, [isOpen]);
 
-  // Load suggestions on mount
+  // Load suggestions when language changes
   useEffect(() => {
     loadSuggestions();
-  }, []);
+  }, [language]);
 
   const loadSuggestions = async () => {
     try {
-      const response = await fetch(`${API_URL}/chat/suggestions`);
+      const response = await fetch(`${API_URL}/chat/suggestions?lang=${language}`);
       const data = await response.json();
       if (data.success) {
         setSuggestions(data.suggestions);
@@ -73,6 +75,7 @@ export const NovaChatBot: React.FC = () => {
         body: JSON.stringify({
           message: content.trim(),
           history,
+          language,
         }),
       });
 
@@ -88,7 +91,7 @@ export const NovaChatBot: React.FC = () => {
       } else {
         const errorMessage: ChatMessage = {
           role: 'assistant',
-          content: 'Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten. Bitte versuchen Sie es erneut.',
+          content: t('nova.errorMessage'),
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, errorMessage]);
@@ -97,7 +100,7 @@ export const NovaChatBot: React.FC = () => {
       console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: 'Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.',
+        content: t('nova.connectionError'),
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -178,8 +181,8 @@ export const NovaChatBot: React.FC = () => {
               </svg>
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Nova</h3>
-              <p className="text-xs text-blue-100">Ihr freundlicher EU AI Act Helfer</p>
+              <h3 className="font-semibold text-lg">{t('nova.title')}</h3>
+              <p className="text-xs text-blue-100">{t('nova.subtitle')}</p>
             </div>
           </div>
 
@@ -193,13 +196,13 @@ export const NovaChatBot: React.FC = () => {
                       d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                 </div>
-                <h4 className="font-medium text-gray-900 mb-2">Hallo! Ich bin Nova</h4>
+                <h4 className="font-medium text-gray-900 mb-2">{t('nova.welcome')}</h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Ich helfe Ihnen beim EU AI Act - einfach und verständlich erklärt!
+                  {t('nova.welcomeDesc')}
                 </p>
                 {suggestions.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500 mb-2">Fragen Sie mich z.B.:</p>
+                    <p className="text-xs text-gray-500 mb-2">{t('nova.suggestions')}</p>
                     {suggestions.slice(0, 4).map((suggestion, idx) => (
                       <button
                         key={idx}
@@ -254,7 +257,7 @@ export const NovaChatBot: React.FC = () => {
                           <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
                             style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span className="text-sm text-gray-500">Nova denkt nach...</span>
+                        <span className="text-sm text-gray-500">{t('nova.thinking')}</span>
                       </div>
                     </div>
                   </div>
@@ -272,7 +275,7 @@ export const NovaChatBot: React.FC = () => {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Fragen Sie mich einfach..."
+                placeholder={t('nova.placeholder')}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                   text-sm"
