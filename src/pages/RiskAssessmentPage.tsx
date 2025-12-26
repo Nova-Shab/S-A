@@ -4,6 +4,7 @@ import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { RiskSuggestionCard } from "../components/RiskSuggestionCard";
 import { SystemImportModal } from "../components/SystemImportModal";
+import { AuditSaveBar } from "../components/AuditSaveBar";
 import { useAudit } from "../context/AuditContext";
 import {
   AiSystemInfo,
@@ -1047,6 +1048,9 @@ export const RiskAssessmentPage: React.FC = () => {
         onClose={() => setShowImportModal(false)}
         onImport={handleImport}
       />
+
+      {/* Floating Save Bar */}
+      <AuditSaveBar />
     </div>
   );
 };

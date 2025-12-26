@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
+import { AuditSaveBar } from "../components/AuditSaveBar";
 import { useAudit } from "../context/AuditContext";
 import { Requirement, RequirementStatus, RequirementDocument } from "../models/types";
 import {
@@ -299,6 +300,9 @@ export const AuditPage: React.FC = () => {
             </p>
           )}
         </Card>
+
+        {/* Floating Save Bar */}
+        <AuditSaveBar />
       </div>
     </div>
   );
