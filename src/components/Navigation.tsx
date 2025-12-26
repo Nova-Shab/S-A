@@ -48,8 +48,11 @@ export const Navigation: React.FC<NavigationProps> = ({
           {/* Logo and Brand */}
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-2xl mr-2">🇪🇺</span>
-              <span className="font-semibold text-xl text-audit-deep">EU AI Act</span>
+              <img
+                src="/images/logo.png"
+                alt="EU AI Act Audit Platform"
+                className="h-10 w-auto"
+              />
             </div>
 
             {/* Desktop Navigation */}
