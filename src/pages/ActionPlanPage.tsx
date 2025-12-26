@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
@@ -11,6 +11,7 @@ import {
 } from "../utils/actionPlanGenerator";
 import { getRequirementsForRisk } from "../utils/requirements";
 import auditService, { AuditVersion } from "../services/auditService";
+import authService from "../services/authService";
 
 const STEPS = [
   { number: 1, title: "Risiko einstufen" },
@@ -22,8 +23,15 @@ export const ActionPlanPage: React.FC = () => {
   const { state, setActionItems, updateActionItem, setCurrentStep, resetAudit } =
     useAudit();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const auditId = searchParams.get("auditId");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const params = useParams();
+
+  // auditId kann von URL-Param (/audit/:id) oder Query-Param (?auditId=) kommen
+  const urlAuditId = params.id && params.id !== "new" ? params.id : null;
+  const queryAuditId = searchParams.get("auditId");
+  const [currentAuditId, setCurrentAuditId] = useState<string | null>(urlAuditId || queryAuditId);
+
+  const isLoggedIn = authService.isAuthenticated();
 
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [markdown, setMarkdown] = useState("");
@@ -48,10 +56,10 @@ export const ActionPlanPage: React.FC = () => {
     }
   }, [state.riskClass, state.auditAnswers, state.actionItems.length, setActionItems, setCurrentStep]);
 
-  // Lade letzte Version wenn auditId vorhanden
+  // Lade letzte Version wenn currentAuditId vorhanden
   useEffect(() => {
-    if (auditId) {
-      auditService.getVersions(parseInt(auditId))
+    if (currentAuditId) {
+      auditService.getVersions(parseInt(currentAuditId))
         .then(({ versions }) => {
           if (versions && versions.length > 0) {
             setLatestVersion(versions[0]);
@@ -59,12 +67,44 @@ export const ActionPlanPage: React.FC = () => {
         })
         .catch(console.error);
     }
-  }, [auditId]);
+  }, [currentAuditId]);
+
+  // Neues Audit erstellen falls noch keine ID vorhanden
+  const createNewAuditIfNeeded = async (): Promise<number | null> => {
+    if (currentAuditId) {
+      return parseInt(currentAuditId);
+    }
+
+    // Erstelle ein neues Audit
+    const auditTitle = state.systemInfo?.systemName
+      ? `Audit: ${state.systemInfo.systemName}`
+      : `Audit vom ${new Date().toLocaleDateString("de-DE")}`;
+
+    try {
+      const { audit } = await auditService.createAudit({
+        title: auditTitle,
+        description: state.systemInfo?.primaryPurpose || "",
+        systemInfo: state.systemInfo!,
+        riskClass: state.riskClass!,
+      });
+
+      // Speichere die neue ID
+      setCurrentAuditId(String(audit.id));
+
+      // Update URL mit der neuen auditId
+      setSearchParams({ auditId: String(audit.id) });
+
+      return audit.id;
+    } catch (error) {
+      console.error("Fehler beim Erstellen des Audits:", error);
+      return null;
+    }
+  };
 
   // Audit speichern (zur Datenbank)
   const handleSaveAudit = async () => {
-    if (!auditId) {
-      setSaveMessage({ type: "error", text: "Kein Audit ausgewählt. Bitte erstellen Sie zuerst ein Audit." });
+    if (!isLoggedIn) {
+      setSaveMessage({ type: "error", text: "Bitte melden Sie sich an, um das Audit zu speichern." });
       return;
     }
 
@@ -72,7 +112,15 @@ export const ActionPlanPage: React.FC = () => {
     setSaveMessage(null);
 
     try {
-      await auditService.saveCompleteAudit(parseInt(auditId), {
+      // Erstelle Audit falls nötig
+      const auditIdToUse = await createNewAuditIfNeeded();
+
+      if (!auditIdToUse) {
+        setSaveMessage({ type: "error", text: "Fehler beim Erstellen des Audits." });
+        return;
+      }
+
+      await auditService.saveCompleteAudit(auditIdToUse, {
         answers: state.auditAnswers,
         actionItems: state.actionItems,
         systemInfo: state.systemInfo,
@@ -90,23 +138,31 @@ export const ActionPlanPage: React.FC = () => {
 
   // Version erstellen
   const handleCreateVersion = async () => {
-    if (!auditId) {
-      setSaveMessage({ type: "error", text: "Kein Audit ausgewählt." });
+    if (!isLoggedIn) {
+      setSaveMessage({ type: "error", text: "Bitte melden Sie sich an." });
       return;
     }
 
     setIsCreatingVersion(true);
 
     try {
+      // Erstelle Audit falls nötig
+      const auditIdToUse = await createNewAuditIfNeeded();
+
+      if (!auditIdToUse) {
+        setSaveMessage({ type: "error", text: "Fehler beim Erstellen des Audits." });
+        return;
+      }
+
       // Erst speichern, dann Version erstellen
-      await auditService.saveCompleteAudit(parseInt(auditId), {
+      await auditService.saveCompleteAudit(auditIdToUse, {
         answers: state.auditAnswers,
         actionItems: state.actionItems,
         systemInfo: state.systemInfo,
         riskClass: state.riskClass,
       });
 
-      const { version } = await auditService.createVersion(parseInt(auditId), versionNotes);
+      const { version } = await auditService.createVersion(auditIdToUse, versionNotes);
       setLatestVersion(version);
       setShowVersionModal(false);
       setVersionNotes("");
@@ -121,8 +177,10 @@ export const ActionPlanPage: React.FC = () => {
   };
 
   const handleViewHistory = () => {
-    if (auditId) {
-      navigate(`/audit-history?auditId=${auditId}`);
+    if (currentAuditId) {
+      navigate(`/audit-history?auditId=${currentAuditId}`);
+    } else {
+      setSaveMessage({ type: "error", text: "Bitte speichern Sie das Audit zuerst." });
     }
   };
 
@@ -180,7 +238,7 @@ export const ActionPlanPage: React.FC = () => {
             )}
           </div>
           <div className="print:hidden flex flex-wrap gap-2">
-            {auditId && (
+            {isLoggedIn && (
               <>
                 <Button
                   variant="primary"
