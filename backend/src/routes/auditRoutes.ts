@@ -9,6 +9,13 @@ import {
   shareAudit,
   getAuditShares,
   removeShare,
+  saveCompleteAudit,
+  createAuditVersion,
+  getAuditVersions,
+  getAuditVersion,
+  updateActionItems,
+  getActionItems,
+  getAuditHistoryLog,
 } from '../controllers/auditController';
 import { authenticate } from '../middleware/auth';
 
@@ -26,6 +33,21 @@ router.delete('/:id', deleteAudit);
 
 // Audit answers
 router.put('/:id/answers', updateAuditAnswer);
+
+// Save complete audit state (answers + action items)
+router.put('/:id/save', saveCompleteAudit);
+
+// Action items
+router.get('/:id/action-items', getActionItems);
+router.put('/:id/action-items', updateActionItems);
+
+// Audit versions (snapshots for traceability)
+router.post('/:id/versions', createAuditVersion);
+router.get('/:id/versions', getAuditVersions);
+router.get('/:id/versions/:versionId', getAuditVersion);
+
+// Audit history (change log)
+router.get('/:id/history', getAuditHistoryLog);
 
 // Sharing
 router.post('/:id/share', shareAudit);

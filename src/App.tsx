@@ -18,6 +18,7 @@ import { AuditToolsPage } from "./pages/AuditToolsPage";
 import { SystemsListPage } from "./pages/SystemsListPage";
 import { SystemDetailPage } from "./pages/SystemDetailPage";
 import { AuditWizardPage } from "./pages/AuditWizardPage";
+import { AuditHistoryPage } from "./pages/AuditHistoryPage";
 import authService from "./services/authService";
 import demoService, { DemoLead } from "./services/demoService";
 
@@ -177,6 +178,8 @@ const AppContent: React.FC = () => {
         <Route path="/systems/:id/edit" element={<SystemDetailPage />} />
         {/* New Audit Wizard */}
         <Route path="/audit-wizard" element={<AuditWizardPage />} />
+        {/* Audit History Page */}
+        <Route path="/audit-history" element={<AuditHistoryPage />} />
       </Route>
 
       {/* Demo Access Page (protected but doesn't require demo access) */}

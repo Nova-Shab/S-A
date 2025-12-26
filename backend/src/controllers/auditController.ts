@@ -4,6 +4,9 @@ import Audit from '../models/Audit';
 import AuditAnswer from '../models/AuditAnswer';
 import AuditShare from '../models/AuditShare';
 import AuditHistory from '../models/AuditHistory';
+import AuditVersion from '../models/AuditVersion';
+import ActionItem from '../models/ActionItem';
+import AuditDocument from '../models/AuditDocument';
 import User from '../models/User';
 import Comment from '../models/Comment';
 import File from '../models/File';
@@ -546,6 +549,490 @@ export const removeShare = async (req: Request, res: Response): Promise<void> =>
     res.status(200).json({ message: 'Share removed successfully' });
   } catch (error) {
     console.error('Remove share error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Save complete audit state (answers + action items)
+ */
+export const saveCompleteAudit = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { answers, actionItems, status } = req.body;
+
+    const audit = await Audit.findByPk(id);
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && share?.permission !== 'editor' && share?.permission !== 'admin') {
+      res.status(403).json({ error: 'Insufficient permissions' });
+      return;
+    }
+
+    // Save answers
+    if (answers && Array.isArray(answers)) {
+      for (const answer of answers) {
+        await AuditAnswer.upsert({
+          auditId: Number(id),
+          requirementId: answer.requirementId,
+          status: answer.status,
+          notes: answer.notes || '',
+          lastModifiedBy: req.user.id,
+        });
+      }
+    }
+
+    // Save action items
+    if (actionItems && Array.isArray(actionItems)) {
+      // Delete existing action items and recreate
+      await ActionItem.destroy({ where: { auditId: id } });
+
+      for (const item of actionItems) {
+        await ActionItem.create({
+          auditId: Number(id),
+          requirementId: item.requirementId || item.id,
+          category: item.category,
+          requirementTitle: item.requirementTitle,
+          severity: item.severity,
+          recommendedAction: item.recommendedAction,
+          responsible: item.responsible,
+          targetDate: item.targetDate,
+          status: item.status || 'open',
+          notes: item.notes,
+          lastModifiedBy: req.user.id,
+        });
+      }
+    }
+
+    // Update audit status
+    if (status) {
+      audit.status = status;
+    }
+
+    // Calculate completion percentage
+    const totalAnswers = await AuditAnswer.count({ where: { auditId: id } });
+    const completedAnswers = await AuditAnswer.count({
+      where: {
+        auditId: id,
+        status: { [Op.ne]: 'non_compliant' },
+      },
+    });
+
+    audit.completionPercentage = totalAnswers > 0
+      ? Math.round((completedAnswers / totalAnswers) * 100)
+      : 0;
+
+    await audit.save();
+
+    // Log change
+    await AuditHistory.create({
+      auditId: audit.id,
+      userId: req.user.id,
+      action: 'updated',
+      changes: {
+        description: 'Complete audit state saved',
+        answersCount: answers?.length || 0,
+        actionItemsCount: actionItems?.length || 0,
+      },
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({
+      message: 'Audit saved successfully',
+      audit,
+      completionPercentage: audit.completionPercentage,
+    });
+  } catch (error) {
+    console.error('Save complete audit error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Create an audit version (snapshot)
+ */
+export const createAuditVersion = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { notes } = req.body;
+
+    const audit = await Audit.findByPk(id, {
+      include: [
+        { model: AuditAnswer, as: 'answers' },
+        { model: ActionItem, as: 'actionItems' },
+        { model: AuditDocument, as: 'documents' },
+      ],
+    });
+
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && share?.permission !== 'editor' && share?.permission !== 'admin') {
+      res.status(403).json({ error: 'Insufficient permissions' });
+      return;
+    }
+
+    // Get the next version number
+    const lastVersion = await AuditVersion.findOne({
+      where: { auditId: id },
+      order: [['version', 'DESC']],
+    });
+    const nextVersion = (lastVersion?.version || 0) + 1;
+
+    // Calculate summary
+    const answers = (audit as any).answers || [];
+    const actionItems = (audit as any).actionItems || [];
+    const documents = (audit as any).documents || [];
+
+    const summary = {
+      totalRequirements: answers.length,
+      compliant: answers.filter((a: any) => a.status === 'compliant').length,
+      partiallyCompliant: answers.filter((a: any) => a.status === 'partially_compliant').length,
+      nonCompliant: answers.filter((a: any) => a.status === 'non_compliant').length,
+      notApplicable: answers.filter((a: any) => a.status === 'not_applicable').length,
+      totalActions: actionItems.length,
+      highPriority: actionItems.filter((a: any) => a.severity === 'hoch').length,
+      mediumPriority: actionItems.filter((a: any) => a.severity === 'mittel').length,
+      lowPriority: actionItems.filter((a: any) => a.severity === 'niedrig').length,
+    };
+
+    // Create version snapshot
+    const version = await AuditVersion.create({
+      auditId: Number(id),
+      userId: req.user.id,
+      version: nextVersion,
+      status: audit.status,
+      riskClass: audit.riskClass,
+      completionPercentage: audit.completionPercentage,
+      snapshot: {
+        systemInfo: audit.systemInfo,
+        answers: answers.map((a: any) => a.toJSON ? a.toJSON() : a),
+        actionItems: actionItems.map((a: any) => a.toJSON ? a.toJSON() : a),
+        documents: documents.map((d: any) => d.toJSON ? d.toJSON() : d),
+        summary,
+      },
+      notes,
+    });
+
+    // Log version creation
+    await AuditHistory.create({
+      auditId: audit.id,
+      userId: req.user.id,
+      action: 'status_changed',
+      changes: {
+        description: `Version ${nextVersion} created`,
+        version: nextVersion,
+        completionPercentage: audit.completionPercentage,
+      },
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({
+      message: 'Audit version created successfully',
+      version,
+    });
+  } catch (error) {
+    console.error('Create audit version error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get all audit versions
+ */
+export const getAuditVersions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const audit = await Audit.findByPk(id);
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && !share) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const versions = await AuditVersion.findAll({
+      where: { auditId: id },
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'firstName', 'lastName', 'email'],
+        },
+      ],
+      order: [['version', 'DESC']],
+    });
+
+    res.status(200).json({ versions });
+  } catch (error) {
+    console.error('Get audit versions error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get specific audit version
+ */
+export const getAuditVersion = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id, versionId } = req.params;
+
+    const audit = await Audit.findByPk(id);
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && !share) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const version = await AuditVersion.findOne({
+      where: { id: versionId, auditId: id },
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'firstName', 'lastName', 'email'],
+        },
+      ],
+    });
+
+    if (!version) {
+      res.status(404).json({ error: 'Version not found' });
+      return;
+    }
+
+    res.status(200).json({ version });
+  } catch (error) {
+    console.error('Get audit version error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Update action items
+ */
+export const updateActionItems = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { actionItems } = req.body;
+
+    const audit = await Audit.findByPk(id);
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && share?.permission !== 'editor' && share?.permission !== 'admin') {
+      res.status(403).json({ error: 'Insufficient permissions' });
+      return;
+    }
+
+    // Delete existing and recreate
+    await ActionItem.destroy({ where: { auditId: id } });
+
+    const createdItems = [];
+    for (const item of actionItems) {
+      const created = await ActionItem.create({
+        auditId: Number(id),
+        requirementId: item.requirementId || item.id,
+        category: item.category,
+        requirementTitle: item.requirementTitle,
+        severity: item.severity,
+        recommendedAction: item.recommendedAction,
+        responsible: item.responsible,
+        targetDate: item.targetDate,
+        status: item.status || 'open',
+        notes: item.notes,
+        lastModifiedBy: req.user.id,
+      });
+      createdItems.push(created);
+    }
+
+    // Log change
+    await AuditHistory.create({
+      auditId: audit.id,
+      userId: req.user.id,
+      action: 'updated',
+      changes: {
+        description: `Action items updated (${createdItems.length} items)`,
+        actionItemsCount: createdItems.length,
+      },
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({
+      message: 'Action items updated successfully',
+      actionItems: createdItems,
+    });
+  } catch (error) {
+    console.error('Update action items error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get audit action items
+ */
+export const getActionItems = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const audit = await Audit.findByPk(id);
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && !share) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const actionItems = await ActionItem.findAll({
+      where: { auditId: id },
+      order: [['severity', 'ASC'], ['category', 'ASC']],
+    });
+
+    res.status(200).json({ actionItems });
+  } catch (error) {
+    console.error('Get action items error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get audit history (change log)
+ */
+export const getAuditHistoryLog = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { page = 1, limit = 20 } = req.query;
+
+    const audit = await Audit.findByPk(id);
+    if (!audit) {
+      res.status(404).json({ error: 'Audit not found' });
+      return;
+    }
+
+    // Check permissions
+    const isOwner = audit.userId === req.user.id;
+    const share = await AuditShare.findOne({
+      where: { auditId: audit.id, userId: req.user.id },
+    });
+
+    if (!isOwner && !share) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const { count, rows: history } = await AuditHistory.findAndCountAll({
+      where: { auditId: id },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'firstName', 'lastName', 'email'],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: Number(limit),
+      offset: (Number(page) - 1) * Number(limit),
+    });
+
+    res.status(200).json({
+      history,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: count,
+        pages: Math.ceil(count / Number(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Get audit history error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

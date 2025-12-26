@@ -9,6 +9,9 @@ import AuditShare from './AuditShare';
 import DemoLead from './DemoLead';
 import ScanResult from './ScanResult';
 import SystemAudit from './SystemAudit';
+import AuditVersion from './AuditVersion';
+import ActionItem from './ActionItem';
+import AuditDocument from './AuditDocument';
 
 // Export all models
 export {
@@ -22,6 +25,9 @@ export {
   DemoLead,
   ScanResult,
   SystemAudit,
+  AuditVersion,
+  ActionItem,
+  AuditDocument,
 };
 
 // Sync database
