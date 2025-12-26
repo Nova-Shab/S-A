@@ -48,17 +48,50 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
       return parseInt(currentAuditId);
     }
 
+    // Prüfe ob mindestens ein Systemname vorhanden ist
+    if (!state.systemInfo?.systemName) {
+      setSaveMessage({ type: "error", text: "Bitte geben Sie mindestens einen Systemnamen ein." });
+      return null;
+    }
+
     // Erstelle ein neues Audit
-    const auditTitle = state.systemInfo?.systemName
+    const auditTitle = state.systemInfo.systemName
       ? `Audit: ${state.systemInfo.systemName}`
       : `Audit vom ${new Date().toLocaleDateString("de-DE")}`;
+
+    // Erstelle vollständiges systemInfo mit Standardwerten
+    const completeSystemInfo = {
+      systemName: state.systemInfo.systemName || "",
+      systemVersion: state.systemInfo.systemVersion || "",
+      systemProvider: state.systemInfo.systemProvider || "",
+      euAiActRole: state.systemInfo.euAiActRole || "DEPLOYER" as const,
+      primaryPurpose: state.systemInfo.primaryPurpose || "",
+      annexIIICategories: state.systemInfo.annexIIICategories || [],
+      intendedUsers: state.systemInfo.intendedUsers || "",
+      prohibitedUses: state.systemInfo.prohibitedUses || "",
+      foreseenMisuse: state.systemInfo.foreseenMisuse || "",
+      domain: state.systemInfo.domain || "",
+      useCase: state.systemInfo.useCase || "",
+      impactLevel: state.systemInfo.impactLevel || "low" as const,
+      biometricOrSurveillance: state.systemInfo.biometricOrSurveillance || false,
+      euImpact: state.systemInfo.euImpact ?? true,
+      systemBoundaries: state.systemInfo.systemBoundaries || {
+        includedComponents: [],
+        excludedComponents: [],
+        dataInputs: [],
+        dataOutputs: [],
+        humanOversight: "",
+        integrationPoints: [],
+      },
+    };
 
     try {
       const { audit } = await auditService.createAudit({
         title: auditTitle,
-        description: state.systemInfo?.primaryPurpose || "",
-        systemInfo: state.systemInfo!,
-        riskClass: state.riskClass!,
+        description: state.systemInfo.primaryPurpose || "",
+        systemInfo: completeSystemInfo,
+        // Verwende LIMITED_RISK als Standard wenn keine Risikoklasse gesetzt
+        riskClass: state.riskClass || "LIMITED_RISK",
       });
 
       // Speichere die neue ID

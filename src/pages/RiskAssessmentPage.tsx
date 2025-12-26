@@ -106,6 +106,26 @@ export const RiskAssessmentPage: React.FC = () => {
     if (imported.impactLevel) setImpactLevel(imported.impactLevel);
     if (imported.biometricOrSurveillance !== undefined) setBiometricOrSurveillance(imported.biometricOrSurveillance);
     if (imported.euImpact !== undefined) setEuImpact(imported.euImpact);
+
+    // Auch im Context speichern für AuditSaveBar
+    const partialSystemInfo: AiSystemInfo = {
+      systemName: imported.systemName || "",
+      systemVersion: imported.systemVersion || "",
+      systemProvider: imported.systemProvider || "",
+      euAiActRole: imported.euAiActRole || "DEPLOYER",
+      primaryPurpose: imported.primaryPurpose || "",
+      annexIIICategories: imported.annexIIICategories || [],
+      intendedUsers: imported.intendedUsers || "",
+      prohibitedUses: imported.prohibitedUses || "",
+      foreseenMisuse: imported.foreseenMisuse || "",
+      domain: imported.domain || "",
+      useCase: imported.useCase || "",
+      impactLevel: imported.impactLevel || "low",
+      biometricOrSurveillance: imported.biometricOrSurveillance || false,
+      euImpact: imported.euImpact ?? true,
+      systemBoundaries: imported.systemBoundaries || defaultSystemBoundaries,
+    };
+    setSystemInfo(partialSystemInfo);
   };
 
   // V-01: Automatische Risikovorschau berechnen
