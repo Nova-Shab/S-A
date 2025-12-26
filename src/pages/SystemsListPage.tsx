@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSystems } from "../context/SystemsContext";
+import { useLanguage } from "../context/LanguageContext";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import {
@@ -18,6 +19,7 @@ import { getRiskClassLabel, getRiskClassColor } from "../utils/riskClassificatio
 
 export const SystemsListPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const {
     filteredSystems,
     stats,
@@ -110,7 +112,7 @@ export const SystemsListPage: React.FC = () => {
     if (!riskClass) {
       return (
         <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-500">
-          Nicht klassifiziert
+          {t('systems.notClassified')}
         </span>
       );
     }
@@ -129,18 +131,18 @@ export const SystemsListPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                KI-Systeme Verzeichnis
+                {t('systems.title')}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                Zentrale Verwaltung aller registrierten KI-Systeme nach EU AI Act
+                {t('systems.subtitle')}
               </p>
             </div>
             <div className="flex gap-3">
               <Button variant="secondary" onClick={handleExport}>
-                Exportieren
+                {t('systems.export')}
               </Button>
               <Button onClick={handleCreateSystem}>
-                + System registrieren
+                {t('systems.registerSystem')}
               </Button>
             </div>
           </div>
@@ -152,27 +154,27 @@ export const SystemsListPage: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-gray-900">{stats.totalSystems}</div>
-            <div className="text-xs text-gray-500 mt-1">Systeme gesamt</div>
+            <div className="text-xs text-gray-500 mt-1">{t('systems.totalSystems')}</div>
           </Card>
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-green-600">{stats.byStatus.COMPLIANT}</div>
-            <div className="text-xs text-gray-500 mt-1">Konform</div>
+            <div className="text-xs text-gray-500 mt-1">{t('systems.compliant')}</div>
           </Card>
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-red-600">{stats.byStatus.NON_COMPLIANT}</div>
-            <div className="text-xs text-gray-500 mt-1">Nicht konform</div>
+            <div className="text-xs text-gray-500 mt-1">{t('systems.nonCompliant')}</div>
           </Card>
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-orange-600">{stats.byRiskClass.HIGH_RISK}</div>
-            <div className="text-xs text-gray-500 mt-1">Hochrisiko</div>
+            <div className="text-xs text-gray-500 mt-1">{t('systems.highRisk')}</div>
           </Card>
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-purple-600">{stats.systemsRequiringAction}</div>
-            <div className="text-xs text-gray-500 mt-1">Handlungsbedarf</div>
+            <div className="text-xs text-gray-500 mt-1">{t('systems.actionRequired')}</div>
           </Card>
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-blue-600">{stats.upcomingAudits}</div>
-            <div className="text-xs text-gray-500 mt-1">Audits anstehend</div>
+            <div className="text-xs text-gray-500 mt-1">{t('systems.upcomingAudits')}</div>
           </Card>
         </div>
 
@@ -183,7 +185,7 @@ export const SystemsListPage: React.FC = () => {
             <div className="flex-1 min-w-[200px]">
               <input
                 type="text"
-                placeholder="Suchen nach Name, Anwendungsfall, Abteilung..."
+                placeholder={t('systems.searchPlaceholder')}
                 value={filter.searchTerm || ""}
                 onChange={(e) => setFilter({ ...filter, searchTerm: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -199,7 +201,7 @@ export const SystemsListPage: React.FC = () => {
               })}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Alle Status</option>
+              <option value="">{t('systems.allStatus')}</option>
               {Object.entries(SYSTEM_STATUS_CONFIG).map(([key, config]) => (
                 <option key={key} value={key}>{config.label}</option>
               ))}
@@ -214,11 +216,11 @@ export const SystemsListPage: React.FC = () => {
               })}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Alle Risikoklassen</option>
-              <option value="PROHIBITED">Verboten</option>
-              <option value="HIGH_RISK">Hochrisiko</option>
-              <option value="LIMITED_RISK">Begrenztes Risiko</option>
-              <option value="MINIMAL_RISK">Minimales Risiko</option>
+              <option value="">{t('systems.allRiskClasses')}</option>
+              <option value="PROHIBITED">{language === 'de' ? 'Verboten' : 'Prohibited'}</option>
+              <option value="HIGH_RISK">{language === 'de' ? 'Hochrisiko' : 'High Risk'}</option>
+              <option value="LIMITED_RISK">{language === 'de' ? 'Begrenztes Risiko' : 'Limited Risk'}</option>
+              <option value="MINIMAL_RISK">{language === 'de' ? 'Minimales Risiko' : 'Minimal Risk'}</option>
             </select>
 
             {/* Sort */}
@@ -230,13 +232,13 @@ export const SystemsListPage: React.FC = () => {
               }}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="updatedAt-desc">Zuletzt aktualisiert</option>
-              <option value="createdAt-desc">Neueste zuerst</option>
-              <option value="createdAt-asc">Älteste zuerst</option>
-              <option value="systemName-asc">Name A-Z</option>
-              <option value="systemName-desc">Name Z-A</option>
-              <option value="riskClass-asc">Risiko (höchstes zuerst)</option>
-              <option value="complianceScore-desc">Compliance-Score</option>
+              <option value="updatedAt-desc">{t('systems.lastUpdated')}</option>
+              <option value="createdAt-desc">{t('systems.newestFirst')}</option>
+              <option value="createdAt-asc">{t('systems.oldestFirst')}</option>
+              <option value="systemName-asc">{t('systems.nameAZ')}</option>
+              <option value="systemName-desc">{t('systems.nameZA')}</option>
+              <option value="riskClass-asc">{t('systems.riskHighestFirst')}</option>
+              <option value="complianceScore-desc">{t('systems.complianceScore')}</option>
             </select>
 
             {/* View Toggle */}
@@ -264,13 +266,13 @@ export const SystemsListPage: React.FC = () => {
           {selectedIds.length > 0 && (
             <div className="mt-4 pt-4 border-t flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                {selectedIds.length} ausgewählt
+                {selectedIds.length} {t('systems.selected')}
               </span>
               <Button variant="secondary" onClick={() => setSelectedIds([])}>
-                Auswahl aufheben
+                {t('systems.clearSelection')}
               </Button>
               <Button variant="secondary" onClick={handleExport}>
-                Ausgewählte exportieren
+                {t('systems.exportSelected')}
               </Button>
             </div>
           )}
@@ -284,14 +286,14 @@ export const SystemsListPage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <h3 className="mt-2 text-lg font-medium text-gray-900">
-                Keine KI-Systeme registriert
+                {t('systems.noSystems')}
               </h3>
               <p className="mt-1 text-gray-500">
-                Registrieren Sie Ihr erstes KI-System, um mit der EU AI Act Compliance zu beginnen.
+                {t('systems.noSystemsDesc')}
               </p>
               <div className="mt-6">
                 <Button onClick={handleCreateSystem}>
-                  + Erstes System registrieren
+                  {t('systems.registerFirst')}
                 </Button>
               </div>
             </div>
@@ -323,7 +325,7 @@ export const SystemsListPage: React.FC = () => {
                   <button
                     onClick={(e) => handleEditSystem(e, system)}
                     className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Bearbeiten"
+                    title={t('systems.edit')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -332,7 +334,7 @@ export const SystemsListPage: React.FC = () => {
                   <button
                     onClick={(e) => handleDuplicateSystem(e, system.id)}
                     className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                    title="Duplizieren"
+                    title={t('systems.duplicate')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -344,7 +346,7 @@ export const SystemsListPage: React.FC = () => {
                       setShowDeleteConfirm(system.id);
                     }}
                     className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Löschen"
+                    title={t('systems.delete')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -355,7 +357,7 @@ export const SystemsListPage: React.FC = () => {
                 <div className="pt-6">
                   {/* System Name */}
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 pr-20">
-                    {system.systemInfo.systemName || "Unbenanntes System"}
+                    {system.systemInfo.systemName || t('systems.unnamedSystem')}
                   </h3>
 
                   {/* Badges */}
@@ -367,13 +369,13 @@ export const SystemsListPage: React.FC = () => {
                   {/* Info */}
                   <div className="text-sm text-gray-600 space-y-1 mb-4">
                     {system.systemInfo.domain && (
-                      <p>Domäne: {system.systemInfo.domain}</p>
+                      <p>{t('systems.domain')}: {system.systemInfo.domain}</p>
                     )}
                     {system.department && (
-                      <p>Abteilung: {system.department}</p>
+                      <p>{t('systems.department')}: {system.department}</p>
                     )}
                     {system.responsiblePerson && (
-                      <p>Verantwortlich: {system.responsiblePerson}</p>
+                      <p>{t('systems.responsible')}: {system.responsiblePerson}</p>
                     )}
                   </div>
 
@@ -399,13 +401,13 @@ export const SystemsListPage: React.FC = () => {
                   {/* Footer */}
                   <div className="pt-3 border-t flex items-center justify-between">
                     <div className="text-xs text-gray-500">
-                      {system.auditCount} Audits durchgeführt
+                      {system.auditCount} {t('systems.auditsCompleted')}
                     </div>
                     <Button
                       variant="secondary"
                       onClick={(e) => handleStartAudit(e, system.id)}
                     >
-                      Audit starten
+                      {t('systems.startAudit')}
                     </Button>
                   </div>
                 </div>
@@ -427,25 +429,25 @@ export const SystemsListPage: React.FC = () => {
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    System
+                    {t('systems.system')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t('systems.status')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Risikoklasse
+                    {t('systems.riskClass')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Compliance
+                    {t('systems.compliance')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Abteilung
+                    {t('systems.department')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aktualisiert
+                    {t('systems.updated')}
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aktionen
+                    {t('systems.actions')}
                   </th>
                 </tr>
               </thead>
@@ -466,7 +468,7 @@ export const SystemsListPage: React.FC = () => {
                     </td>
                     <td className="px-4 py-4">
                       <div className="font-medium text-gray-900">
-                        {system.systemInfo.systemName || "Unbenanntes System"}
+                        {system.systemInfo.systemName || t('systems.unnamedSystem')}
                       </div>
                       <div className="text-sm text-gray-500">
                         {system.systemInfo.domain}
@@ -500,7 +502,7 @@ export const SystemsListPage: React.FC = () => {
                       {system.department || "-"}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500">
-                      {new Date(system.updatedAt).toLocaleDateString("de-DE")}
+                      {new Date(system.updatedAt).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
                     </td>
                     <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-2">
@@ -508,13 +510,13 @@ export const SystemsListPage: React.FC = () => {
                           onClick={(e) => handleStartAudit(e, system.id)}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
-                          Audit
+                          {t('systems.audit')}
                         </button>
                         <button
                           onClick={(e) => handleEditSystem(e, system)}
                           className="text-gray-600 hover:text-gray-800 text-sm font-medium"
                         >
-                          Bearbeiten
+                          {t('systems.edit')}
                         </button>
                       </div>
                     </td>
@@ -530,20 +532,20 @@ export const SystemsListPage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <Card className="max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                System löschen?
+                {t('systems.deleteConfirmTitle')}
               </h3>
               <p className="text-gray-600 mb-4">
-                Möchten Sie dieses KI-System wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                {t('systems.deleteConfirmText')}
               </p>
               <div className="flex justify-end gap-3">
                 <Button variant="secondary" onClick={() => setShowDeleteConfirm(null)}>
-                  Abbrechen
+                  {t('systems.cancel')}
                 </Button>
                 <button
                   onClick={() => handleDeleteConfirm(showDeleteConfirm)}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  Löschen
+                  {t('systems.delete')}
                 </button>
               </div>
             </Card>

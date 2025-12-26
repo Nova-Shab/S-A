@@ -211,6 +211,56 @@ export interface TranslationKeys {
     unauthorized: string;
     notFound: string;
   };
+
+  // Systems Page
+  systems: {
+    title: string;
+    subtitle: string;
+    totalSystems: string;
+    compliant: string;
+    nonCompliant: string;
+    highRisk: string;
+    actionRequired: string;
+    upcomingAudits: string;
+    export: string;
+    registerSystem: string;
+    searchPlaceholder: string;
+    allStatus: string;
+    allRiskClasses: string;
+    lastUpdated: string;
+    newestFirst: string;
+    oldestFirst: string;
+    nameAZ: string;
+    nameZA: string;
+    riskHighestFirst: string;
+    complianceScore: string;
+    selected: string;
+    clearSelection: string;
+    exportSelected: string;
+    noSystems: string;
+    noSystemsDesc: string;
+    registerFirst: string;
+    auditsCompleted: string;
+    startAudit: string;
+    edit: string;
+    duplicate: string;
+    delete: string;
+    deleteConfirmTitle: string;
+    deleteConfirmText: string;
+    cancel: string;
+    domain: string;
+    department: string;
+    responsible: string;
+    compliance: string;
+    system: string;
+    status: string;
+    riskClass: string;
+    updated: string;
+    actions: string;
+    audit: string;
+    notClassified: string;
+    unnamedSystem: string;
+  };
 }
 
 const de: TranslationKeys = {
@@ -412,6 +462,55 @@ const de: TranslationKeys = {
     unauthorized: 'Nicht autorisiert. Bitte melden Sie sich an.',
     notFound: 'Nicht gefunden',
   },
+
+  systems: {
+    title: 'KI-Systeme Verzeichnis',
+    subtitle: 'Zentrale Verwaltung aller registrierten KI-Systeme nach EU AI Act',
+    totalSystems: 'Systeme gesamt',
+    compliant: 'Konform',
+    nonCompliant: 'Nicht konform',
+    highRisk: 'Hochrisiko',
+    actionRequired: 'Handlungsbedarf',
+    upcomingAudits: 'Audits anstehend',
+    export: 'Exportieren',
+    registerSystem: '+ System registrieren',
+    searchPlaceholder: 'Suchen nach Name, Anwendungsfall, Abteilung...',
+    allStatus: 'Alle Status',
+    allRiskClasses: 'Alle Risikoklassen',
+    lastUpdated: 'Zuletzt aktualisiert',
+    newestFirst: 'Neueste zuerst',
+    oldestFirst: 'Älteste zuerst',
+    nameAZ: 'Name A-Z',
+    nameZA: 'Name Z-A',
+    riskHighestFirst: 'Risiko (höchstes zuerst)',
+    complianceScore: 'Compliance-Score',
+    selected: 'ausgewählt',
+    clearSelection: 'Auswahl aufheben',
+    exportSelected: 'Ausgewählte exportieren',
+    noSystems: 'Keine KI-Systeme registriert',
+    noSystemsDesc: 'Registrieren Sie Ihr erstes KI-System, um mit der EU AI Act Compliance zu beginnen.',
+    registerFirst: '+ Erstes System registrieren',
+    auditsCompleted: 'Audits durchgeführt',
+    startAudit: 'Audit starten',
+    edit: 'Bearbeiten',
+    duplicate: 'Duplizieren',
+    delete: 'Löschen',
+    deleteConfirmTitle: 'System löschen?',
+    deleteConfirmText: 'Möchten Sie dieses KI-System wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    cancel: 'Abbrechen',
+    domain: 'Domäne',
+    department: 'Abteilung',
+    responsible: 'Verantwortlich',
+    compliance: 'Compliance',
+    system: 'System',
+    status: 'Status',
+    riskClass: 'Risikoklasse',
+    updated: 'Aktualisiert',
+    actions: 'Aktionen',
+    audit: 'Audit',
+    notClassified: 'Nicht klassifiziert',
+    unnamedSystem: 'Unbenanntes System',
+  },
 };
 
 const en: TranslationKeys = {
@@ -612,6 +711,55 @@ const en: TranslationKeys = {
     serverError: 'Server error. Please try again later.',
     unauthorized: 'Unauthorized. Please log in.',
     notFound: 'Not found',
+  },
+
+  systems: {
+    title: 'AI Systems Directory',
+    subtitle: 'Central management of all registered AI systems under EU AI Act',
+    totalSystems: 'Total systems',
+    compliant: 'Compliant',
+    nonCompliant: 'Non-compliant',
+    highRisk: 'High risk',
+    actionRequired: 'Action required',
+    upcomingAudits: 'Upcoming audits',
+    export: 'Export',
+    registerSystem: '+ Register system',
+    searchPlaceholder: 'Search by name, use case, department...',
+    allStatus: 'All status',
+    allRiskClasses: 'All risk classes',
+    lastUpdated: 'Last updated',
+    newestFirst: 'Newest first',
+    oldestFirst: 'Oldest first',
+    nameAZ: 'Name A-Z',
+    nameZA: 'Name Z-A',
+    riskHighestFirst: 'Risk (highest first)',
+    complianceScore: 'Compliance score',
+    selected: 'selected',
+    clearSelection: 'Clear selection',
+    exportSelected: 'Export selected',
+    noSystems: 'No AI systems registered',
+    noSystemsDesc: 'Register your first AI system to start with EU AI Act compliance.',
+    registerFirst: '+ Register first system',
+    auditsCompleted: 'Audits completed',
+    startAudit: 'Start audit',
+    edit: 'Edit',
+    duplicate: 'Duplicate',
+    delete: 'Delete',
+    deleteConfirmTitle: 'Delete system?',
+    deleteConfirmText: 'Do you really want to delete this AI system? This action cannot be undone.',
+    cancel: 'Cancel',
+    domain: 'Domain',
+    department: 'Department',
+    responsible: 'Responsible',
+    compliance: 'Compliance',
+    system: 'System',
+    status: 'Status',
+    riskClass: 'Risk class',
+    updated: 'Updated',
+    actions: 'Actions',
+    audit: 'Audit',
+    notClassified: 'Not classified',
+    unnamedSystem: 'Unnamed system',
   },
 };
 
