@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { translations, Language, TranslationKeys } from '../i18n/translations';
+import { translations } from '../i18n/translations';
+
+export type Language = 'de' | 'en';
 
 interface LanguageContextType {
   language: Language;
@@ -69,5 +71,3 @@ export const useLanguage = (): LanguageContextType => {
   }
   return context;
 };
-
-export { Language };
