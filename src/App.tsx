@@ -17,6 +17,7 @@ import { DemoAccessPage } from "./pages/DemoAccessPage";
 import { AuditToolsPage } from "./pages/AuditToolsPage";
 import { SystemsListPage } from "./pages/SystemsListPage";
 import { SystemDetailPage } from "./pages/SystemDetailPage";
+import { AuditWizardPage } from "./pages/AuditWizardPage";
 import authService from "./services/authService";
 import demoService, { DemoLead } from "./services/demoService";
 
@@ -174,6 +175,8 @@ const AppContent: React.FC = () => {
         <Route path="/systems" element={<SystemsListPage />} />
         <Route path="/systems/:id" element={<SystemDetailPage />} />
         <Route path="/systems/:id/edit" element={<SystemDetailPage />} />
+        {/* New Audit Wizard */}
+        <Route path="/audit-wizard" element={<AuditWizardPage />} />
       </Route>
 
       {/* Demo Access Page (protected but doesn't require demo access) */}
