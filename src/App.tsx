@@ -20,6 +20,7 @@ import { SystemsListPage } from "./pages/SystemsListPage";
 import { SystemDetailPage } from "./pages/SystemDetailPage";
 import { AuditWizardPage } from "./pages/AuditWizardPage";
 import { AuditHistoryPage } from "./pages/AuditHistoryPage";
+import { ActionsOverviewPage } from "./pages/ActionsOverviewPage";
 import authService from "./services/authService";
 import demoService, { DemoLead } from "./services/demoService";
 import { NovaChatBot } from "./components/NovaChatBot";
@@ -182,6 +183,8 @@ const AppContent: React.FC = () => {
         <Route path="/audit-wizard" element={<AuditWizardPage />} />
         {/* Audit History Page */}
         <Route path="/audit-history" element={<AuditHistoryPage />} />
+        {/* Actions Overview Dashboard */}
+        <Route path="/actions" element={<ActionsOverviewPage />} />
       </Route>
 
       {/* Demo Access Page (protected but doesn't require demo access) */}

@@ -20,6 +20,7 @@ import scannerRoutes from './routes/scannerRoutes';
 import systemAuditRoutes from './routes/systemAuditRoutes';
 import documentAnalysisRoutes from './routes/documentAnalysisRoutes';
 import chatRoutes from './routes/chatRoutes';
+import actionsRoutes from './routes/actionsRoutes';
 
 // Import database
 import { syncDatabase } from './models';
@@ -59,6 +60,7 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/scanner', scannerRoutes);
 app.use('/api/documents', documentAnalysisRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/actions', actionsRoutes);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
@@ -115,6 +117,7 @@ const startServer = async () => {
       console.log(`    → http://localhost:${PORT}/api/documents/*`);
       console.log(`    → http://localhost:${PORT}/api/chat/*`);
       console.log(`    → http://localhost:${PORT}/api/demo/*`);
+      console.log(`    → http://localhost:${PORT}/api/actions/*`);
       console.log('');
       console.log(`  Demo Mode: ${process.env.DEMO_ENABLED !== 'false' ? 'ENABLED' : 'DISABLED'}`);
       console.log(`  Auto-Grant: ${process.env.DEMO_AUTO_GRANT === 'true' ? 'YES' : 'NO'}`);

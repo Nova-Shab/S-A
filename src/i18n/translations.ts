@@ -31,6 +31,7 @@ export interface TranslationKeys {
     dashboard: string;
     systems: string;
     scanner: string;
+    actionsOverview: string;
     auditWizard: string;
     auditHistory: string;
     settings: string;
@@ -292,6 +293,7 @@ const de: TranslationKeys = {
     dashboard: 'Dashboard',
     systems: 'Systeme',
     scanner: 'Scanner',
+    actionsOverview: 'Maßnahmen',
     auditWizard: 'Audit-Assistent',
     auditHistory: 'Audit-Verlauf',
     settings: 'Einstellungen',
@@ -542,6 +544,7 @@ const en: TranslationKeys = {
     dashboard: 'Dashboard',
     systems: 'Systems',
     scanner: 'Scanner',
+    actionsOverview: 'Actions',
     auditWizard: 'Audit Wizard',
     auditHistory: 'Audit History',
     settings: 'Settings',

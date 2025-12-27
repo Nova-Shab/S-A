@@ -24,6 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({
     if (path === '/dashboard' || path === '/') return 'dashboard';
     if (path.startsWith('/systems')) return 'systems';
     if (path === '/scanner') return 'scanner';
+    if (path === '/actions') return 'actions';
     if (path === '/demo-access') return 'demo-access';
     if (path === '/audit-tools') return 'audit-tools';
     if (path.startsWith('/audit')) return 'audit-flow';
@@ -40,6 +41,9 @@ export const Layout: React.FC<LayoutProps> = ({
         break;
       case 'scanner':
         navigate('/scanner');
+        break;
+      case 'actions':
+        navigate('/actions');
         break;
       case 'audit-tools':
         if (!hasDemoAccess) {
