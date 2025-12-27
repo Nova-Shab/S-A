@@ -165,13 +165,11 @@ const AppContent: React.FC = () => {
         }
       >
         <Route path="/dashboard" element={
-          <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            <DashboardPage
-              onCreateAudit={handleCreateNewAudit}
-              onOpenAudit={handleOpenExistingAudit}
-              onLogout={() => {}}
-            />
-          </div>
+          <DashboardPage
+            onCreateAudit={handleCreateNewAudit}
+            onOpenAudit={handleOpenExistingAudit}
+            onLogout={() => {}}
+          />
         } />
         <Route path="/scanner" element={
           <ScannerPage onBack={() => navigate('/dashboard')} />
