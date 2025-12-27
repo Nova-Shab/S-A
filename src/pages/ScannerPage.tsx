@@ -60,7 +60,7 @@ const RISK_CONFIG: Record<string, { bg: string; text: string; gradient: string }
 export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
   const location = useLocation();
   const { t } = useLanguage();
-  const [inputType, setInputType] = useState<'url' | 'description'>('description');
+  const [inputType, setInputType] = useState<'url' | 'description'>('url');
   const [inputValue, setInputValue] = useState('');
   const [systemName, setSystemName] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -177,8 +177,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                 </button>
               )}
               <div>
-                <h1 className="text-h1 text-audit-deep flex items-center">
-                  <span className="mr-3">🇪🇺</span>
+                <h1 className="text-h1 text-audit-deep">
                   {t('scanner.title')}
                 </h1>
                 <p className="text-body text-audit-cool mt-1">
@@ -194,29 +193,28 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
         {!result ? (
           // Input Form
           <>
+            {/* Info Section - Before Form */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {[
+                { icon: '🔍', title: t('scanner.autoAnalysis'), desc: t('scanner.autoAnalysisDesc') },
+                { icon: '📊', title: t('scanner.euAiActCompliant'), desc: t('scanner.euAiActCompliantDesc') },
+                { icon: '📋', title: t('scanner.detailedReport'), desc: t('scanner.detailedReportDesc') },
+              ].map((item, idx) => (
+                <div key={idx} className="audit-card text-center">
+                  <div className="text-3xl mb-2">{item.icon}</div>
+                  <h3 className="text-h4 text-audit-deep">{item.title}</h3>
+                  <p className="text-body text-audit-cool">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
             <div className="audit-card mb-6">
               <h2 className="text-h2 text-audit-deep mb-6">
                 {t('scanner.analyzeTitle')}
               </h2>
 
-              {/* Input Type Selection */}
+              {/* Input Type Selection - URL first, then Description */}
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <button
-                  onClick={() => setInputType('description')}
-                  className={`flex-1 py-3 px-4 rounded-audit border-2 transition-all ${
-                    inputType === 'description'
-                      ? 'border-audit-steel bg-audit-bg text-audit-deep'
-                      : 'border-audit-light hover:border-audit-cool text-audit-cool'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="font-medium">{t('scanner.description')}</span>
-                  </div>
-                </button>
-
                 <button
                   onClick={() => setInputType('url')}
                   className={`flex-1 py-3 px-4 rounded-audit border-2 transition-all ${
@@ -230,6 +228,22 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
                     <span className="font-medium">{t('scanner.websiteUrl')}</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setInputType('description')}
+                  className={`flex-1 py-3 px-4 rounded-audit border-2 transition-all ${
+                    inputType === 'description'
+                      ? 'border-audit-steel bg-audit-bg text-audit-deep'
+                      : 'border-audit-light hover:border-audit-cool text-audit-cool'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-medium">{t('scanner.description')}</span>
                   </div>
                 </button>
               </div>
@@ -323,20 +337,6 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
               </form>
             </div>
 
-            {/* Info Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { icon: '🔍', title: t('scanner.autoAnalysis'), desc: t('scanner.autoAnalysisDesc') },
-                { icon: '📊', title: t('scanner.euAiActCompliant'), desc: t('scanner.euAiActCompliantDesc') },
-                { icon: '📋', title: t('scanner.detailedReport'), desc: t('scanner.detailedReportDesc') },
-              ].map((item, idx) => (
-                <div key={idx} className="audit-card text-center">
-                  <div className="text-3xl mb-2">{item.icon}</div>
-                  <h3 className="text-h4 text-audit-deep">{item.title}</h3>
-                  <p className="text-body text-audit-cool">{item.desc}</p>
-                </div>
-              ))}
-            </div>
           </>
         ) : (
           // Results View
