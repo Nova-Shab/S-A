@@ -142,28 +142,39 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <div className="audit-container py-6 lg:py-8">
         {/* Scanner Quick Access Widget - Design System */}
         <div className="audit-scanner-widget mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-center">
-              <svg className="w-10 h-10 mr-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <div>
-                <h2 className="text-xl font-semibold text-white">KI-System Scanner</h2>
-                <p className="text-white/70 text-sm">
-                  EU AI Act Risikoanalyse
-                </p>
+          <div className="flex flex-col gap-4">
+            {/* Header Row */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="w-10 h-10 mr-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <div>
+                  <h2 className="text-xl font-semibold text-white">KI-System Scanner</h2>
+                  <p className="text-white/70 text-sm">
+                    EU AI Act Risikoanalyse
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => navigate('/scanner')}
+                className="px-5 py-2.5 bg-white/10 border border-white/20 text-white font-medium rounded-audit hover:bg-white/20 transition-colors whitespace-nowrap"
+              >
+                Erweiterte Analyse
+              </button>
             </div>
 
-            <form onSubmit={handleQuickScan} className="flex-1 lg:max-w-xl">
+            {/* Input Row - Full Width */}
+            <form onSubmit={handleQuickScan} className="w-full">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <input
                     type="text"
                     value={quickScanText}
                     onChange={(e) => setQuickScanText(e.target.value)}
-                    placeholder="Beschreiben Sie Ihr KI-System kurz..."
-                    className="audit-scanner-input"
+                    placeholder="Beschreiben Sie Ihr KI-System kurz, z.B.: Chatbot für Kundenservice mit automatischer Antwortgenerierung..."
+                    className="audit-scanner-input w-full"
                   />
                 </div>
                 <button
@@ -182,13 +193,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   ) : (
                     'Schnell-Scan'
                   )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/scanner')}
-                  className="px-5 py-3 bg-white/10 border border-white/20 text-white font-medium rounded-audit hover:bg-white/20 transition-colors whitespace-nowrap"
-                >
-                  Erweitert
                 </button>
               </div>
               {scanError && (
