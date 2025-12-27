@@ -134,14 +134,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 Willkommen, {user?.firstName} {user?.lastName}
               </p>
             </div>
-            <div className="flex gap-3">
-              <button onClick={onCreateAudit} className="audit-btn-primary">
-                + Neues Audit erstellen
-              </button>
-              <button onClick={onLogout} className="audit-btn-secondary">
-                Abmelden
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -205,6 +197,63 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 </div>
               )}
             </form>
+          </div>
+        </div>
+
+        {/* Create Audit - Prominent Hero Section */}
+        <div className="mb-8 p-8 bg-white rounded-xl shadow-lg border-2 border-audit-steel/20 relative overflow-hidden">
+          {/* Decorative background element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-audit-steel/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2"></div>
+
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-audit-steel/10 rounded-xl flex items-center justify-center">
+                  <svg className="w-7 h-7 text-audit-steel" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl lg:text-3xl font-bold text-audit-deep">
+                  Neues Audit erstellen
+                </h2>
+              </div>
+              <p className="text-lg text-audit-cool max-w-2xl leading-relaxed">
+                Starten Sie eine umfassende EU AI Act Compliance-Prüfung für Ihr KI-System.
+                Unser strukturierter Audit-Prozess führt Sie durch alle relevanten Anforderungen.
+              </p>
+              <div className="flex flex-wrap gap-4 mt-4 text-sm text-audit-steel">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Risikoklassifizierung
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Compliance-Checkliste
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Maßnahmenplan
+                </span>
+              </div>
+            </div>
+
+            <div className="flex-shrink-0">
+              <button
+                onClick={onCreateAudit}
+                className="group flex items-center gap-3 px-8 py-4 bg-audit-steel text-white text-lg font-semibold rounded-xl hover:bg-audit-deep transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <svg className="w-6 h-6 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Audit starten
+              </button>
+            </div>
           </div>
         </div>
 
@@ -353,7 +402,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         ) : audits.length === 0 ? (
           <div className="audit-card">
-            <div className="text-center py-12">
+            <div className="text-center py-8">
               <svg
                 className="mx-auto h-12 w-12 text-audit-light"
                 fill="none"
@@ -368,16 +417,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 />
               </svg>
               <h3 className="mt-4 text-h3 text-audit-deep">
-                Keine Audits gefunden
+                Noch keine Audits vorhanden
               </h3>
               <p className="mt-2 text-body text-audit-cool">
-                Erstellen Sie Ihr erstes Audit, um loszulegen.
+                Nutzen Sie den Bereich oben, um Ihr erstes Audit zu starten.
               </p>
-              <div className="mt-6">
-                <button onClick={onCreateAudit} className="audit-btn-primary">
-                  + Neues Audit erstellen
-                </button>
-              </div>
             </div>
           </div>
         ) : (
