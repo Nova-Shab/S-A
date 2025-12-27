@@ -146,12 +146,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {/* Header Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <svg className="w-10 h-10 mr-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 mr-3 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">KI-System Scanner</h2>
-                  <p className="text-white/70 text-sm">
+                  <h2 className="text-h3 text-white">KI-System Scanner</h2>
+                  <p className="text-white/70 text-meta">
                     EU AI Act Risikoanalyse
                   </p>
                 </div>
@@ -159,7 +159,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <button
                 type="button"
                 onClick={() => navigate('/scanner')}
-                className="px-5 py-2.5 bg-white/10 border border-white/20 text-white font-medium rounded-audit hover:bg-white/20 transition-colors whitespace-nowrap"
+                className="audit-btn bg-white/10 border border-white/30 text-white hover:bg-white/20"
               >
                 Erweiterte Analyse
               </button>
@@ -180,7 +180,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 <button
                   type="submit"
                   disabled={isScanning}
-                  className="audit-scanner-btn disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
+                  className="audit-btn bg-white text-audit-deep hover:bg-audit-bg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isScanning ? (
                     <>
@@ -205,27 +205,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         {/* Create Audit - Prominent Hero Section */}
-        <div className="mb-8 p-8 bg-white rounded-xl shadow-lg border-2 border-audit-steel/20 relative overflow-hidden">
-          {/* Decorative background element */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-audit-steel/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2"></div>
-
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="mb-6 p-6 bg-white rounded-audit shadow-audit border border-audit-light">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-audit-steel/10 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-audit-steel" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-audit-steel/10 rounded-audit flex items-center justify-center">
+                  <svg className="w-5 h-5 text-audit-steel" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                   </svg>
                 </div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-audit-deep">
+                <h2 className="text-h2 text-audit-deep">
                   Neues Audit erstellen
                 </h2>
               </div>
-              <p className="text-lg text-audit-cool max-w-2xl leading-relaxed">
-                Starten Sie eine umfassende EU AI Act Compliance-Prüfung für Ihr KI-System.
-                Unser strukturierter Audit-Prozess führt Sie durch alle relevanten Anforderungen.
+              <p className="text-body text-audit-cool max-w-2xl">
+                Starten Sie eine EU AI Act Compliance-Prüfung für Ihr KI-System.
               </p>
-              <div className="flex flex-wrap gap-4 mt-4 text-sm text-audit-steel">
+              <div className="flex flex-wrap gap-4 mt-3 text-meta text-audit-steel">
                 <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -250,9 +246,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex-shrink-0">
               <button
                 onClick={onCreateAudit}
-                className="group flex items-center gap-3 px-8 py-4 bg-audit-steel text-white text-lg font-semibold rounded-xl hover:bg-audit-deep transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                className="audit-btn-primary audit-btn-lg"
               >
-                <svg className="w-6 h-6 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Audit starten
