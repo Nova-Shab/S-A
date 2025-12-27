@@ -3,202 +3,447 @@
 @tailwind utilities;
 
 /* ============================================
-   EU AI Act Audit Tool - Design System
+   EU AI Act Audit Tool - Design System v2.0
+   Responsive Layout & Enhanced Typography
    ============================================ */
 
 /* Google Fonts Import */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 
 /* ============================================
-   Base Layer - Typography & Colors
+   CSS Custom Properties (Design Tokens)
+   ============================================ */
+:root {
+  /* Colors */
+  --color-deep: #2B3D4F;
+  --color-steel: #354A5F;
+  --color-cool: #5D6D7E;
+  --color-light: #BDC3C7;
+  --color-bg: #EDF1F2;
+  --color-white: #FFFFFF;
+
+  /* Typography Scale - Responsive */
+  --font-size-xs: clamp(0.6875rem, 0.8vw, 0.75rem);       /* 11-12px */
+  --font-size-sm: clamp(0.8125rem, 0.9vw, 0.875rem);      /* 13-14px */
+  --font-size-base: clamp(0.9375rem, 1vw, 1.0625rem);     /* 15-17px */
+  --font-size-lg: clamp(1.0625rem, 1.15vw, 1.1875rem);    /* 17-19px */
+  --font-size-xl: clamp(1.1875rem, 1.3vw, 1.375rem);      /* 19-22px */
+  --font-size-2xl: clamp(1.375rem, 1.6vw, 1.625rem);      /* 22-26px */
+  --font-size-3xl: clamp(1.625rem, 2vw, 2rem);            /* 26-32px */
+  --font-size-4xl: clamp(2rem, 2.5vw, 2.5rem);            /* 32-40px */
+
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 1.75;
+  --line-height-readable: 1.65;
+
+  /* Spacing Scale - Responsive */
+  --space-1: clamp(0.25rem, 0.5vw, 0.375rem);
+  --space-2: clamp(0.5rem, 0.75vw, 0.625rem);
+  --space-3: clamp(0.75rem, 1vw, 1rem);
+  --space-4: clamp(1rem, 1.25vw, 1.25rem);
+  --space-5: clamp(1.25rem, 1.5vw, 1.5rem);
+  --space-6: clamp(1.5rem, 2vw, 2rem);
+  --space-8: clamp(2rem, 2.5vw, 2.5rem);
+  --space-10: clamp(2.5rem, 3vw, 3rem);
+  --space-12: clamp(3rem, 4vw, 4rem);
+
+  /* Container Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1440px;
+  --container-max: 1600px;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ============================================
+   Base Layer - Typography & Layout
    ============================================ */
 @layer base {
-  /* Root variables for easy theming */
-  :root {
-    --color-deep: #2B3D4F;
-    --color-steel: #354A5F;
-    --color-cool: #5D6D7E;
-    --color-light: #BDC3C7;
-    --color-bg: #EDF1F2;
-    --color-white: #FFFFFF;
-  }
-
-  /* Base HTML styling */
+  /* Enhanced HTML base styling */
   html {
-    font-size: 16px;
+    font-size: clamp(15px, 1vw + 0.5rem, 17px);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply font-sans text-audit-deep bg-audit-bg;
-    line-height: 1.6;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-readable);
+    letter-spacing: -0.01em;
   }
 
-  /* Heading hierarchy */
+  /* Heading hierarchy - responsive sizes */
   h1 {
-    @apply text-h1 text-audit-deep mb-6;
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+    @apply text-audit-deep font-semibold tracking-tight;
+    margin-bottom: var(--space-6);
   }
 
   h2 {
-    @apply text-h2 text-audit-deep mb-4;
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-snug);
+    @apply text-audit-deep font-semibold;
+    margin-bottom: var(--space-4);
   }
 
   h3 {
-    @apply text-h3 text-audit-steel mb-3;
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-snug);
+    @apply text-audit-steel font-medium;
+    margin-bottom: var(--space-3);
   }
 
   h4 {
-    @apply text-h4 text-audit-steel mb-2;
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-normal);
+    @apply text-audit-steel font-medium;
+    margin-bottom: var(--space-2);
   }
 
   /* Paragraph and body text */
   p {
-    @apply text-body text-audit-deep mb-4 max-w-prose;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-readable);
+    @apply text-audit-deep max-w-prose;
+    margin-bottom: var(--space-4);
+  }
+
+  /* Large body text for emphasis */
+  .text-lead {
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    @apply text-audit-cool;
   }
 
   /* Links */
   a {
-    @apply text-audit-steel hover:text-audit-deep transition-colors;
+    @apply text-audit-steel hover:text-audit-deep transition-colors duration-200;
   }
 
   /* Lists */
   ul, ol {
-    @apply mb-4 pl-6;
+    margin-bottom: var(--space-4);
+    padding-left: var(--space-6);
   }
 
   li {
-    @apply mb-2;
+    margin-bottom: var(--space-2);
+    line-height: var(--line-height-relaxed);
   }
 
-  /* Form elements */
+  /* Form elements - improved sizing for touch targets */
   input, textarea, select {
-    @apply font-sans text-body text-audit-deep;
+    @apply font-sans text-audit-deep;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
   }
 
   input::placeholder,
   textarea::placeholder {
     @apply text-audit-cool;
+    opacity: 0.8;
   }
 
   /* Focus states - accessible and calm */
   input:focus,
   textarea:focus,
   select:focus,
-  button:focus {
+  button:focus-visible {
     @apply outline-none ring-2 ring-audit-steel ring-offset-2;
   }
 
-  /* Tables */
+  /* Tables - improved readability */
   table {
     @apply w-full text-left;
+    font-size: var(--font-size-base);
   }
 
   th {
-    @apply text-label text-audit-steel font-medium pb-3 border-b border-audit-light;
+    font-size: var(--font-size-sm);
+    @apply text-audit-steel font-medium uppercase tracking-wide;
+    padding: var(--space-3) var(--space-4);
+    @apply border-b border-audit-light;
   }
 
   td {
-    @apply py-3 border-b border-audit-light/50;
+    padding: var(--space-4);
+    @apply border-b border-audit-light/50;
+    line-height: var(--line-height-relaxed);
   }
 
   /* Code and monospace */
   code {
-    @apply font-mono text-meta text-audit-cool bg-audit-bg px-1.5 py-0.5 rounded;
+    @apply font-mono bg-audit-bg rounded;
+    font-size: 0.9em;
+    padding: 0.125em 0.375em;
+    @apply text-audit-cool;
   }
 
   pre {
-    @apply font-mono text-meta bg-audit-bg p-4 rounded-audit overflow-x-auto mb-4;
+    @apply font-mono bg-audit-bg rounded-audit overflow-x-auto;
+    font-size: var(--font-size-sm);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  /* Selection styling */
+  ::selection {
+    @apply bg-audit-steel/20 text-audit-deep;
   }
 }
 
 /* ============================================
-   Component Layer - Reusable UI Patterns
+   Component Layer - Responsive UI Patterns
    ============================================ */
 @layer components {
-  /* Card component */
+  /* ----------------------------------------
+     Responsive Container System
+     ---------------------------------------- */
+  .audit-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  @media (min-width: 640px) {
+    .audit-container {
+      padding-left: var(--space-6);
+      padding-right: var(--space-6);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .audit-container {
+      padding-left: var(--space-8);
+      padding-right: var(--space-8);
+      max-width: var(--container-max);
+    }
+  }
+
+  /* Fluid container - adapts to any screen */
+  .audit-container-fluid {
+    width: 100%;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .audit-container-fluid {
+      padding-left: var(--space-6);
+      padding-right: var(--space-6);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .audit-container-fluid {
+      padding-left: var(--space-8);
+      padding-right: var(--space-8);
+    }
+  }
+
+  /* ----------------------------------------
+     Responsive Grid System
+     ---------------------------------------- */
+  .audit-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .audit-grid {
+      gap: var(--space-5);
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .audit-grid {
+      gap: var(--space-6);
+    }
+
+    .audit-grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .audit-grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: 1440px) {
+    .audit-grid {
+      gap: var(--space-8);
+    }
+  }
+
+  /* Auto-fill responsive grid */
+  .audit-grid-auto {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  }
+
+  @media (min-width: 768px) {
+    .audit-grid-auto {
+      gap: var(--space-6);
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+  }
+
+  /* ----------------------------------------
+     Card Component - Responsive
+     ---------------------------------------- */
   .audit-card {
-    @apply bg-white rounded-audit shadow-audit p-6 border border-audit-light/50;
+    @apply bg-white rounded-audit shadow-audit border border-audit-light/50;
+    padding: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .audit-card {
+      padding: var(--space-6);
+    }
   }
 
   .audit-card-header {
-    @apply text-h4 text-audit-deep mb-4 pb-3 border-b border-audit-light;
+    font-size: var(--font-size-lg);
+    @apply text-audit-deep font-medium;
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+    @apply border-b border-audit-light;
   }
 
-  /* Button variants */
+  /* ----------------------------------------
+     Button Variants - Touch Friendly
+     ---------------------------------------- */
   .audit-btn {
-    @apply inline-flex items-center justify-center px-4 py-2.5
-           text-label font-medium rounded-audit
-           transition-all duration-200
-           focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center font-medium rounded-audit transition-all duration-200;
+    font-size: var(--font-size-sm);
+    padding: var(--space-2) var(--space-4);
+    min-height: 2.75rem; /* 44px - touch target */
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  @media (min-width: 768px) {
+    .audit-btn {
+      padding: var(--space-2) var(--space-5);
+    }
   }
 
   .audit-btn-primary {
-    @apply audit-btn bg-audit-deep text-white
-           hover:bg-audit-steel
-           focus:ring-audit-steel;
+    @apply audit-btn bg-audit-deep text-white hover:bg-audit-steel focus-visible:ring-audit-steel;
   }
 
   .audit-btn-secondary {
-    @apply audit-btn bg-white text-audit-deep
-           border border-audit-light
-           hover:bg-audit-bg hover:border-audit-cool
-           focus:ring-audit-cool;
+    @apply audit-btn bg-white text-audit-deep border border-audit-light;
+    @apply hover:bg-audit-bg hover:border-audit-cool focus-visible:ring-audit-cool;
   }
 
   .audit-btn-ghost {
-    @apply audit-btn bg-transparent text-audit-steel
-           hover:bg-audit-bg hover:text-audit-deep
-           focus:ring-audit-cool;
+    @apply audit-btn bg-transparent text-audit-steel;
+    @apply hover:bg-audit-bg hover:text-audit-deep focus-visible:ring-audit-cool;
   }
 
-  /* Form inputs */
+  /* Large button variant */
+  .audit-btn-lg {
+    font-size: var(--font-size-base);
+    padding: var(--space-3) var(--space-6);
+    min-height: 3rem;
+  }
+
+  /* ----------------------------------------
+     Form Inputs - Enhanced Readability
+     ---------------------------------------- */
   .audit-input {
-    @apply w-full px-4 py-2.5
-           bg-white text-audit-deep
-           border border-audit-light rounded-audit
-           placeholder:text-audit-cool
-           hover:border-audit-cool
-           focus:border-audit-steel focus:ring-2 focus:ring-audit-steel/20;
+    @apply w-full bg-white text-audit-deep border border-audit-light rounded-audit;
+    font-size: var(--font-size-base);
+    padding: var(--space-3) var(--space-4);
+    min-height: 2.75rem;
+    @apply placeholder:text-audit-cool;
+    @apply hover:border-audit-cool;
+    @apply focus:border-audit-steel focus:ring-2 focus:ring-audit-steel/20;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
   .audit-label {
-    @apply block text-label text-audit-deep mb-2;
+    display: block;
+    font-size: var(--font-size-sm);
+    @apply text-audit-deep font-medium;
+    margin-bottom: var(--space-2);
   }
 
   .audit-helper {
-    @apply text-meta text-audit-cool mt-1.5;
+    font-size: var(--font-size-sm);
+    @apply text-audit-cool;
+    margin-top: var(--space-1);
+    line-height: var(--line-height-normal);
   }
 
-  /* Status indicators - calm, no alarm colors */
+  /* Form group spacing */
+  .audit-form-group {
+    margin-bottom: var(--space-5);
+  }
+
+  @media (min-width: 768px) {
+    .audit-form-group {
+      margin-bottom: var(--space-6);
+    }
+  }
+
+  /* ----------------------------------------
+     Status Indicators - Calm, Professional
+     ---------------------------------------- */
   .audit-status {
-    @apply inline-flex items-center px-3 py-1
-           text-meta font-medium rounded-full;
+    @apply inline-flex items-center font-medium rounded-full;
+    font-size: var(--font-size-xs);
+    padding: var(--space-1) var(--space-3);
   }
 
   .audit-status-info {
-    @apply audit-status bg-audit-bg text-audit-steel
-           border-l-4 border-audit-steel;
+    @apply audit-status bg-audit-bg text-audit-steel border-l-4 border-audit-steel;
   }
 
   .audit-status-success {
-    @apply audit-status bg-audit-bg text-audit-deep
-           border-l-4 border-audit-deep;
+    @apply audit-status bg-audit-bg text-audit-deep border-l-4 border-audit-deep;
   }
 
   .audit-status-warning {
-    @apply audit-status bg-audit-bg text-audit-cool
-           border-l-4 border-audit-cool;
+    @apply audit-status bg-audit-bg text-audit-cool border-l-4 border-audit-cool;
   }
 
   .audit-status-error {
-    @apply audit-status bg-audit-bg text-audit-steel
-           border-l-4 border-audit-steel;
+    @apply audit-status bg-audit-bg text-audit-steel border-l-4 border-audit-steel;
   }
 
-  /* Alert boxes - subtle, professional */
+  /* ----------------------------------------
+     Alert Boxes - Subtle, Professional
+     ---------------------------------------- */
   .audit-alert {
-    @apply p-4 rounded-audit border-l-4 bg-white;
+    @apply rounded-audit border-l-4 bg-white;
+    padding: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .audit-alert {
+      padding: var(--space-5);
+    }
   }
 
   .audit-alert-info {
@@ -217,114 +462,225 @@
     @apply audit-alert border-audit-steel;
   }
 
-  /* Legal citation styling */
+  /* ----------------------------------------
+     Legal Citation Styling
+     ---------------------------------------- */
   .audit-citation {
-    @apply font-serif text-legal text-audit-deep
-           pl-4 border-l-3 border-audit-light
-           italic my-4;
+    @apply font-serif italic;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    @apply text-audit-deep pl-4 border-l-3 border-audit-light;
+    margin: var(--space-4) 0;
   }
 
   /* Reference ID styling */
   .audit-ref {
-    @apply font-mono text-meta text-audit-cool;
+    @apply font-mono text-audit-cool;
+    font-size: var(--font-size-xs);
   }
 
-  /* Navigation items */
+  /* ----------------------------------------
+     Navigation - Responsive
+     ---------------------------------------- */
   .audit-nav-item {
-    @apply flex items-center px-4 py-2.5
-           text-label text-audit-cool
-           rounded-audit transition-colors
-           hover:bg-audit-bg hover:text-audit-deep;
+    @apply flex items-center text-audit-cool rounded-audit transition-colors;
+    font-size: var(--font-size-sm);
+    padding: var(--space-2) var(--space-4);
+    @apply hover:bg-audit-bg hover:text-audit-deep;
   }
 
   .audit-nav-item-active {
     @apply audit-nav-item bg-audit-bg/80 text-audit-deep font-medium;
   }
 
-  /* Section dividers */
+  /* ----------------------------------------
+     Dividers & Spacing
+     ---------------------------------------- */
   .audit-divider {
-    @apply border-t border-audit-light my-6;
+    @apply border-t border-audit-light;
+    margin: var(--space-6) 0;
   }
 
-  /* Metadata row */
+  .audit-section {
+    margin-bottom: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .audit-section {
+      margin-bottom: var(--space-10);
+    }
+  }
+
+  /* ----------------------------------------
+     Metadata Row
+     ---------------------------------------- */
   .audit-meta {
-    @apply flex items-center gap-2 text-meta text-audit-cool;
+    @apply flex flex-wrap items-center gap-2 text-audit-cool;
+    font-size: var(--font-size-sm);
   }
 
-  /* Badge */
+  /* ----------------------------------------
+     Badge
+     ---------------------------------------- */
   .audit-badge {
-    @apply inline-flex items-center px-2.5 py-0.5
-           text-meta font-medium
-           bg-audit-bg text-audit-steel
-           rounded-full border border-audit-light;
+    @apply inline-flex items-center font-medium rounded-full;
+    @apply bg-audit-bg text-audit-steel border border-audit-light;
+    font-size: var(--font-size-xs);
+    padding: 0.25rem 0.625rem;
   }
 
-  /* Progress indicator - neutral */
+  /* ----------------------------------------
+     Progress Indicator
+     ---------------------------------------- */
   .audit-progress {
-    @apply h-2 bg-audit-light rounded-full overflow-hidden;
+    @apply bg-audit-light rounded-full overflow-hidden;
+    height: 0.5rem;
   }
 
   .audit-progress-bar {
     @apply h-full bg-audit-steel transition-all duration-300;
   }
 
-  /* Table styling */
+  /* ----------------------------------------
+     Table Styling - Responsive
+     ---------------------------------------- */
+  .audit-table-wrapper {
+    @apply overflow-x-auto -mx-4 px-4;
+  }
+
+  @media (min-width: 768px) {
+    .audit-table-wrapper {
+      @apply mx-0 px-0;
+    }
+  }
+
   .audit-table {
-    @apply w-full;
+    @apply w-full min-w-[600px];
+  }
+
+  @media (min-width: 1024px) {
+    .audit-table {
+      min-width: auto;
+    }
   }
 
   .audit-table th {
-    @apply text-left text-label text-audit-steel font-medium
-           px-4 py-3 bg-audit-bg border-b border-audit-light;
+    @apply text-left font-medium uppercase tracking-wide;
+    @apply bg-audit-bg border-b border-audit-light;
+    font-size: var(--font-size-xs);
+    padding: var(--space-3) var(--space-4);
+    @apply text-audit-steel;
   }
 
   .audit-table td {
-    @apply px-4 py-3 text-body text-audit-deep
-           border-b border-audit-light/50;
+    @apply border-b border-audit-light/50;
+    font-size: var(--font-size-base);
+    padding: var(--space-4);
+    @apply text-audit-deep;
   }
 
   .audit-table tr:hover {
     @apply bg-audit-bg/50;
   }
 
-  /* Panel/Section container */
+  /* ----------------------------------------
+     Panel/Section Container - Responsive
+     ---------------------------------------- */
   .audit-panel {
-    @apply bg-white rounded-audit shadow-audit
-           border border-audit-light/50 overflow-hidden;
+    @apply bg-white rounded-audit shadow-audit border border-audit-light/50 overflow-hidden;
   }
 
   .audit-panel-header {
-    @apply px-6 py-4 bg-audit-bg border-b border-audit-light;
+    @apply bg-audit-bg border-b border-audit-light;
+    padding: var(--space-4) var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .audit-panel-header {
+      padding: var(--space-4) var(--space-6);
+    }
   }
 
   .audit-panel-body {
-    @apply p-6;
+    padding: var(--space-4);
   }
 
-  /* Scanner widget - prominent but professional */
+  @media (min-width: 768px) {
+    .audit-panel-body {
+      padding: var(--space-6);
+    }
+  }
+
+  /* ----------------------------------------
+     Scanner Widget - Prominent, Professional
+     ---------------------------------------- */
   .audit-scanner-widget {
-    @apply bg-audit-deep rounded-audit shadow-audit-lg p-6 text-white;
+    @apply bg-audit-deep rounded-audit shadow-audit-lg text-white;
+    padding: var(--space-5);
+  }
+
+  @media (min-width: 768px) {
+    .audit-scanner-widget {
+      padding: var(--space-6);
+    }
   }
 
   .audit-scanner-input {
-    @apply w-full px-4 py-3
-           bg-white/10 text-white
-           border border-white/20 rounded-audit
-           placeholder:text-white/60
-           focus:bg-white/15 focus:border-white/40 focus:ring-2 focus:ring-white/20;
+    @apply w-full bg-white/10 text-white border border-white/20 rounded-audit;
+    font-size: var(--font-size-base);
+    padding: var(--space-3) var(--space-4);
+    @apply placeholder:text-white/60;
+    @apply focus:bg-white/15 focus:border-white/40 focus:ring-2 focus:ring-white/20;
   }
 
   .audit-scanner-btn {
-    @apply px-5 py-3
-           bg-white text-audit-deep
-           font-medium rounded-audit
-           hover:bg-audit-bg
-           focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-audit-deep;
+    @apply bg-white text-audit-deep font-medium rounded-audit;
+    font-size: var(--font-size-base);
+    padding: var(--space-3) var(--space-5);
+    @apply hover:bg-audit-bg;
+    @apply focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-audit-deep;
+  }
+
+  /* ----------------------------------------
+     Page Header - Responsive
+     ---------------------------------------- */
+  .audit-page-header {
+    @apply bg-white shadow-audit border-b border-audit-light;
+    padding: var(--space-4) var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .audit-page-header {
+      padding: var(--space-5) var(--space-6);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .audit-page-header {
+      padding: var(--space-6) var(--space-8);
+    }
+  }
+
+  /* ----------------------------------------
+     Responsive Stack - Vertical on mobile
+     ---------------------------------------- */
+  .audit-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .audit-stack-row {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-6);
+    }
   }
 }
 
 /* ============================================
-   Utility Layer - Additional Helpers
+   Utility Layer - Responsive Helpers
    ============================================ */
 @layer utilities {
   /* Text utilities */
@@ -337,7 +693,7 @@
     border-left-width: 3px;
   }
 
-  /* Audit-specific utilities */
+  /* Smooth transitions */
   .audit-transition {
     @apply transition-all duration-200 ease-in-out;
   }
@@ -351,15 +707,97 @@
   .hover-lift {
     @apply transition-transform duration-200 hover:-translate-y-0.5;
   }
+
+  /* Responsive padding utilities */
+  .p-responsive {
+    padding: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .p-responsive {
+      padding: var(--space-6);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .p-responsive {
+      padding: var(--space-8);
+    }
+  }
+
+  /* Responsive margin utilities */
+  .mb-responsive {
+    margin-bottom: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .mb-responsive {
+      margin-bottom: var(--space-8);
+    }
+  }
+
+  /* Hide on mobile, show on desktop */
+  .hide-mobile {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .hide-mobile {
+      display: block;
+    }
+  }
+
+  /* Show on mobile, hide on desktop */
+  .show-mobile {
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    .show-mobile {
+      display: none;
+    }
+  }
+
+  /* Truncate text */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Focus visible only */
+  .focus-visible-only:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* Safe area padding for mobile */
+  .safe-area-inset {
+    padding-left: max(var(--space-4), env(safe-area-inset-left));
+    padding-right: max(var(--space-4), env(safe-area-inset-right));
+  }
 }
 
 /* ============================================
    Print Styles
    ============================================ */
 @media print {
+  html {
+    font-size: 12pt;
+  }
+
   body {
     background: white;
     color: black;
+    line-height: 1.5;
   }
 
   .print\:hidden {
@@ -374,14 +812,40 @@
   .audit-panel {
     box-shadow: none;
     border: 1px solid #ccc;
+    page-break-inside: avoid;
   }
 
   a {
     text-decoration: underline;
   }
 
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+  }
+
   .audit-citation {
     font-style: italic;
     border-left: 2px solid #666;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+  }
+}
+
+/* ============================================
+   Dark Mode Support (Optional - Prepared)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  /* Placeholder for future dark mode implementation */
+  /* Colors would be inverted here while maintaining the calm aesthetic */
 }

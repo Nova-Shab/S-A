@@ -187,15 +187,15 @@ export const ActionsOverviewPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-audit-bg">
-      {/* Header */}
-      <div className="bg-white shadow-audit border-b border-audit-light">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+      {/* Header - Responsive */}
+      <div className="audit-page-header">
+        <div className="audit-container">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-audit-deep">
+              <h1 className="text-h1 text-audit-deep">
                 {language === 'de' ? 'Maßnahmenübersicht' : 'Actions Overview'}
               </h1>
-              <p className="text-sm text-audit-cool mt-1">
+              <p className="text-body text-audit-cool mt-1">
                 {language === 'de'
                   ? 'Alle offenen und laufenden Maßnahmen aus Ihren Audits'
                   : 'All open and ongoing actions from your audits'}
@@ -206,7 +206,7 @@ export const ActionsOverviewPage: React.FC = () => {
               <div className="flex rounded-audit border border-audit-light overflow-hidden">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors ${
                     viewMode === 'table'
                       ? 'bg-audit-steel text-white'
                       : 'bg-white text-audit-cool hover:bg-audit-bg'
@@ -216,7 +216,7 @@ export const ActionsOverviewPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setViewMode('charts')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors ${
                     viewMode === 'charts'
                       ? 'bg-audit-steel text-white'
                       : 'bg-white text-audit-cool hover:bg-audit-bg'
@@ -230,10 +230,10 @@ export const ActionsOverviewPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        {/* Stats Cards */}
+      <div className="audit-container py-6 lg:py-8">
+        {/* Stats Cards - Responsive Grid */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4 mb-6">
             <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
               <div className="text-2xl font-semibold text-audit-deep">{stats.total}</div>
               <div className="text-xs text-audit-cool">
@@ -293,12 +293,12 @@ export const ActionsOverviewPage: React.FC = () => {
           </div>
         )}
 
-        {/* Filters */}
-        <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light mb-6">
-          <div className="flex flex-wrap gap-4 items-end">
+        {/* Filters - Responsive */}
+        <div className="audit-card mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end">
             {/* Status Filter */}
-            <div className="flex-1 min-w-[150px]">
-              <label className="block text-xs font-medium text-audit-cool mb-1">
+            <div>
+              <label className="audit-label text-audit-cool">
                 {language === 'de' ? 'Status' : 'Status'}
               </label>
               <select
@@ -307,7 +307,7 @@ export const ActionsOverviewPage: React.FC = () => {
                   setStatusFilter(e.target.value as StatusFilter);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-sm border border-audit-light rounded-audit focus:outline-none focus:ring-2 focus:ring-audit-steel"
+                className="audit-input"
               >
                 <option value="">{language === 'de' ? 'Alle Status' : 'All Status'}</option>
                 <option value="open">{language === 'de' ? 'Offen' : 'Open'}</option>
@@ -318,8 +318,8 @@ export const ActionsOverviewPage: React.FC = () => {
             </div>
 
             {/* Severity Filter */}
-            <div className="flex-1 min-w-[150px]">
-              <label className="block text-xs font-medium text-audit-cool mb-1">
+            <div>
+              <label className="audit-label text-audit-cool">
                 {language === 'de' ? 'Priorität' : 'Priority'}
               </label>
               <select
@@ -328,7 +328,7 @@ export const ActionsOverviewPage: React.FC = () => {
                   setSeverityFilter(e.target.value as SeverityFilter);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-sm border border-audit-light rounded-audit focus:outline-none focus:ring-2 focus:ring-audit-steel"
+                className="audit-input"
               >
                 <option value="">{language === 'de' ? 'Alle Prioritäten' : 'All Priorities'}</option>
                 <option value="hoch">{language === 'de' ? 'Hoch' : 'High'}</option>
@@ -338,8 +338,8 @@ export const ActionsOverviewPage: React.FC = () => {
             </div>
 
             {/* System Filter */}
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-xs font-medium text-audit-cool mb-1">
+            <div>
+              <label className="audit-label text-audit-cool">
                 {language === 'de' ? 'System' : 'System'}
               </label>
               <select
@@ -348,7 +348,7 @@ export const ActionsOverviewPage: React.FC = () => {
                   setSystemFilter(e.target.value ? Number(e.target.value) : '');
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-sm border border-audit-light rounded-audit focus:outline-none focus:ring-2 focus:ring-audit-steel"
+                className="audit-input"
               >
                 <option value="">{language === 'de' ? 'Alle Systeme' : 'All Systems'}</option>
                 {systems.map((system) => (
@@ -360,8 +360,8 @@ export const ActionsOverviewPage: React.FC = () => {
             </div>
 
             {/* Responsible Filter */}
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-xs font-medium text-audit-cool mb-1">
+            <div>
+              <label className="audit-label text-audit-cool">
                 {language === 'de' ? 'Verantwortlich' : 'Responsible'}
               </label>
               <select
@@ -370,7 +370,7 @@ export const ActionsOverviewPage: React.FC = () => {
                   setResponsibleFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-sm border border-audit-light rounded-audit focus:outline-none focus:ring-2 focus:ring-audit-steel"
+                className="audit-input"
               >
                 <option value="">{language === 'de' ? 'Alle Personen' : 'All Persons'}</option>
                 {responsiblePersons.map((person) => (
@@ -382,12 +382,14 @@ export const ActionsOverviewPage: React.FC = () => {
             </div>
 
             {/* Clear Filters */}
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 text-sm font-medium text-audit-cool hover:text-audit-deep hover:bg-audit-bg rounded-audit transition-colors"
-            >
-              {language === 'de' ? 'Filter zurücksetzen' : 'Clear Filters'}
-            </button>
+            <div className="flex items-end">
+              <button
+                onClick={clearFilters}
+                className="audit-btn-ghost w-full sm:w-auto"
+              >
+                {language === 'de' ? 'Filter zurücksetzen' : 'Clear Filters'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -437,32 +439,32 @@ export const ActionsOverviewPage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="bg-white rounded-audit shadow-audit border border-audit-light overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-audit-light">
-                    <thead className="bg-audit-bg">
+              <div className="audit-panel">
+                <div className="audit-table-wrapper">
+                  <table className="audit-table">
+                    <thead>
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-audit-cool uppercase tracking-wider">
+                        <th>
                           {language === 'de' ? 'Maßnahme' : 'Action'}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-audit-cool uppercase tracking-wider">
+                        <th className="hidden md:table-cell">
                           {language === 'de' ? 'System' : 'System'}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-audit-cool uppercase tracking-wider">
+                        <th className="hidden lg:table-cell">
                           {language === 'de' ? 'Verantwortlich' : 'Responsible'}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-audit-cool uppercase tracking-wider">
+                        <th>
                           {language === 'de' ? 'Fälligkeit' : 'Due Date'}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-audit-cool uppercase tracking-wider">
+                        <th>
                           {language === 'de' ? 'Status' : 'Status'}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-audit-cool uppercase tracking-wider">
+                        <th className="hidden sm:table-cell">
                           {language === 'de' ? 'Priorität' : 'Priority'}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-audit-light">
+                    <tbody>
                       {actions.map((action) => (
                         <tr
                           key={action.id}
@@ -472,36 +474,40 @@ export const ActionsOverviewPage: React.FC = () => {
                             setShowDetailPanel(true);
                           }}
                         >
-                          <td className="px-4 py-4">
+                          <td>
                             <div className="flex items-start gap-2">
                               {action.isOverdue && (
                                 <span className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-red-500" title={language === 'de' ? 'Überfällig' : 'Overdue'}></span>
                               )}
                               <div>
-                                <div className="text-sm font-medium text-audit-deep line-clamp-1">
+                                <div className="font-medium text-audit-deep line-clamp-2">
                                   {action.requirementTitle}
                                 </div>
-                                <div className="text-xs text-audit-cool line-clamp-1">
+                                <div className="text-sm text-audit-cool line-clamp-1 mt-0.5">
                                   {action.category}
+                                </div>
+                                {/* Show system on mobile */}
+                                <div className="text-sm text-audit-cool md:hidden mt-1">
+                                  {action.systemName}
                                 </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-audit-deep">{action.systemName}</div>
+                          <td className="hidden md:table-cell">
+                            <div className="text-audit-deep">{action.systemName}</div>
                           </td>
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-audit-deep">{action.responsible || '-'}</div>
+                          <td className="hidden lg:table-cell">
+                            <div className="text-audit-deep">{action.responsible || '-'}</div>
                           </td>
-                          <td className="px-4 py-4">
-                            <div className={`text-sm ${action.isOverdue ? 'text-red-600 font-medium' : 'text-audit-deep'}`}>
+                          <td>
+                            <div className={`${action.isOverdue ? 'text-red-600 font-medium' : 'text-audit-deep'}`}>
                               {formatDate(action.targetDate)}
                             </div>
                           </td>
-                          <td className="px-4 py-4">
+                          <td>
                             {getStatusBadge(action.status)}
                           </td>
-                          <td className="px-4 py-4">
+                          <td className="hidden sm:table-cell">
                             {getSeverityBadge(action.severity)}
                           </td>
                         </tr>
