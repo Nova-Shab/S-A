@@ -82,10 +82,17 @@ export default {
       // ============================================
       spacing: {
         '18': '4.5rem',
+        '20': '5rem',
         '22': '5.5rem',
         '30': '7.5rem',
         '128': '32rem',
         '144': '36rem',
+      },
+
+      // Height values
+      height: {
+        '18': '4.5rem',
+        '20': '5rem',
       },
 
       // Container configuration for fluid layouts
