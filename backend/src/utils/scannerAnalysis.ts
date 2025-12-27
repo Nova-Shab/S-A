@@ -483,8 +483,8 @@ function analyzeWithKeywords(
     category: 'Analyse-Information',
     title: 'Keyword-basierte Analyse',
     severity: 'info',
-    description: 'Diese Analyse wurde mit Keyword-Matching durchgeführt. Für eine tiefgehendere Analyse konfigurieren Sie einen OpenAI API-Key.',
-    recommendation: 'Erwägen Sie die Aktivierung der GPT-gestützten Analyse für präzisere Ergebnisse.',
+    description: 'Diese Analyse wurde mit regelbasiertem Keyword-Matching durchgeführt. Für eine KI-gestützte Tiefenanalyse kann Ollama lokal konfiguriert werden.',
+    recommendation: 'Für präzisere Ergebnisse: Ollama installieren und das EU AI Act Modell mit backend/ollama/setup.sh einrichten.',
     articleReference: '',
   });
 

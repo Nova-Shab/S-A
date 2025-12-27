@@ -261,21 +261,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
 
               {/* Input Form */}
               <form onSubmit={handleAnalyze}>
-                {/* System Name (optional) */}
-                <div className="audit-form-group">
-                  <label className="audit-label">
-                    {t('scanner.systemName')} <span className="text-audit-cool font-normal">{t('scanner.optional')}</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={systemName}
-                    onChange={(e) => setSystemName(e.target.value)}
-                    placeholder={t('scanner.systemNamePlaceholder')}
-                    className="audit-input"
-                  />
-                </div>
-
-                {/* Main Input */}
+                {/* Main Input - Website URL or Description */}
                 <div className="audit-form-group">
                   <label className="audit-label">
                     {inputType === 'description' ? t('scanner.descriptionLabel') : t('scanner.urlLabel')}
@@ -310,6 +296,20 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                       ? t('scanner.descriptionHint')
                       : t('scanner.urlHint')}
                   </p>
+                </div>
+
+                {/* System Name (optional) */}
+                <div className="audit-form-group">
+                  <label className="audit-label">
+                    {t('scanner.systemName')} <span className="text-audit-cool font-normal">{t('scanner.optional')}</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={systemName}
+                    onChange={(e) => setSystemName(e.target.value)}
+                    placeholder={t('scanner.systemNamePlaceholder')}
+                    className="audit-input"
+                  />
                 </div>
 
                 {error && (
