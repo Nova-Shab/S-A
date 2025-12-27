@@ -137,6 +137,12 @@ export interface TranslationKeys {
     euAiActCompliantDesc: string;
     detailedReport: string;
     detailedReportDesc: string;
+    invalidUrlError: string;
+    complianceGaps: string;
+    complianceGapsDesc: string;
+    notFulfilled: string;
+    fulfilled: string;
+    notAssessable: string;
   };
 
   // Nova Chatbot
@@ -442,10 +448,16 @@ const de: TranslationKeys = {
     disclaimer: 'Hinweis: Diese Analyse dient nur zur Orientierung und ersetzt keine rechtliche Beratung. Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.',
     autoAnalysis: 'Automatische Analyse',
     autoAnalysisDesc: 'Erkennung von Risikoindikatoren',
-    euAiActCompliant: 'EU AI Act konform',
+    euAiActCompliant: 'AI Act konform',
     euAiActCompliantDesc: 'Basierend auf Regulation 2024/1689',
     detailedReport: 'Detaillierter Report',
     detailedReportDesc: 'Konkrete Handlungsempfehlungen',
+    invalidUrlError: 'Bitte geben Sie eine gültige URL ein (z.B. https://example.com)',
+    complianceGaps: 'Compliance-Abweichungen',
+    complianceGapsDesc: 'Folgende Anforderungen des EU AI Act werden derzeit nicht erfüllt:',
+    notFulfilled: 'Nicht erfüllt',
+    fulfilled: 'Erfüllt',
+    notAssessable: 'Nicht bewertbar',
   },
 
   nova: {
@@ -743,10 +755,16 @@ const en: TranslationKeys = {
     disclaimer: 'Note: This analysis is for guidance only and does not replace legal advice. For a binding assessment, please consult qualified legal advisors.',
     autoAnalysis: 'Automatic Analysis',
     autoAnalysisDesc: 'Detection of risk indicators',
-    euAiActCompliant: 'EU AI Act compliant',
+    euAiActCompliant: 'AI Act compliant',
     euAiActCompliantDesc: 'Based on Regulation 2024/1689',
     detailedReport: 'Detailed Report',
     detailedReportDesc: 'Concrete recommendations for action',
+    invalidUrlError: 'Please enter a valid URL (e.g. https://example.com)',
+    complianceGaps: 'Compliance Gaps',
+    complianceGapsDesc: 'The following EU AI Act requirements are currently not met:',
+    notFulfilled: 'Not fulfilled',
+    fulfilled: 'Fulfilled',
+    notAssessable: 'Not assessable',
   },
 
   nova: {

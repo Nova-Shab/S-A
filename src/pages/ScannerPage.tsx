@@ -105,9 +105,20 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
       return;
     }
 
-    if (inputValue.trim().length < 50) {
-      setError(t('scanner.minCharsError'));
-      return;
+    // URL validation: just check if it's a valid URL
+    if (inputType === 'url') {
+      try {
+        new URL(inputValue.trim());
+      } catch {
+        setError(t('scanner.invalidUrlError'));
+        return;
+      }
+    } else {
+      // Description validation: require minimum 50 chars
+      if (inputValue.trim().length < 50) {
+        setError(t('scanner.minCharsError'));
+        return;
+      }
     }
 
     setIsAnalyzing(true);
@@ -461,6 +472,34 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                     >
                       {feature}
                     </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Compliance Gaps */}
+            {result.analysis.complianceGaps && result.analysis.complianceGaps.length > 0 && (
+              <div className="audit-card mb-6">
+                <h3 className="text-h3 text-audit-deep mb-4 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  {t('scanner.complianceGaps')}
+                </h3>
+                <p className="text-body text-audit-cool mb-4">{t('scanner.complianceGapsDesc')}</p>
+                <div className="space-y-3">
+                  {result.analysis.complianceGaps.map((gap, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-audit">
+                      <span className="flex-shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        !
+                      </span>
+                      <div className="flex-1">
+                        <span className="text-audit-deep font-medium">{gap}</span>
+                      </div>
+                      <span className="text-xs text-orange-600 font-medium px-2 py-1 bg-orange-100 rounded">
+                        {t('scanner.notFulfilled')}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
