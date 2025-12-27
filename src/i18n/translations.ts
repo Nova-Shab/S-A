@@ -202,6 +202,57 @@ export interface TranslationKeys {
     assignee: string;
   };
 
+  // Profile
+  profile: {
+    title: string;
+    subtitle: string;
+    personalInfo: string;
+    security: string;
+    settings: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    emailCannotChange: string;
+    organization: string;
+    organizationPlaceholder: string;
+    role: string;
+    roleAssignedByAdmin: string;
+    profileUpdated: string;
+    updateFailed: string;
+    changePassword: string;
+    passwordDescription: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+    updatePassword: string;
+    passwordChanged: string;
+    passwordChangeFailed: string;
+    passwordsMismatch: string;
+    passwordMinLength: string;
+    passwordUppercase: string;
+    passwordLowercase: string;
+    passwordNumber: string;
+    passwordSpecial: string;
+    passwordWeak: string;
+    passwordMedium: string;
+    passwordStrong: string;
+    languageSettings: string;
+    preferredLanguage: string;
+    notificationSettings: string;
+    emailNotifications: string;
+    emailNotificationsDesc: string;
+    auditReminders: string;
+    auditRemindersDesc: string;
+    securityAlerts: string;
+    securityAlertsDesc: string;
+    saveSettings: string;
+    settingsSaved: string;
+    dangerZone: string;
+    dangerZoneDesc: string;
+    deleteAccount: string;
+    twoFactorComingSoon: string;
+  };
+
   // Errors
   errors: {
     required: string;
@@ -465,6 +516,56 @@ const de: TranslationKeys = {
     notFound: 'Nicht gefunden',
   },
 
+  profile: {
+    title: 'Mein Profil',
+    subtitle: 'Verwalten Sie Ihre persönlichen Daten und Kontoeinstellungen',
+    personalInfo: 'Persönliche Daten',
+    security: 'Sicherheit',
+    settings: 'Einstellungen',
+    firstName: 'Vorname',
+    lastName: 'Nachname',
+    email: 'E-Mail-Adresse',
+    emailCannotChange: 'Die E-Mail-Adresse kann nicht geändert werden',
+    organization: 'Organisation',
+    organizationPlaceholder: 'z.B. Firma GmbH',
+    role: 'Rolle',
+    roleAssignedByAdmin: 'Zugewiesen durch Administrator',
+    profileUpdated: 'Profil erfolgreich aktualisiert',
+    updateFailed: 'Aktualisierung fehlgeschlagen',
+    changePassword: 'Passwort ändern',
+    passwordDescription: 'Wählen Sie ein sicheres Passwort, das Sie nirgendwo anders verwenden',
+    currentPassword: 'Aktuelles Passwort',
+    newPassword: 'Neues Passwort',
+    confirmNewPassword: 'Neues Passwort bestätigen',
+    updatePassword: 'Passwort aktualisieren',
+    passwordChanged: 'Passwort erfolgreich geändert',
+    passwordChangeFailed: 'Passwortänderung fehlgeschlagen. Bitte überprüfen Sie Ihr aktuelles Passwort.',
+    passwordsMismatch: 'Die Passwörter stimmen nicht überein',
+    passwordMinLength: 'Mindestens 8 Zeichen',
+    passwordUppercase: 'Mindestens ein Großbuchstabe',
+    passwordLowercase: 'Mindestens ein Kleinbuchstabe',
+    passwordNumber: 'Mindestens eine Zahl',
+    passwordSpecial: 'Mindestens ein Sonderzeichen',
+    passwordWeak: 'Schwach',
+    passwordMedium: 'Mittel',
+    passwordStrong: 'Stark',
+    languageSettings: 'Spracheinstellungen',
+    preferredLanguage: 'Bevorzugte Sprache',
+    notificationSettings: 'Benachrichtigungen',
+    emailNotifications: 'E-Mail-Benachrichtigungen',
+    emailNotificationsDesc: 'Erhalten Sie wichtige Updates per E-Mail',
+    auditReminders: 'Audit-Erinnerungen',
+    auditRemindersDesc: 'Erinnerungen an anstehende Audits und Fristen',
+    securityAlerts: 'Sicherheitswarnungen',
+    securityAlertsDesc: 'Warnungen bei verdächtigen Kontoaktivitäten',
+    saveSettings: 'Einstellungen speichern',
+    settingsSaved: 'Einstellungen erfolgreich gespeichert',
+    dangerZone: 'Gefahrenzone',
+    dangerZoneDesc: 'Diese Aktionen können nicht rückgängig gemacht werden',
+    deleteAccount: 'Konto löschen',
+    twoFactorComingSoon: '2FA kommt bald',
+  },
+
   systems: {
     title: 'KI-Systeme Verzeichnis',
     subtitle: 'Zentrale Verwaltung aller registrierten KI-Systeme nach EU AI Act',
@@ -714,6 +815,56 @@ const en: TranslationKeys = {
     serverError: 'Server error. Please try again later.',
     unauthorized: 'Unauthorized. Please log in.',
     notFound: 'Not found',
+  },
+
+  profile: {
+    title: 'My Profile',
+    subtitle: 'Manage your personal information and account settings',
+    personalInfo: 'Personal Information',
+    security: 'Security',
+    settings: 'Settings',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email Address',
+    emailCannotChange: 'Email address cannot be changed',
+    organization: 'Organization',
+    organizationPlaceholder: 'e.g. Company Inc.',
+    role: 'Role',
+    roleAssignedByAdmin: 'Assigned by administrator',
+    profileUpdated: 'Profile updated successfully',
+    updateFailed: 'Update failed',
+    changePassword: 'Change Password',
+    passwordDescription: 'Choose a secure password that you don\'t use anywhere else',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    updatePassword: 'Update Password',
+    passwordChanged: 'Password changed successfully',
+    passwordChangeFailed: 'Password change failed. Please check your current password.',
+    passwordsMismatch: 'Passwords do not match',
+    passwordMinLength: 'At least 8 characters',
+    passwordUppercase: 'At least one uppercase letter',
+    passwordLowercase: 'At least one lowercase letter',
+    passwordNumber: 'At least one number',
+    passwordSpecial: 'At least one special character',
+    passwordWeak: 'Weak',
+    passwordMedium: 'Medium',
+    passwordStrong: 'Strong',
+    languageSettings: 'Language Settings',
+    preferredLanguage: 'Preferred Language',
+    notificationSettings: 'Notifications',
+    emailNotifications: 'Email Notifications',
+    emailNotificationsDesc: 'Receive important updates via email',
+    auditReminders: 'Audit Reminders',
+    auditRemindersDesc: 'Reminders for upcoming audits and deadlines',
+    securityAlerts: 'Security Alerts',
+    securityAlertsDesc: 'Alerts for suspicious account activity',
+    saveSettings: 'Save Settings',
+    settingsSaved: 'Settings saved successfully',
+    dangerZone: 'Danger Zone',
+    dangerZoneDesc: 'These actions cannot be undone',
+    deleteAccount: 'Delete Account',
+    twoFactorComingSoon: '2FA coming soon',
   },
 
   systems: {

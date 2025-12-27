@@ -124,11 +124,23 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
             )}
 
-            {/* User Info */}
+            {/* User Profile Button */}
             {userName && (
-              <div className="hidden xl:flex items-center text-sm lg:text-base text-audit-cool">
+              <button
+                onClick={() => onNavigate('profile')}
+                className={`hidden lg:flex items-center gap-2 px-3 py-2 rounded-audit text-sm lg:text-base transition-colors ${
+                  isActive('profile')
+                    ? 'bg-audit-bg text-audit-deep'
+                    : 'text-audit-cool hover:bg-audit-bg hover:text-audit-deep'
+                }`}
+                title={t('profile.title')}
+              >
+                <div className="w-8 h-8 rounded-full bg-audit-steel text-white flex items-center justify-center text-sm font-medium flex-shrink-0">
+                  {userName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </div>
+                <span className="hidden xl:inline truncate max-w-[120px]">{userName}</span>
                 <svg
-                  className="w-5 h-5 mr-2 text-audit-light flex-shrink-0"
+                  className="w-4 h-4 text-audit-light hidden xl:block"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -137,11 +149,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-                <span className="truncate max-w-[120px]">{userName}</span>
-              </div>
+              </button>
             )}
 
             {/* Logout Button */}
@@ -265,10 +276,40 @@ export const Navigation: React.FC<NavigationProps> = ({
               <div className="px-4 py-2">
                 <LanguageSwitcher />
               </div>
+              {/* Mobile Profile Link */}
               {userName && (
-                <div className="px-4 py-2 text-base text-audit-cool">
-                  {userName}
-                </div>
+                <button
+                  onClick={() => {
+                    onNavigate('profile');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-audit ${
+                    isActive('profile')
+                      ? 'bg-audit-bg text-audit-deep'
+                      : 'text-audit-cool hover:bg-audit-bg hover:text-audit-deep'
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-audit-steel text-white flex items-center justify-center text-sm font-medium mr-3">
+                    {userName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-medium">{userName}</div>
+                    <div className="text-sm text-audit-cool">{t('profile.title')}</div>
+                  </div>
+                  <svg
+                    className="w-5 h-5 text-audit-light"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
               )}
               <button
                 onClick={() => {
