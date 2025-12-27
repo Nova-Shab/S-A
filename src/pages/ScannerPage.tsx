@@ -160,16 +160,16 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
   const riskConfig = result ? RISK_CONFIG[result.riskLevel] || RISK_CONFIG.UNKNOWN : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-audit-bg">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+      <div className="audit-page-header">
+        <div className="audit-container">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 text-audit-cool hover:text-audit-deep hover:bg-audit-bg rounded-audit transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -177,11 +177,11 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
                 </button>
               )}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                <h1 className="text-h1 text-audit-deep flex items-center">
                   <span className="mr-3">🇪🇺</span>
                   {t('scanner.title')}
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-body text-audit-cool mt-1">
                   {t('scanner.subtitle')}
                 </p>
               </div>
@@ -190,26 +190,26 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="audit-container py-6 lg:py-8">
         {!result ? (
           // Input Form
           <>
-            <Card className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <div className="audit-card mb-6">
+              <h2 className="text-h2 text-audit-deep mb-6">
                 {t('scanner.analyzeTitle')}
               </h2>
 
               {/* Input Type Selection */}
-              <div className="flex space-x-4 mb-6">
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <button
                   onClick={() => setInputType('description')}
-                  className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                  className={`flex-1 py-3 px-4 rounded-audit border-2 transition-all ${
                     inputType === 'description'
-                      ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                      ? 'border-audit-steel bg-audit-bg text-audit-deep'
+                      : 'border-audit-light hover:border-audit-cool text-audit-cool'
                   }`}
                 >
-                  <div className="flex items-center justify-center space-x-2">
+                  <div className="flex items-center justify-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -219,13 +219,13 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
 
                 <button
                   onClick={() => setInputType('url')}
-                  className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                  className={`flex-1 py-3 px-4 rounded-audit border-2 transition-all ${
                     inputType === 'url'
-                      ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                      ? 'border-audit-steel bg-audit-bg text-audit-deep'
+                      : 'border-audit-light hover:border-audit-cool text-audit-cool'
                   }`}
                 >
-                  <div className="flex items-center justify-center space-x-2">
+                  <div className="flex items-center justify-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
@@ -237,22 +237,22 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
               {/* Input Form */}
               <form onSubmit={handleAnalyze}>
                 {/* System Name (optional) */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('scanner.systemName')} <span className="text-gray-400">{t('scanner.optional')}</span>
+                <div className="audit-form-group">
+                  <label className="audit-label">
+                    {t('scanner.systemName')} <span className="text-audit-cool font-normal">{t('scanner.optional')}</span>
                   </label>
                   <input
                     type="text"
                     value={systemName}
                     onChange={(e) => setSystemName(e.target.value)}
                     placeholder={t('scanner.systemNamePlaceholder')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="audit-input"
                   />
                 </div>
 
                 {/* Main Input */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="audit-form-group">
+                  <label className="audit-label">
                     {inputType === 'description' ? t('scanner.descriptionLabel') : t('scanner.urlLabel')}
                   </label>
                   {inputType === 'description' ? (
@@ -269,7 +269,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
 
 Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbungen. Es analysiert Lebensläufe und erstellt ein Ranking basierend auf Qualifikationen, Berufserfahrung und Soft Skills. Die Enderstellung obliegt dem HR-Team, aber die Top-10 Kandidaten werden automatisch vorselektiert."`}
                       rows={8}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                      className="audit-input resize-none"
                     />
                   ) : (
                     <input
@@ -277,10 +277,10 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="https://example.com/ki-system"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="audit-input"
                     />
                   )}
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="audit-helper">
                     {inputType === 'description'
                       ? t('scanner.descriptionHint')
                       : t('scanner.urlHint')}
@@ -288,7 +288,7 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                 </div>
 
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-audit">
                     <div className="flex items-center text-red-700">
                       <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -298,10 +298,10 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                   </div>
                 )}
 
-                <Button
+                <button
                   type="submit"
                   disabled={isAnalyzing}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  className="audit-btn-primary w-full"
                 >
                   {isAnalyzing ? (
                     <span className="flex items-center justify-center">
@@ -319,9 +319,9 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                       {t('scanner.startAnalysis')}
                     </>
                   )}
-                </Button>
+                </button>
               </form>
-            </Card>
+            </div>
 
             {/* Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -330,11 +330,11 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                 { icon: '📊', title: t('scanner.euAiActCompliant'), desc: t('scanner.euAiActCompliantDesc') },
                 { icon: '📋', title: t('scanner.detailedReport'), desc: t('scanner.detailedReportDesc') },
               ].map((item, idx) => (
-                <Card key={idx} className="text-center">
+                <div key={idx} className="audit-card text-center">
                   <div className="text-3xl mb-2">{item.icon}</div>
-                  <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                  <p className="text-sm text-gray-500">{item.desc}</p>
-                </Card>
+                  <h3 className="text-h4 text-audit-deep">{item.title}</h3>
+                  <p className="text-body text-audit-cool">{item.desc}</p>
+                </div>
               ))}
             </div>
           </>
@@ -342,39 +342,39 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
           // Results View
           <>
             {/* Risk Level Header */}
-            <Card className={`mb-6 bg-gradient-to-r ${riskConfig?.gradient} text-white`}>
-              <div className="flex items-center justify-between">
+            <div className={`audit-card mb-6 bg-gradient-to-r ${riskConfig?.gradient} text-white`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-sm opacity-80 mb-1">{t('scanner.riskClassification')}</p>
-                  <h2 className="text-3xl font-bold">{result.riskLevelLabel}</h2>
-                  <p className="mt-2 opacity-90">{result.summary}</p>
+                  <h2 className="text-h1 text-white">{result.riskLevelLabel}</h2>
+                  <p className="text-body mt-2 opacity-90">{result.summary}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-6xl font-bold opacity-90">{result.riskScore}</div>
+                  <div className="text-5xl sm:text-6xl font-bold opacity-90">{result.riskScore}</div>
                   <div className="text-sm opacity-80">{t('scanner.riskScore')}</div>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <Card className="text-center">
-                <div className="text-3xl font-bold text-gray-900">{result.findingsCount}</div>
-                <div className="text-sm text-gray-500">{t('scanner.findingsTotal')}</div>
-              </Card>
-              <Card className="text-center">
-                <div className="text-3xl font-bold text-red-600">{result.criticalCount}</div>
-                <div className="text-sm text-gray-500">{t('scanner.critical')}</div>
-              </Card>
-              <Card className="text-center">
-                <div className="text-3xl font-bold text-orange-600">{result.highCount}</div>
-                <div className="text-sm text-gray-500">{t('scanner.high')}</div>
-              </Card>
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+              <div className="audit-card text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-audit-deep">{result.findingsCount}</div>
+                <div className="text-sm text-audit-cool">{t('scanner.findingsTotal')}</div>
+              </div>
+              <div className="audit-card text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-red-600">{result.criticalCount}</div>
+                <div className="text-sm text-audit-cool">{t('scanner.critical')}</div>
+              </div>
+              <div className="audit-card text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-600">{result.highCount}</div>
+                <div className="text-sm text-audit-cool">{t('scanner.high')}</div>
+              </div>
             </div>
 
             {/* Findings */}
-            <Card className="mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('scanner.findings')}</h3>
+            <div className="audit-card mb-6">
+              <h3 className="text-h3 text-audit-deep mb-4">{t('scanner.findings')}</h3>
               <div className="space-y-3">
                 {result.analysis.findings.map((finding, idx) => {
                   const severityConfig = SEVERITY_CONFIG[finding.severity];
@@ -432,62 +432,62 @@ Beispiel: "Unser KI-System nutzt maschinelles Lernen zur Bewertung von Bewerbung
                   );
                 })}
               </div>
-            </Card>
+            </div>
 
             {/* Next Steps */}
-            <Card className="mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('scanner.nextSteps')}</h3>
+            <div className="audit-card mb-6">
+              <h3 className="text-h3 text-audit-deep mb-4">{t('scanner.nextSteps')}</h3>
               <div className="space-y-2">
                 {result.analysis.nextSteps.map((step, idx) => (
-                  <div key={idx} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-audit-bg rounded-audit">
+                    <span className="flex-shrink-0 w-6 h-6 bg-audit-steel text-white rounded-full flex items-center justify-center text-sm font-semibold">
                       {idx + 1}
                     </span>
-                    <span className="text-gray-700">{step}</span>
+                    <span className="text-audit-deep">{step}</span>
                   </div>
                 ))}
               </div>
-            </Card>
+            </div>
 
             {/* Detected Features */}
             {result.analysis.detectedFeatures.length > 0 && (
-              <Card className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('scanner.detectedFeatures')}</h3>
+              <div className="audit-card mb-6">
+                <h3 className="text-h3 text-audit-deep mb-4">{t('scanner.detectedFeatures')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {result.analysis.detectedFeatures.map((feature, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                      className="px-3 py-1 bg-audit-bg text-audit-deep rounded-full text-sm border border-audit-light"
                     >
                       {feature}
                     </span>
                   ))}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-4">
-              <Button onClick={handleNewScan} variant="secondary" className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button onClick={handleNewScan} className="audit-btn-secondary flex-1">
                 {t('scanner.newAnalysis')}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() => {
                   // Download PDF report
                   const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/scanner/report/${result.scanId}`;
                   window.open(url, '_blank');
                 }}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="audit-btn-primary flex-1"
               >
                 <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 {t('scanner.downloadPdf')}
-              </Button>
+              </button>
             </div>
 
             {/* Disclaimer */}
-            <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-600 text-center">
+            <div className="mt-6 p-4 bg-audit-bg rounded-audit text-sm text-audit-cool text-center border border-audit-light">
               {t('scanner.disclaimer')}
             </div>
           </>

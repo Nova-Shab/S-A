@@ -124,16 +124,16 @@ export const SystemsListPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-audit-bg">
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+      <div className="audit-page-header">
+        <div className="audit-container">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-h1 text-audit-deep">
                 {t('systems.title')}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-body text-audit-cool mt-1">
                 {t('systems.subtitle')}
               </p>
             </div>
@@ -150,7 +150,7 @@ export const SystemsListPage: React.FC = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="audit-container py-6 lg:py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
           <Card className="text-center p-4">
             <div className="text-3xl font-bold text-gray-900">{stats.totalSystems}</div>
