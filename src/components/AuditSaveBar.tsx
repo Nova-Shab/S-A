@@ -156,6 +156,9 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
         setSaveMessage({ type: "error", text: error?.response?.data?.message || "Es existiert bereits ein aktives Audit für dieses System." });
         return null;
       }
+      // Show actual error message from backend
+      const errorMessage = error?.response?.data?.error || error?.message || "Unbekannter Fehler beim Erstellen";
+      setSaveMessage({ type: "error", text: `Fehler beim Erstellen: ${errorMessage}` });
       return null;
     }
   };
@@ -169,14 +172,17 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
     }
 
     setIsSaving(true);
-    setSaveMessage(null);
+    // Don't clear message here - createNewAuditIfNeeded might set an error
 
     try {
       // Erstelle Audit falls nötig
       const auditIdToUse = await createNewAuditIfNeeded();
 
       if (!auditIdToUse) {
-        setSaveMessage({ type: "error", text: "Fehler beim Erstellen des Audits." });
+        // If no specific error was set by createNewAuditIfNeeded, show generic error
+        if (!saveMessage || saveMessage.type !== "error") {
+          setSaveMessage({ type: "error", text: "Fehler beim Erstellen des Audits." });
+        }
         return;
       }
 

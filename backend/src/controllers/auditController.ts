@@ -72,9 +72,16 @@ export const createAudit = async (req: Request, res: Response): Promise<void> =>
       message: 'Audit created successfully',
       audit,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create audit error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    // Return actual error details for debugging
+    const errorMessage = error?.message || 'Internal server error';
+    const errorDetails = error?.errors?.map((e: any) => e.message) || [];
+    res.status(500).json({
+      error: errorMessage,
+      details: errorDetails,
+      name: error?.name
+    });
   }
 };
 
@@ -438,12 +445,26 @@ export const deleteAudit = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Delete related records first (no CASCADE configured)
+    await ActionItem.destroy({ where: { auditId: id } });
+    await AuditAnswer.destroy({ where: { auditId: id } });
+    await AuditVersion.destroy({ where: { auditId: id } });
+    await AuditHistory.destroy({ where: { auditId: id } });
+    await AuditDocument.destroy({ where: { auditId: id } });
+    await AuditShare.destroy({ where: { auditId: id } });
+    await Comment.destroy({ where: { auditId: id } });
+
+    // Now delete the audit itself
     await audit.destroy();
 
     res.status(200).json({ message: 'Audit deleted successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete audit error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = error?.message || 'Internal server error';
+    res.status(500).json({
+      error: errorMessage,
+      details: error?.errors?.map((e: any) => e.message) || []
+    });
   }
 };
 
