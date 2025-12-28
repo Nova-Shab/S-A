@@ -28,6 +28,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [quickScanText, setQuickScanText] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const user = authService.getCurrentUser();
   const { systems, stats } = useSystems();
 
@@ -80,6 +82,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       console.error('Fehler beim Laden der Audits:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAudit = async (id: number) => {
+    setIsDeleting(true);
+    try {
+      await auditService.deleteAudit(id);
+      setAudits(prev => prev.filter(audit => audit.id !== id));
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error('Fehler beim Löschen des Audits:', error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -513,8 +528,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
                 <div className="audit-divider"></div>
                 <div className="flex items-center justify-between text-meta text-audit-cool">
-                  <span>Erstellt: {new Date(audit.createdAt).toLocaleDateString('de-DE')}</span>
-                  <span>Aktualisiert: {new Date(audit.updatedAt).toLocaleDateString('de-DE')}</span>
+                  <div className="flex items-center gap-4">
+                    <span>Erstellt: {new Date(audit.createdAt).toLocaleDateString('de-DE')}</span>
+                    <span>Aktualisiert: {new Date(audit.updatedAt).toLocaleDateString('de-DE')}</span>
+                  </div>
+                  {audit.isOwner && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirmId(audit.id);
+                      }}
+                      className="p-2 text-audit-cool hover:text-red-600 hover:bg-red-50 rounded-audit transition-colors"
+                      title="Audit löschen"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -523,6 +554,53 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
         {/* End: Aktive Audit-Prozesse Section */}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Audit löschen?
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Möchten Sie dieses Audit wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={isDeleting}
+              >
+                Abbrechen
+              </Button>
+              <button
+                onClick={() => handleDeleteAudit(deleteConfirmId)}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Löschen...
+                  </>
+                ) : (
+                  'Löschen'
+                )}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
