@@ -214,14 +214,104 @@ export const ALL_REQUIREMENTS: Requirement[] = [
     riskLevel: ["HIGH_RISK"],
   },
 
-  // ========== LIMITED_RISK spezifisch ==========
+  // ========== LIMITED_RISK spezifisch (Art. 50 EU AI Act) ==========
   {
     id: "LR-01",
-    category: "Transparenz & Nutzerinformation",
+    category: "Transparenzpflichten",
     title: "Kennzeichnung von KI-generierten Inhalten",
     description:
-      "Künstlich erzeugte oder manipulierte Inhalte (z.B. Deepfakes) müssen deutlich als solche gekennzeichnet sein.",
+      "Künstlich erzeugte oder manipulierte Inhalte (z.B. Deepfakes, synthetische Medien) müssen deutlich als solche gekennzeichnet sein.",
     riskLevel: ["LIMITED_RISK"],
+  },
+  {
+    id: "LR-02",
+    category: "Transparenzpflichten",
+    title: "KI-Interaktion offenlegen",
+    description:
+      "Nutzer müssen informiert werden, dass sie mit einem KI-System interagieren, außer dies ist aus dem Kontext offensichtlich.",
+    riskLevel: ["LIMITED_RISK"],
+  },
+  {
+    id: "LR-03",
+    category: "Transparenzpflichten",
+    title: "Emotion Recognition Disclosure",
+    description:
+      "Bei Emotionserkennungssystemen oder biometrischer Kategorisierung müssen betroffene Personen über deren Einsatz informiert werden.",
+    riskLevel: ["LIMITED_RISK"],
+  },
+  {
+    id: "LR-04",
+    category: "Transparenzpflichten",
+    title: "Deep Fake Kennzeichnung",
+    description:
+      "KI-generierte oder manipulierte Bild-, Audio- oder Videoinhalte müssen maschinenlesbar als solche gekennzeichnet sein.",
+    riskLevel: ["LIMITED_RISK"],
+  },
+  {
+    id: "LR-05",
+    category: "Transparenzpflichten",
+    title: "Text-Generierungs-Offenlegung",
+    description:
+      "Öffentlich verbreitete, KI-generierte Texte zu Themen von öffentlichem Interesse müssen als KI-generiert gekennzeichnet sein.",
+    riskLevel: ["LIMITED_RISK"],
+  },
+  {
+    id: "LR-06",
+    category: "Interne Dokumentation",
+    title: "Verwendungszweck dokumentiert",
+    description:
+      "Der Zweck und die beabsichtigte Nutzung des KI-Systems sollten intern dokumentiert sein.",
+    riskLevel: ["LIMITED_RISK"],
+  },
+  {
+    id: "LR-07",
+    category: "Interne Dokumentation",
+    title: "Grundlegende Systembeschreibung",
+    description:
+      "Eine Beschreibung der grundlegenden Funktionsweise des Systems sollte für interne Zwecke verfügbar sein.",
+    riskLevel: ["LIMITED_RISK"],
+  },
+
+  // ========== MINIMAL_RISK - Freiwillige Best Practices ==========
+  {
+    id: "MR-01",
+    category: "Empfohlene Maßnahmen",
+    title: "Freiwillige Verhaltenskodizes",
+    description:
+      "Erwägen Sie die Einhaltung freiwilliger Verhaltenskodizes gemäß Art. 95 EU AI Act für vertrauenswürdige KI.",
+    riskLevel: ["MINIMAL_RISK"],
+  },
+  {
+    id: "MR-02",
+    category: "Empfohlene Maßnahmen",
+    title: "Grundlegende Transparenz",
+    description:
+      "Auch ohne gesetzliche Verpflichtung wird empfohlen, Nutzer über den Einsatz von KI zu informieren.",
+    riskLevel: ["MINIMAL_RISK"],
+  },
+  {
+    id: "MR-03",
+    category: "Empfohlene Maßnahmen",
+    title: "Interne Dokumentation",
+    description:
+      "Führen Sie grundlegende interne Aufzeichnungen über KI-Systeme, deren Zweck und potenzielle Auswirkungen.",
+    riskLevel: ["MINIMAL_RISK"],
+  },
+  {
+    id: "MR-04",
+    category: "Empfohlene Maßnahmen",
+    title: "Feedback-Mechanismus",
+    description:
+      "Erwägen Sie die Einrichtung eines Mechanismus für Nutzerfeedback zu KI-Entscheidungen.",
+    riskLevel: ["MINIMAL_RISK"],
+  },
+  {
+    id: "MR-05",
+    category: "Empfohlene Maßnahmen",
+    title: "Regelmäßige Überprüfung",
+    description:
+      "Führen Sie regelmäßige Überprüfungen durch, ob sich die Risikoklasse des Systems geändert hat.",
+    riskLevel: ["MINIMAL_RISK"],
   },
 ];
 
@@ -234,13 +324,31 @@ export function getRequirementsForRisk(riskClass: RiskClass): Requirement[] {
     return [];
   }
 
-  // Für MINIMAL_RISK: Keine spezifischen Anforderungen
-  if (riskClass === "MINIMAL_RISK") {
-    return [];
-  }
-
   // Filtere Anforderungen, die für diese Risikoklasse gelten
   return ALL_REQUIREMENTS.filter((req) => req.riskLevel.includes(riskClass));
+}
+
+/**
+ * Gibt Statistiken über Anforderungen pro Risikoklasse zurück
+ */
+export function getRequirementsStats(): Record<RiskClass, { count: number; categories: string[] }> {
+  const stats: Record<RiskClass, { count: number; categories: string[] }> = {
+    PROHIBITED: { count: 0, categories: [] },
+    HIGH_RISK: { count: 0, categories: [] },
+    LIMITED_RISK: { count: 0, categories: [] },
+    MINIMAL_RISK: { count: 0, categories: [] },
+  };
+
+  ALL_REQUIREMENTS.forEach((req) => {
+    req.riskLevel.forEach((level) => {
+      stats[level].count++;
+      if (!stats[level].categories.includes(req.category)) {
+        stats[level].categories.push(req.category);
+      }
+    });
+  });
+
+  return stats;
 }
 
 /**
