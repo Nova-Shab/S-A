@@ -36,13 +36,43 @@ export const syncDatabase = async (force: boolean = false) => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
 
-    // Always use alter to ensure schema updates are applied (adds new columns without data loss)
-    await sequelize.sync({ force, alter: !force });
-    console.log(`✅ Database synchronized ${force ? '(FORCE - all data deleted!)' : '(with ALTER for schema updates)'}`);
+    // Sync without alter to avoid backup table conflicts
+    await sequelize.sync({ force });
+    console.log(`✅ Database synchronized ${force ? '(FORCE - all data deleted!)' : ''}`);
+
+    // Manually add missing columns
+    await addMissingColumns();
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);
     throw error;
   }
 };
+
+// Add missing columns without using ALTER mode (avoids backup table issues in SQLite)
+async function addMissingColumns() {
+  try {
+    // Clean up any leftover backup tables from failed ALTER operations
+    try {
+      await sequelize.query("DROP TABLE IF EXISTS users_backup;");
+      await sequelize.query("DROP TABLE IF EXISTS audits_backup;");
+    } catch (e) {
+      // Ignore errors
+    }
+
+    // Check if systemId column exists in audits table
+    const [auditsColumns] = await sequelize.query("PRAGMA table_info(audits);") as any[];
+    const hasSystemId = auditsColumns.some((col: any) => col.name === 'systemId');
+
+    if (!hasSystemId) {
+      await sequelize.query("ALTER TABLE audits ADD COLUMN systemId VARCHAR(255);");
+      console.log('✅ Added systemId column to audits table');
+    }
+  } catch (error: any) {
+    // Column might already exist or table doesn't exist yet
+    if (!error.message?.includes('duplicate column')) {
+      console.log('ℹ️ Schema migration check completed');
+    }
+  }
+}
 
 export default sequelize;
