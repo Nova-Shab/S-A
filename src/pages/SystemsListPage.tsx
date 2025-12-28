@@ -4,6 +4,8 @@ import { useSystems } from "../context/SystemsContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
+import { RiskBadge } from "../components/RiskBadge";
+import { getRiskLabel, RISK_DESIGN_TOKENS } from "../utils/riskDesignTokens";
 import auditService from "../services/auditService";
 import {
   RegisteredAiSystem,
@@ -11,7 +13,6 @@ import {
   SystemStatus,
   RiskClass
 } from "../models/types";
-import { getRiskClassLabel, getRiskClassColor } from "../utils/riskClassification";
 
 // =============================================================================
 // V-03: SystemsListPage - Multi-System-Verwaltung
@@ -136,20 +137,9 @@ export const SystemsListPage: React.FC = () => {
     );
   };
 
-  // Render Risk Badge
+  // Render Risk Badge - using unified RiskBadge component
   const renderRiskBadge = (riskClass: RiskClass | null) => {
-    if (!riskClass) {
-      return (
-        <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-500">
-          {t('systems.notClassified')}
-        </span>
-      );
-    }
-    return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${getRiskClassColor(riskClass)}`}>
-        {getRiskClassLabel(riskClass)}
-      </span>
-    );
+    return <RiskBadge riskClass={riskClass} size="sm" lang={language as 'de' | 'en'} />;
   };
 
   return (
@@ -246,10 +236,10 @@ export const SystemsListPage: React.FC = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="">{t('systems.allRiskClasses')}</option>
-              <option value="PROHIBITED">{language === 'de' ? 'Verboten' : 'Prohibited'}</option>
-              <option value="HIGH_RISK">{language === 'de' ? 'Hochrisiko' : 'High Risk'}</option>
-              <option value="LIMITED_RISK">{language === 'de' ? 'Begrenztes Risiko' : 'Limited Risk'}</option>
-              <option value="MINIMAL_RISK">{language === 'de' ? 'Minimales Risiko' : 'Minimal Risk'}</option>
+              <option value="PROHIBITED">{getRiskLabel('PROHIBITED', language as 'de' | 'en')}</option>
+              <option value="HIGH_RISK">{getRiskLabel('HIGH_RISK', language as 'de' | 'en')}</option>
+              <option value="LIMITED_RISK">{getRiskLabel('LIMITED_RISK', language as 'de' | 'en')}</option>
+              <option value="MINIMAL_RISK">{getRiskLabel('MINIMAL_RISK', language as 'de' | 'en')}</option>
             </select>
 
             {/* Sort */}

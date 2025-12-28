@@ -6,6 +6,8 @@ import { Card } from "../components/Card";
 import { RiskSuggestionCard } from "../components/RiskSuggestionCard";
 import { SystemImportModal } from "../components/SystemImportModal";
 import { AuditSaveBar } from "../components/AuditSaveBar";
+import { RiskBadge } from "../components/RiskBadge";
+import { getRiskToken, getRiskLabel } from "../utils/riskDesignTokens";
 import { useAudit } from "../context/AuditContext";
 import { useSystems } from "../context/SystemsContext";
 import {
@@ -998,24 +1000,14 @@ export const RiskAssessmentPage: React.FC = () => {
 
         <div
           className={`
-          p-6 rounded-lg mb-6
-          ${
-            state.riskClass === "PROHIBITED"
-              ? "bg-red-100 border-2 border-red-500"
-              : state.riskClass === "HIGH_RISK"
-              ? "bg-orange-100 border-2 border-orange-500"
-              : state.riskClass === "LIMITED_RISK"
-              ? "bg-yellow-100 border-2 border-yellow-500"
-              : "bg-green-100 border-2 border-green-500"
-          }
+          p-6 rounded-lg mb-6 border-2
+          ${getRiskToken(state.riskClass).badge.bg}
+          ${getRiskToken(state.riskClass).badge.border}
         `}
         >
-          <h3 className="text-2xl font-bold mb-2">
-            {state.riskClass === "PROHIBITED" && "🚫 PROHIBITED"}
-            {state.riskClass === "HIGH_RISK" && "⚠️ HIGH RISK"}
-            {state.riskClass === "LIMITED_RISK" && "⚡ LIMITED RISK"}
-            {state.riskClass === "MINIMAL_RISK" && "✅ MINIMAL RISK"}
-          </h3>
+          <div className="flex items-center gap-3 mb-2">
+            <RiskBadge riskClass={state.riskClass} size="lg" showIcon />
+          </div>
           <p className="text-gray-800">
             {state.riskClass &&
               getRiskClassDescription(state.riskClass)

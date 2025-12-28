@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { RiskBadge } from '../components/RiskBadge';
+import { getRiskToken, getRiskLabel, RISK_DESIGN_TOKENS } from '../utils/riskDesignTokens';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 
@@ -49,12 +51,16 @@ const SEVERITY_CONFIG = {
   info: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-300', label: 'Info' },
 };
 
-const RISK_CONFIG: Record<string, { bg: string; text: string; gradient: string }> = {
-  PROHIBITED: { bg: 'bg-red-600', text: 'text-white', gradient: 'from-red-600 to-red-800' },
-  HIGH_RISK: { bg: 'bg-orange-500', text: 'text-white', gradient: 'from-orange-500 to-orange-700' },
-  LIMITED_RISK: { bg: 'bg-yellow-500', text: 'text-white', gradient: 'from-yellow-500 to-yellow-600' },
-  MINIMAL_RISK: { bg: 'bg-green-500', text: 'text-white', gradient: 'from-green-500 to-green-600' },
-  UNKNOWN: { bg: 'bg-gray-500', text: 'text-white', gradient: 'from-gray-500 to-gray-600' },
+// Risk config now uses central design tokens for consistency
+const getRiskConfig = (riskLevel: string) => {
+  const token = getRiskToken(riskLevel);
+  const gradient = token.chart.gradient;
+  return {
+    bg: token.badge.bg,
+    text: token.badge.text,
+    gradient: gradient ? `from-[${gradient.from}] to-[${gradient.to}]` : '',
+    chartColor: token.chart.fill,
+  };
 };
 
 export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
@@ -168,7 +174,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({ onBack }) => {
     setError(null);
   };
 
-  const riskConfig = result ? RISK_CONFIG[result.riskLevel] || RISK_CONFIG.UNKNOWN : null;
+  const riskConfig = result ? getRiskConfig(result.riskLevel) : null;
 
   return (
     <div className="min-h-screen bg-audit-bg">

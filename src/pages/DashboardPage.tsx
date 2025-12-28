@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { RiskBadge, RiskDot } from '../components/RiskBadge';
+import { getRiskLabel, getRiskChartColor, RISK_DESIGN_TOKENS } from '../utils/riskDesignTokens';
 import auditService, { AuditData } from '../services/auditService';
 import authService from '../services/authService';
 import { useSystems } from '../context/SystemsContext';
 import { SYSTEM_STATUS_CONFIG } from '../models/types';
-import { getRiskClassLabel } from '../utils/riskClassification';
 import api from '../services/api';
 
 interface DashboardPageProps {
@@ -110,22 +111,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       // Keep modal open on error so user can retry
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  // Design system: Calm, neutral risk indicators
-  const getRiskClassStyle = (riskClass: string) => {
-    switch (riskClass) {
-      case 'PROHIBITED':
-        return 'bg-audit-bg text-audit-deep border-l-4 border-audit-deep';
-      case 'HIGH_RISK':
-        return 'bg-audit-bg text-audit-steel border-l-4 border-audit-steel';
-      case 'LIMITED_RISK':
-        return 'bg-audit-bg text-audit-cool border-l-4 border-audit-cool';
-      case 'MINIMAL_RISK':
-        return 'bg-audit-bg text-audit-cool border-l-4 border-audit-light';
-      default:
-        return 'bg-audit-bg text-audit-cool border-l-4 border-audit-light';
     }
   };
 
@@ -357,9 +342,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           <span className={`w-2 h-2 rounded-full mr-2 ${SYSTEM_STATUS_CONFIG[s.status].bgColor}`}></span>
                           {s.systemInfo.systemName || 'Unbenannt'}
                           {s.riskClass && (
-                            <span className="ml-2 audit-ref">
-                              {getRiskClassLabel(s.riskClass)}
-                            </span>
+                            <RiskBadge riskClass={s.riskClass} size="xs" className="ml-2" />
                           )}
                         </button>
                       ))
@@ -496,9 +479,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         {audit.title}
                       </h3>
                       {getStatusBadge(audit.status)}
-                      <span className={`px-2 py-1 rounded-audit text-meta font-medium ${getRiskClassStyle(audit.riskClass)}`}>
-                        {audit.riskClass.replace('_', ' ')}
-                      </span>
+                      <RiskBadge riskClass={audit.riskClass} size="sm" />
                     </div>
 
                     {audit.description && (

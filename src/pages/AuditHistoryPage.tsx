@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
+import { RiskBadge } from "../components/RiskBadge";
 import auditService, { AuditVersion, AuditHistoryEntry } from "../services/auditService";
 
 export const AuditHistoryPage: React.FC = () => {
@@ -78,25 +79,10 @@ export const AuditHistoryPage: React.FC = () => {
     );
   };
 
+  // Unified Risk Badge using central design tokens
   const getRiskClassBadge = (riskClass: string | null) => {
     if (!riskClass) return null;
-    const styles: Record<string, string> = {
-      PROHIBITED: "bg-black text-white",
-      HIGH_RISK: "bg-red-100 text-red-700",
-      LIMITED_RISK: "bg-orange-100 text-orange-700",
-      MINIMAL_RISK: "bg-green-100 text-green-700",
-    };
-    const labels: Record<string, string> = {
-      PROHIBITED: "Verboten",
-      HIGH_RISK: "Hochrisiko",
-      LIMITED_RISK: "Begrenztes Risiko",
-      MINIMAL_RISK: "Minimales Risiko",
-    };
-    return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[riskClass] || ""}`}>
-        {labels[riskClass] || riskClass}
-      </span>
-    );
+    return <RiskBadge riskClass={riskClass} size="sm" variant="pill" />;
   };
 
   const getActionIcon = (action: string) => {
