@@ -231,62 +231,62 @@ export const ActionsOverviewPage: React.FC = () => {
       </div>
 
       <div className="audit-container py-6 lg:py-8">
-        {/* Stats Cards - Responsive Grid */}
+        {/* Stats Cards - Design consistent with Dashboard System Overview */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4 mb-6">
-            <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+            <div className="bg-audit-bg rounded-audit p-4 text-center">
               <div className="text-2xl font-semibold text-audit-deep">{stats.total}</div>
-              <div className="text-xs text-audit-cool">
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'Gesamt' : 'Total'}
               </div>
             </div>
-            <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
-              <div className="text-2xl font-semibold text-audit-steel">{stats.open}</div>
-              <div className="text-xs text-audit-cool">
+            <div className="bg-audit-bg rounded-audit p-4 text-center">
+              <div className="text-2xl font-semibold text-audit-deep">{stats.open}</div>
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'Offen' : 'Open'}
               </div>
             </div>
-            <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
+            <div className="bg-audit-bg rounded-audit p-4 text-center">
               <div className="text-2xl font-semibold text-blue-600">{stats.inProgress}</div>
-              <div className="text-xs text-audit-cool">
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'In Bearbeitung' : 'In Progress'}
               </div>
             </div>
-            <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
+            <div className="bg-audit-bg rounded-audit p-4 text-center">
               <div className="text-2xl font-semibold text-green-600">{stats.completed}</div>
-              <div className="text-xs text-audit-cool">
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'Abgeschlossen' : 'Completed'}
               </div>
             </div>
             <div
-              className={`bg-white rounded-audit p-4 shadow-audit border cursor-pointer transition-colors ${
-                showOverdue ? 'border-red-400 bg-red-50' : 'border-audit-light hover:border-red-300'
+              className={`rounded-audit p-4 text-center cursor-pointer transition-colors ${
+                showOverdue ? 'bg-red-50' : 'bg-audit-bg hover:bg-red-50/50'
               }`}
               onClick={() => {
                 setShowOverdue(!showOverdue);
                 setPage(1);
               }}
             >
-              <div className={`text-2xl font-semibold ${stats.overdue > 0 ? 'text-red-600' : 'text-audit-cool'}`}>
+              <div className={`text-2xl font-semibold ${stats.overdue > 0 ? 'text-red-600' : 'text-audit-deep'}`}>
                 {stats.overdue}
               </div>
-              <div className="text-xs text-audit-cool">
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'Überfällig' : 'Overdue'}
               </div>
             </div>
-            <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
+            <div className="bg-audit-bg rounded-audit p-4 text-center">
               <div className="text-2xl font-semibold text-amber-600">{stats.dueThisWeek}</div>
-              <div className="text-xs text-audit-cool">
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'Diese Woche' : 'This Week'}
               </div>
             </div>
-            <div className="bg-white rounded-audit p-4 shadow-audit border border-audit-light">
-              <div className="flex gap-2 items-center">
-                <span className="text-xs font-medium text-red-600">{stats.bySeverity.hoch}</span>
-                <span className="text-xs font-medium text-yellow-600">{stats.bySeverity.mittel}</span>
-                <span className="text-xs font-medium text-green-600">{stats.bySeverity.niedrig}</span>
+            <div className="bg-audit-bg rounded-audit p-4 text-center">
+              <div className="flex gap-1 items-center justify-center">
+                <span className="text-2xl font-semibold text-red-600">{stats.bySeverity.hoch}</span>
+                <span className="text-2xl font-semibold text-yellow-500">{stats.bySeverity.mittel}</span>
+                <span className="text-2xl font-semibold text-green-600">{stats.bySeverity.niedrig}</span>
               </div>
-              <div className="text-xs text-audit-cool mt-1">
+              <div className="text-meta text-audit-cool">
                 {language === 'de' ? 'Nach Priorität' : 'By Priority'}
               </div>
             </div>
