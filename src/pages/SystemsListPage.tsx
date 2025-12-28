@@ -304,7 +304,7 @@ export const SystemsListPage: React.FC = () => {
             {filteredSystems.map((system) => (
               <Card
                 key={system.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer relative"
+                className="h-full flex flex-col hover:shadow-lg transition-shadow cursor-pointer relative"
                 onClick={() => handleOpenSystem(system)}
               >
                 {/* Selection Checkbox */}
@@ -354,7 +354,7 @@ export const SystemsListPage: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-6 flex flex-col flex-grow">
                   {/* System Name */}
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 pr-20">
                     {system.systemInfo.systemName || t('systems.unnamedSystem')}
@@ -367,7 +367,7 @@ export const SystemsListPage: React.FC = () => {
                   </div>
 
                   {/* Info */}
-                  <div className="text-sm text-gray-600 space-y-1 mb-4">
+                  <div className="text-sm text-gray-600 space-y-1 mb-4 flex-grow">
                     {system.systemInfo.domain && (
                       <p>{t('systems.domain')}: {system.systemInfo.domain}</p>
                     )}
@@ -399,7 +399,7 @@ export const SystemsListPage: React.FC = () => {
                   )}
 
                   {/* Footer */}
-                  <div className="pt-3 border-t flex items-center justify-between">
+                  <div className="pt-3 border-t flex items-center justify-between mt-auto">
                     <div className="text-xs text-gray-500">
                       {system.auditCount} {t('systems.auditsCompleted')}
                     </div>
