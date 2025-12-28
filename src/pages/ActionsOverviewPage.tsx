@@ -13,7 +13,7 @@ type StatusFilter = '' | 'open' | 'in_progress' | 'completed' | 'deferred';
 type SeverityFilter = '' | 'hoch' | 'mittel' | 'niedrig';
 
 export const ActionsOverviewPage: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
 
   // Data state
   const [actions, setActions] = useState<ActionItem[]>([]);

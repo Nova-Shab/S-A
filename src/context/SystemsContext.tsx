@@ -11,7 +11,6 @@ import {
   RiskClass,
   ChangeHistoryEntry,
   createChangeEntry,
-  ActionItem
 } from "../models/types";
 import authService from "../services/authService";
 
@@ -43,9 +42,9 @@ interface SystemsContextType {
   updateSystemRiskClass: (id: string, riskClass: RiskClass) => void;
   updateSystemComplianceScore: (id: string, score: number) => void;
 
-  // Action Items (Maßnahmen) - EINMALIG pro System
-  updateSystemActionItems: (id: string, actionItems: ActionItem[]) => void;
-  getSystemActionItems: (id: string) => ActionItem[];
+  // Active Audit Management (Single Source of Truth)
+  updateSystemActiveAudit: (id: string, auditId: number | null) => void;
+  getSystemActiveAuditId: (id: string) => number | null;
 
   // V-04: History
   getSystemHistory: (id: string) => ChangeHistoryEntry[];
@@ -267,16 +266,20 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSystemWithHistory(id, { complianceScore: Math.max(0, Math.min(100, score)) });
   }, [updateSystemWithHistory]);
 
-  // Action Items (Maßnahmen) - EINMALIG pro System
-  const updateSystemActionItems = useCallback((id: string, actionItems: ActionItem[]) => {
+  // Active Audit Management (Single Source of Truth)
+  // Measures are stored in the ActionItem table, linked via Audit.
+  // This tracks which audit is currently active for a system.
+  const updateSystemActiveAudit = useCallback((id: string, auditId: number | null) => {
     const userName = getCurrentUserName();
     setSystems(prev => prev.map(sys => {
       if (sys.id === id) {
         const newHistory: ChangeHistoryEntry[] = [...(sys.changeHistory || [])];
-        newHistory.push(createChangeEntry("UPDATE", "actionItems", undefined, `${actionItems.length} Maßnahmen`, userName));
+        if (auditId !== sys.activeAuditId) {
+          newHistory.push(createChangeEntry("AUDIT", "activeAuditId", sys.activeAuditId, auditId, userName));
+        }
         return {
           ...sys,
-          actionItems,
+          activeAuditId: auditId ?? undefined,
           changeHistory: newHistory,
           updatedAt: new Date().toISOString()
         };
@@ -285,9 +288,9 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   }, [getCurrentUserName]);
 
-  const getSystemActionItems = useCallback((id: string): ActionItem[] => {
+  const getSystemActiveAuditId = useCallback((id: string): number | null => {
     const system = systems.find(sys => sys.id === id);
-    return system?.actionItems || [];
+    return system?.activeAuditId ?? null;
   }, [systems]);
 
   // V-04: History functions
@@ -440,8 +443,8 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSystemStatus,
     updateSystemRiskClass,
     updateSystemComplianceScore,
-    updateSystemActionItems,
-    getSystemActionItems,
+    updateSystemActiveAudit,
+    getSystemActiveAuditId,
     getSystemHistory,
     addHistoryEntry,
     filter,

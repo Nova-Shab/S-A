@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
-import { RiskBadge } from '../components/RiskBadge';
-import { getRiskToken, getRiskLabel, RISK_DESIGN_TOKENS } from '../utils/riskDesignTokens';
+import { getRiskToken } from '../utils/riskDesignTokens';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 

@@ -348,7 +348,9 @@ export interface RegisteredAiSystem {
   responsiblePerson?: string;            // Verantwortliche Person
   notes?: string;                        // Interne Notizen
   changeHistory?: ChangeHistoryEntry[];  // V-04: Änderungshistorie
-  actionItems?: ActionItem[];            // Zentraler Maßnahmenkatalog (EINMALIG pro System)
+  // NOTE: actionItems wurden entfernt - sie werden jetzt in der ActionItem-Tabelle
+  // gespeichert und über das verknüpfte Audit referenziert (Single Source of Truth)
+  activeAuditId?: number;                // ID des aktiven Audits für dieses System
 }
 
 // =============================================================================

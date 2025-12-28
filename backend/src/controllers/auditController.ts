@@ -1186,6 +1186,125 @@ export const getActionItems = async (req: Request, res: Response): Promise<void>
 };
 
 /**
+ * Get action items by systemId (for the active audit)
+ * Single source of truth - measures are always fetched from the database
+ */
+export const getActionItemsBySystemId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { systemId } = req.params;
+
+    if (!systemId) {
+      res.status(400).json({ error: 'systemId is required' });
+      return;
+    }
+
+    // Find the active audit for this system
+    const activeAudit = await Audit.findOne({
+      where: {
+        systemId,
+        status: {
+          [Op.in]: ['draft', 'in_progress'],
+        },
+      },
+    });
+
+    if (!activeAudit) {
+      // Check for any completed audits
+      const latestAudit = await Audit.findOne({
+        where: { systemId },
+        order: [['updatedAt', 'DESC']],
+      });
+
+      if (!latestAudit) {
+        res.status(200).json({
+          actionItems: [],
+          audit: null,
+          message: 'No audit found for this system',
+        });
+        return;
+      }
+
+      // Return action items from the latest audit
+      const actionItems = await ActionItem.findAll({
+        where: { auditId: latestAudit.id },
+        order: [['severity', 'ASC'], ['category', 'ASC']],
+      });
+
+      res.status(200).json({
+        actionItems,
+        audit: {
+          id: latestAudit.id,
+          status: latestAudit.status,
+          riskClass: latestAudit.riskClass,
+          completionPercentage: latestAudit.completionPercentage,
+        },
+      });
+      return;
+    }
+
+    // Get action items from the active audit
+    const actionItems = await ActionItem.findAll({
+      where: { auditId: activeAudit.id },
+      order: [['severity', 'ASC'], ['category', 'ASC']],
+    });
+
+    res.status(200).json({
+      actionItems,
+      audit: {
+        id: activeAudit.id,
+        status: activeAudit.status,
+        riskClass: activeAudit.riskClass,
+        completionPercentage: activeAudit.completionPercentage,
+      },
+    });
+  } catch (error) {
+    console.error('Get action items by systemId error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get all audits for a specific systemId
+ */
+export const getAuditsBySystemId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { systemId } = req.params;
+
+    if (!systemId) {
+      res.status(400).json({ error: 'systemId is required' });
+      return;
+    }
+
+    const audits = await Audit.findAll({
+      where: { systemId },
+      include: [
+        {
+          model: User,
+          as: 'owner',
+          attributes: ['id', 'firstName', 'lastName', 'email'],
+        },
+      ],
+      order: [['updatedAt', 'DESC']],
+    });
+
+    res.status(200).json({ audits });
+  } catch (error) {
+    console.error('Get audits by systemId error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Get audit history (change log)
  */
 export const getAuditHistoryLog = async (req: Request, res: Response): Promise<void> => {

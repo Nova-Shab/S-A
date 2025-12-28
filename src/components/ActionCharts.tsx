@@ -43,7 +43,7 @@ export const ActionCharts: React.FC<ActionChartsProps> = ({ data, language }) =>
             {/* Simple Donut Visualization */}
             <div className="relative w-40 h-40 flex-shrink-0">
               <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                {data.byStatus.reduce((acc, item, index) => {
+                {data.byStatus.reduce((acc, item, _index) => {
                   const percentage = (item.count / totalByStatus) * 100;
                   const circumference = 2 * Math.PI * 35;
                   const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
@@ -170,7 +170,7 @@ export const ActionCharts: React.FC<ActionChartsProps> = ({ data, language }) =>
           <div className="relative">
             {/* Chart Area */}
             <div className="flex items-end gap-2 h-48 pb-8">
-              {data.timeline.map((week, index) => {
+              {data.timeline.map((week, _index) => {
                 const maxHeight = Math.max(...data.timeline.map((w) => w.due + w.completed), 1);
                 const dueHeight = (week.due / maxHeight) * 100;
                 const completedHeight = (week.completed / maxHeight) * 100;

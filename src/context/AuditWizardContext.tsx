@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+// useNavigate is available but not used in this context - can be used for navigation if needed
 
 // Types for the audit flow
 export interface CompanyContext {

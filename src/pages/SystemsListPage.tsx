@@ -5,7 +5,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { RiskBadge } from "../components/RiskBadge";
-import { getRiskLabel, RISK_DESIGN_TOKENS } from "../utils/riskDesignTokens";
+import { getRiskLabel } from "../utils/riskDesignTokens";
 import auditService from "../services/auditService";
 import {
   RegisteredAiSystem,

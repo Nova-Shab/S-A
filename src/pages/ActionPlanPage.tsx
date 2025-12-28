@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
+import { AuditSystemHeader } from "../components/AuditSystemHeader";
 import { useAudit } from "../context/AuditContext";
 import { ActionItem } from "../models/types";
 import {
@@ -225,6 +226,9 @@ export const ActionPlanPage: React.FC = () => {
       <StepIndicator currentStep={3} steps={STEPS} />
 
       <div className="max-w-5xl mx-auto px-4 py-8 print:py-4">
+        {/* System Header (wenn mit System verknüpft) */}
+        <AuditSystemHeader />
+
         <div className="flex items-center justify-between mb-6 print:mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">

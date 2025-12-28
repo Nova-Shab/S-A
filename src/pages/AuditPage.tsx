@@ -3,6 +3,7 @@ import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { AuditSaveBar } from "../components/AuditSaveBar";
+import { AuditSystemHeader } from "../components/AuditSystemHeader";
 import { useAudit } from "../context/AuditContext";
 import { Requirement, RequirementStatus, RequirementDocument } from "../models/types";
 import {
@@ -130,6 +131,9 @@ export const AuditPage: React.FC = () => {
       <StepIndicator currentStep={2} steps={STEPS} />
 
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* System Header (wenn mit System verknüpft) */}
+        <AuditSystemHeader />
+
         {/* Header mit Save-Buttons */}
         <div className="flex items-start justify-between mb-6">
           <div>

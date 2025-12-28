@@ -18,6 +18,8 @@ import {
   getAuditHistoryLog,
   findAuditBySystemName,
   checkActiveAuditForSystem,
+  getActionItemsBySystemId,
+  getAuditsBySystemId,
 } from '../controllers/auditController';
 import { authenticate } from '../middleware/auth';
 
@@ -31,6 +33,8 @@ router.post('/', createAudit);
 router.get('/', getAudits);
 router.get('/find-by-system', findAuditBySystemName); // Muss vor /:id sein!
 router.get('/check-active/:systemId', checkActiveAuditForSystem); // Check active audit for system
+router.get('/by-system/:systemId', getAuditsBySystemId); // Get all audits for a system
+router.get('/by-system/:systemId/action-items', getActionItemsBySystemId); // Get action items for a system (Single Source of Truth)
 router.get('/:id', getAudit);
 router.put('/:id', updateAudit);
 router.delete('/:id', deleteAudit);

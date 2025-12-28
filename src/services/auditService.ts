@@ -219,6 +219,32 @@ class AuditService {
     const response = await api.get(`/audits/${auditId}/history`);
     return response.data;
   }
+
+  // ============================================
+  // System-linked endpoints (Single Source of Truth)
+  // ============================================
+
+  // Get all audits for a specific systemId
+  async getAuditsBySystemId(systemId: string): Promise<{ audits: AuditData[] }> {
+    const response = await api.get(`/audits/by-system/${systemId}`);
+    return response.data;
+  }
+
+  // Get action items (measures) for a system - fetches from the active/latest audit
+  // This is the SINGLE SOURCE OF TRUTH for measures
+  async getActionItemsBySystemId(systemId: string): Promise<{
+    actionItems: ActionItem[];
+    audit: {
+      id: number;
+      status: string;
+      riskClass: RiskClass;
+      completionPercentage: number;
+    } | null;
+    message?: string;
+  }> {
+    const response = await api.get(`/audits/by-system/${systemId}/action-items`);
+    return response.data;
+  }
 }
 
 export default new AuditService();

@@ -57,14 +57,32 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
 
     const systemName = state.systemInfo.systemName.trim();
 
+    // Prüfe ob bereits ein aktives Audit für dieses System existiert (über systemId)
+    if (linkedSystemId) {
+      try {
+        const { hasActiveAudit, audit: activeAudit } = await auditService.checkActiveAuditForSystem(linkedSystemId);
+        if (hasActiveAudit && activeAudit) {
+          // Verwende das existierende aktive Audit
+          setCurrentAuditId(String(activeAudit.id));
+          setSearchParams({ auditId: String(activeAudit.id), systemId: linkedSystemId });
+          setSaveMessage({ type: "success", text: "Aktives Audit gefunden und wird aktualisiert." });
+          return activeAudit.id;
+        }
+      } catch (error) {
+        console.warn("Fehler bei der Prüfung auf aktives Audit:", error);
+      }
+    }
+
+    // Fallback: Prüfe ob bereits ein Audit mit diesem Systemnamen existiert
     try {
-      // Prüfe ob bereits ein Audit mit diesem Systemnamen existiert
       const { found, audit: existingAudit } = await auditService.findBySystemName(systemName);
 
       if (found && existingAudit) {
         // Existierendes Audit verwenden
         setCurrentAuditId(String(existingAudit.id));
-        setSearchParams({ auditId: String(existingAudit.id) });
+        const params: Record<string, string> = { auditId: String(existingAudit.id) };
+        if (linkedSystemId) params.systemId = linkedSystemId;
+        setSearchParams(params);
         setSaveMessage({ type: "success", text: "Existierendes Audit gefunden und wird aktualisiert." });
         return existingAudit.id;
       }
@@ -117,11 +135,27 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
       setCurrentAuditId(String(audit.id));
 
       // Update URL mit der neuen auditId
-      setSearchParams({ auditId: String(audit.id) });
+      const params: Record<string, string> = { auditId: String(audit.id) };
+      if (linkedSystemId) params.systemId = linkedSystemId;
+      setSearchParams(params);
 
       return audit.id;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fehler beim Erstellen des Audits:", error);
+      // Handle 409 Conflict - existing active audit
+      if (error?.response?.status === 409) {
+        const existingAuditId = error?.response?.data?.existingAuditId;
+        if (existingAuditId) {
+          setCurrentAuditId(String(existingAuditId));
+          const params: Record<string, string> = { auditId: String(existingAuditId) };
+          if (linkedSystemId) params.systemId = linkedSystemId;
+          setSearchParams(params);
+          setSaveMessage({ type: "success", text: "Aktives Audit gefunden - wird aktualisiert." });
+          return existingAuditId;
+        }
+        setSaveMessage({ type: "error", text: error?.response?.data?.message || "Es existiert bereits ein aktives Audit für dieses System." });
+        return null;
+      }
       return null;
     }
   };

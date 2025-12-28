@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
-import { RiskBadge, RiskDot } from '../components/RiskBadge';
-import { getRiskLabel, getRiskChartColor, RISK_DESIGN_TOKENS } from '../utils/riskDesignTokens';
+import { RiskBadge } from '../components/RiskBadge';
 import auditService, { AuditData } from '../services/auditService';
 import authService from '../services/authService';
 import { useSystems } from '../context/SystemsContext';
@@ -13,13 +12,13 @@ import api from '../services/api';
 interface DashboardPageProps {
   onCreateAudit: () => void;
   onOpenAudit: (auditId: number) => void;
-  onLogout: () => void;
+  onLogout?: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   onCreateAudit,
   onOpenAudit,
-  onLogout,
+  // onLogout is available but handled in the header/navigation component
 }) => {
   const navigate = useNavigate();
   const [audits, setAudits] = useState<AuditData[]>([]);

@@ -6,8 +6,9 @@ import { Card } from "../components/Card";
 import { RiskSuggestionCard } from "../components/RiskSuggestionCard";
 import { SystemImportModal } from "../components/SystemImportModal";
 import { AuditSaveBar } from "../components/AuditSaveBar";
+import { AuditSystemHeader } from "../components/AuditSystemHeader";
 import { RiskBadge } from "../components/RiskBadge";
-import { getRiskToken, getRiskLabel } from "../utils/riskDesignTokens";
+import { getRiskToken } from "../utils/riskDesignTokens";
 import { useAudit } from "../context/AuditContext";
 import { useSystems } from "../context/SystemsContext";
 import {
@@ -1072,6 +1073,9 @@ export const RiskAssessmentPage: React.FC = () => {
       <StepIndicator currentStep={1} steps={STEPS} />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* System Header (wenn mit System verknüpft) */}
+        <AuditSystemHeader />
+
         {/* Header mit Save-Buttons */}
         <div className="flex items-start justify-between mb-4">
           <div>

@@ -152,11 +152,12 @@ export const Step6Actions: React.FC = () => {
       md += `**Ergebnis:** ⛔ VERBOTENE PRAKTIK\n\n`;
       md += `**Grund:** ${currentSystem.riskClassification.prohibitedReason}\n\n`;
     } else {
-      const riskLabel = {
+      const riskLabels: Record<string, string> = {
         HIGH_RISK: 'Hochrisiko-System',
         LIMITED_RISK: 'Begrenztes Risiko',
         MINIMAL_RISK: 'Minimales Risiko',
-      }[currentSystem.riskClassification?.riskLevel || ''] || 'Nicht klassifiziert';
+      };
+      const riskLabel = riskLabels[currentSystem.riskClassification?.riskLevel || ''] || 'Nicht klassifiziert';
 
       md += `**Ergebnis:** ${riskLabel}\n\n`;
     }
