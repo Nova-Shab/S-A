@@ -36,8 +36,9 @@ export const syncDatabase = async (force: boolean = false) => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
 
-    await sequelize.sync({ force, alter: !force && process.env.NODE_ENV === 'development' });
-    console.log(`✅ Database synchronized ${force ? '(FORCE - all data deleted!)' : ''}`);
+    // Always use alter to ensure schema updates are applied (adds new columns without data loss)
+    await sequelize.sync({ force, alter: !force });
+    console.log(`✅ Database synchronized ${force ? '(FORCE - all data deleted!)' : '(with ALTER for schema updates)'}`);
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);
     throw error;
