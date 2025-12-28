@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { StepIndicator } from "../components/StepIndicator";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
@@ -6,6 +7,7 @@ import { RiskSuggestionCard } from "../components/RiskSuggestionCard";
 import { SystemImportModal } from "../components/SystemImportModal";
 import { AuditSaveBar } from "../components/AuditSaveBar";
 import { useAudit } from "../context/AuditContext";
+import { useSystems } from "../context/SystemsContext";
 import {
   AiSystemInfo,
   EuAiActRole,
@@ -34,6 +36,9 @@ type FormStep = "system" | "purpose" | "boundaries" | "risk" | "result";
 
 export const RiskAssessmentPage: React.FC = () => {
   const { state, setSystemInfo, setRiskClass, setCurrentStep } = useAudit();
+  const { getSystemById, updateSystemWithHistory } = useSystems();
+  const [searchParams] = useSearchParams();
+  const linkedSystemId = searchParams.get('systemId');
 
   // Formular-Schritt
   const [formStep, setFormStep] = useState<FormStep>("system");
@@ -81,6 +86,32 @@ export const RiskAssessmentPage: React.FC = () => {
 
   // V-02: Import-Modal
   const [showImportModal, setShowImportModal] = useState(false);
+
+  // Load data from linked system on mount
+  useEffect(() => {
+    if (linkedSystemId && !state.systemInfo) {
+      const linkedSystem = getSystemById(linkedSystemId);
+      if (linkedSystem?.systemInfo) {
+        const info = linkedSystem.systemInfo;
+        // Pre-fill form with linked system data
+        if (info.systemName) setSystemName(info.systemName);
+        if (info.systemVersion) setSystemVersion(info.systemVersion);
+        if (info.systemProvider) setSystemProvider(info.systemProvider);
+        if (info.euAiActRole) setEuAiActRole(info.euAiActRole);
+        if (info.primaryPurpose) setPrimaryPurpose(info.primaryPurpose);
+        if (info.annexIIICategories) setAnnexIIICategories(info.annexIIICategories);
+        if (info.intendedUsers) setIntendedUsers(info.intendedUsers);
+        if (info.prohibitedUses) setProhibitedUses(info.prohibitedUses);
+        if (info.foreseenMisuse) setForeseenMisuse(info.foreseenMisuse);
+        if (info.systemBoundaries) setSystemBoundaries(info.systemBoundaries);
+        if (info.domain) setDomain(info.domain);
+        if (info.useCase) setUseCase(info.useCase);
+        if (info.impactLevel) setImpactLevel(info.impactLevel);
+        if (info.biometricOrSurveillance !== undefined) setBiometricOrSurveillance(info.biometricOrSurveillance);
+        if (info.euImpact !== undefined) setEuImpact(info.euImpact);
+      }
+    }
+  }, [linkedSystemId, getSystemById, state.systemInfo]);
 
   // V-02: Import-Handler
   const handleImport = (imported: Partial<AiSystemInfo>) => {
@@ -234,6 +265,19 @@ export const RiskAssessmentPage: React.FC = () => {
 
     setSystemInfo(systemInfo);
     setRiskClass(riskClass);
+
+    // Sync with linked system in Systems registry
+    if (linkedSystemId) {
+      const linkedSystem = getSystemById(linkedSystemId);
+      if (linkedSystem) {
+        updateSystemWithHistory(linkedSystemId, {
+          systemInfo,
+          riskClass,
+          status: 'UNDER_REVIEW'
+        });
+      }
+    }
+
     setFormStep("result");
     setShowResult(true);
   };
