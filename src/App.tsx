@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuditProvider, useAudit } from "./context/AuditContext";
-import { SystemsProvider } from "./context/SystemsContext";
+import { SystemsProvider, useSystems } from "./context/SystemsContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
@@ -28,6 +28,7 @@ import { NovaChatBot } from "./components/NovaChatBot";
 
 const AppContent: React.FC = () => {
   const { state, setCurrentStep, resetAudit } = useAudit();
+  const { addSystem } = useSystems();
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -103,7 +104,14 @@ const AppContent: React.FC = () => {
   const handleCreateNewAudit = () => {
     resetAudit();
     setCurrentStep(0);
-    navigate('/audit/new');
+    // Create a new system for this audit
+    const newSystem = addSystem({
+      systemName: 'Neues KI-System',
+      useCase: '',
+      domain: ''
+    });
+    // Navigate to audit with the new system ID
+    navigate(`/audit/new?systemId=${newSystem.id}`);
   };
 
   const handleOpenExistingAudit = (auditId: number) => {
