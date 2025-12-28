@@ -8,6 +8,7 @@ import authService from '../services/authService';
 import { useSystems } from '../context/SystemsContext';
 import { SYSTEM_STATUS_CONFIG } from '../models/types';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DashboardPageProps {
   onCreateAudit: () => void;
@@ -21,6 +22,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // onLogout is available but handled in the header/navigation component
 }) => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [audits, setAudits] = useState<AuditData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,12 +42,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     setScanError(null);
 
     if (!quickScanText.trim()) {
-      setScanError('Bitte geben Sie eine Beschreibung ein.');
+      setScanError(t('dashboard.quickScanEmptyError'));
       return;
     }
 
     if (quickScanText.trim().length < 50) {
-      setScanError('Die Beschreibung sollte mindestens 50 Zeichen lang sein.');
+      setScanError(t('dashboard.quickScanMinCharsError'));
       return;
     }
 
@@ -55,14 +57,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       const response = await api.post('/scanner/analyze', {
         inputType: 'description',
         inputValue: quickScanText,
-        systemName: 'Schnell-Scan',
+        systemName: t('dashboard.quickScan'),
       });
 
       if (response.data.success) {
         navigate('/scanner', { state: { scanResult: response.data } });
       }
     } catch {
-      setScanError('Fehler bei der Analyse. Bitte versuchen Sie es erneut.');
+      setScanError(t('dashboard.quickScanError'));
     } finally {
       setIsScanning(false);
     }
@@ -98,14 +100,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       // Optimistic update - remove from list immediately
       setAudits(prev => prev.filter(audit => audit.id !== id));
       setDeleteConfirmId(null);
-      setSuccessMessage('Audit wurde erfolgreich gelöscht.');
+      setSuccessMessage(t('dashboard.auditDeleted'));
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: any) {
-      console.error('Fehler beim Löschen des Audits:', error);
+      console.error('Error deleting audit:', error);
       const errorMessage = error?.response?.data?.error ||
                           error?.message ||
-                          'Fehler beim Löschen des Audits. Bitte versuchen Sie es erneut.';
+                          t('dashboard.quickScanError');
       setDeleteError(errorMessage);
       // Keep modal open on error so user can retry
     } finally {
@@ -121,15 +123,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       completed: 'audit-badge border-audit-deep',
       archived: 'audit-badge border-audit-cool',
     };
-    const labels = {
-      draft: 'Entwurf',
-      in_progress: 'In Bearbeitung',
-      completed: 'Abgeschlossen',
-      archived: 'Archiviert',
+    const labels: Record<string, string> = {
+      draft: t('dashboard.draft'),
+      in_progress: t('dashboard.inProgress'),
+      completed: t('dashboard.completed'),
+      archived: t('dashboard.archived'),
     };
     return (
       <span className={styles[status as keyof typeof styles] || 'audit-badge'}>
-        {labels[status as keyof typeof labels] || status}
+        {labels[status] || status}
       </span>
     );
   };
@@ -152,10 +154,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-h1 text-audit-deep">
-                EU AI Act Audit Dashboard
+                {t('dashboard.pageTitle')}
               </h1>
               <p className="text-body text-audit-cool mt-1">
-                Willkommen, {user?.firstName} {user?.lastName}
+                {t('dashboard.welcome').replace('!', '')}, {user?.firstName} {user?.lastName}
               </p>
             </div>
           </div>
@@ -174,9 +176,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <div>
-                  <h2 className="text-h3 text-white">KI-System Scanner</h2>
+                  <h2 className="text-h3 text-white">{t('dashboard.scannerTitle')}</h2>
                   <p className="text-white/70 text-meta">
-                    EU AI Act Risikoanalyse
+                    {t('dashboard.scannerSubtitle')}
                   </p>
                 </div>
               </div>
@@ -185,7 +187,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 onClick={() => navigate('/scanner')}
                 className="audit-btn bg-white/10 border border-white/30 text-white hover:bg-white/20"
               >
-                Erweiterte Analyse
+                {t('dashboard.advancedAnalysis')}
               </button>
             </div>
 
@@ -197,7 +199,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     type="text"
                     value={quickScanText}
                     onChange={(e) => setQuickScanText(e.target.value)}
-                    placeholder="Beschreiben Sie Ihr KI-System kurz, z.B.: Chatbot für Kundenservice mit automatischer Antwortgenerierung..."
+                    placeholder={t('dashboard.quickScanPlaceholder')}
                     className="audit-scanner-input w-full"
                   />
                 </div>
@@ -212,10 +214,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Analysiere...
+                      {t('dashboard.analyzing')}
                     </>
                   ) : (
-                    'Schnell-Scan'
+                    t('dashboard.quickScan')
                   )}
                 </button>
               </div>
@@ -239,30 +241,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   </svg>
                 </div>
                 <h2 className="text-h2 text-audit-deep">
-                  Neues Audit erstellen
+                  {t('dashboard.createAuditTitle')}
                 </h2>
               </div>
               <p className="text-body text-audit-cool max-w-2xl">
-                Starten Sie eine EU AI Act Compliance-Prüfung für Ihr KI-System.
+                {t('dashboard.createAuditDescription')}
               </p>
               <div className="flex flex-wrap gap-4 mt-3 text-meta text-audit-steel">
                 <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Risikoklassifizierung
+                  {t('dashboard.riskClassification')}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Compliance-Checkliste
+                  {t('dashboard.complianceChecklist')}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Maßnahmenplan
+                  {t('dashboard.actionPlan')}
                 </span>
               </div>
             </div>
@@ -275,7 +277,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Audit starten
+                {t('dashboard.startAudit')}
               </button>
             </div>
           </div>
@@ -287,10 +289,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="audit-panel-header">
               <div className="flex items-center justify-between">
                 <h2 className="text-h3 text-audit-deep mb-0">
-                  KI-Systeme Übersicht
+                  {t('dashboard.systemsOverview')}
                 </h2>
                 <button onClick={() => navigate('/systems')} className="audit-btn-secondary">
-                  Alle Systeme verwalten
+                  {t('dashboard.manageAllSystems')}
                 </button>
               </div>
             </div>
@@ -298,27 +300,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
                 <div className="bg-audit-bg rounded-audit p-4 text-center">
                   <div className="text-2xl font-semibold text-audit-deep">{stats.totalSystems}</div>
-                  <div className="text-meta text-audit-cool">Systeme</div>
+                  <div className="text-meta text-audit-cool">{t('dashboard.systems')}</div>
                 </div>
                 <div className="bg-audit-bg rounded-audit p-4 text-center">
                   <div className="text-2xl font-semibold text-audit-deep">{stats.byStatus.COMPLIANT}</div>
-                  <div className="text-meta text-audit-cool">Konform</div>
+                  <div className="text-meta text-audit-cool">{t('dashboard.compliant')}</div>
                 </div>
                 <div className="bg-audit-bg rounded-audit p-4 text-center">
                   <div className="text-2xl font-semibold text-audit-steel">{stats.byStatus.NON_COMPLIANT}</div>
-                  <div className="text-meta text-audit-cool">Nicht konform</div>
+                  <div className="text-meta text-audit-cool">{t('dashboard.nonCompliant')}</div>
                 </div>
                 <div className="bg-audit-bg rounded-audit p-4 text-center">
                   <div className="text-2xl font-semibold text-audit-steel">{stats.byRiskClass.HIGH_RISK}</div>
-                  <div className="text-meta text-audit-cool">Hochrisiko</div>
+                  <div className="text-meta text-audit-cool">{t('dashboard.highRisk')}</div>
                 </div>
                 <div className="bg-audit-bg rounded-audit p-4 text-center">
                   <div className="text-2xl font-semibold text-audit-steel">{stats.systemsRequiringAction}</div>
-                  <div className="text-meta text-audit-cool">Handlungsbedarf</div>
+                  <div className="text-meta text-audit-cool">{t('dashboard.actionRequired')}</div>
                 </div>
                 <div className="bg-audit-bg rounded-audit p-4 text-center">
                   <div className="text-2xl font-semibold text-audit-deep">{stats.upcomingAudits}</div>
-                  <div className="text-meta text-audit-cool">Audits fällig</div>
+                  <div className="text-meta text-audit-cool">{t('dashboard.auditsDue')}</div>
                 </div>
               </div>
 
@@ -326,7 +328,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               {stats.systemsRequiringAction > 0 && (
                 <div className="audit-alert-info">
                   <h3 className="text-label text-audit-steel mb-2">
-                    Systeme mit Handlungsbedarf
+                    {t('dashboard.systemsRequiringAction')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {systems
@@ -339,7 +341,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           className="inline-flex items-center px-3 py-1.5 bg-white border border-audit-light rounded-audit text-sm text-audit-deep hover:bg-audit-bg transition-colors"
                         >
                           <span className={`w-2 h-2 rounded-full mr-2 ${SYSTEM_STATUS_CONFIG[s.status].bgColor}`}></span>
-                          {s.systemInfo.systemName || 'Unbenannt'}
+                          {s.systemInfo.systemName || (language === 'de' ? 'Unbenannt' : 'Unnamed')}
                           {s.riskClass && (
                             <RiskBadge riskClass={s.riskClass} size="xs" className="ml-2" />
                           )}
@@ -351,7 +353,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         onClick={() => navigate('/systems')}
                         className="text-sm text-audit-steel hover:text-audit-deep underline"
                       >
-                        +{stats.systemsRequiringAction - 5} weitere
+                        +{stats.systemsRequiringAction - 5} {t('dashboard.more')}
                       </button>
                     )}
                   </div>
@@ -368,14 +370,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-h3 text-audit-deep mb-1">
-                    KI-Systeme Verwaltung
+                    {t('dashboard.systemsManagement')}
                   </h2>
                   <p className="text-body text-audit-cool">
-                    Registrieren Sie Ihre KI-Systeme für eine zentrale EU AI Act Compliance-Verwaltung.
+                    {t('dashboard.registerSystemsDesc')}
                   </p>
                 </div>
                 <button onClick={() => navigate('/systems')} className="audit-btn-primary">
-                  System registrieren
+                  {t('dashboard.registerSystem')}
                 </button>
               </div>
             </div>
@@ -383,19 +385,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         )}
 
         {/* ================================================
-            SECTION: Aktive Audit-Prozesse
+            SECTION: Active Audit Processes
             ================================================ */}
         <div className="mt-10 pt-8 border-t border-audit-light">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-h2 text-audit-deep">Aktive Audit-Prozesse</h2>
+              <h2 className="text-h2 text-audit-deep">{t('dashboard.activeAuditProcesses')}</h2>
               <p className="text-body text-audit-cool mt-1">
-                Übersicht aller laufenden und abgeschlossenen Compliance-Prüfungen
+                {t('dashboard.activeAuditProcessesDesc')}
               </p>
             </div>
             <div className="text-meta text-audit-cool">
-              {audits.length} {audits.length === 1 ? 'Audit' : 'Audits'} gefunden
+              {audits.length} {audits.length === 1 ? t('dashboard.auditFound') : t('dashboard.auditsFound')}
             </div>
           </div>
 
@@ -404,30 +406,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="audit-label">
-                  Suche
+                  {t('dashboard.searchLabel')}
                 </label>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nach Titel oder Beschreibung suchen..."
+                  placeholder={t('dashboard.searchPlaceholder')}
                   className="audit-input"
                 />
               </div>
               <div>
                 <label className="audit-label">
-                  Status filtern
+                  {t('dashboard.filterStatus')}
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="audit-input"
                 >
-                  <option value="">Alle Status</option>
-                  <option value="draft">Entwurf</option>
-                  <option value="in_progress">In Bearbeitung</option>
-                  <option value="completed">Abgeschlossen</option>
-                  <option value="archived">Archiviert</option>
+                  <option value="">{t('dashboard.allStatus')}</option>
+                  <option value="draft">{t('dashboard.draft')}</option>
+                  <option value="in_progress">{t('dashboard.inProgress')}</option>
+                  <option value="completed">{t('dashboard.completed')}</option>
+                  <option value="archived">{t('dashboard.archived')}</option>
                 </select>
               </div>
             </div>
@@ -437,7 +439,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           {loading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-audit-steel border-r-transparent"></div>
-            <p className="mt-4 text-audit-cool">Audits werden geladen...</p>
+            <p className="mt-4 text-audit-cool">{t('dashboard.loadingAudits')}</p>
           </div>
         ) : audits.length === 0 ? (
           <div className="audit-card">
@@ -456,10 +458,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 />
               </svg>
               <h3 className="mt-4 text-h3 text-audit-deep">
-                Noch keine Audits vorhanden
+                {t('dashboard.noAuditsYet')}
               </h3>
               <p className="mt-2 text-body text-audit-cool">
-                Nutzen Sie den Bereich oben, um Ihr erstes Audit zu starten.
+                {t('dashboard.noAuditsDesc')}
               </p>
             </div>
           </div>
@@ -503,7 +505,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                         </svg>
                         <span>
-                          {audit.isOwner ? 'Erstellt von Ihnen' : `Geteilt von ${audit.owner?.firstName} ${audit.owner?.lastName}`}
+                          {audit.isOwner ? t('dashboard.createdByYou') : `${t('dashboard.sharedBy')} ${audit.owner?.firstName} ${audit.owner?.lastName}`}
                         </span>
                       </div>
 
@@ -520,7 +522,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div className="text-3xl font-semibold text-audit-deep mb-1">
                       {audit.completionPercentage}%
                     </div>
-                    <div className="text-meta text-audit-cool">Fortschritt</div>
+                    <div className="text-meta text-audit-cool">{t('dashboard.progress')}</div>
                     {/* Progress bar */}
                     <div className="audit-progress mt-2 w-20">
                       <div
@@ -534,8 +536,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 <div className="audit-divider"></div>
                 <div className="flex items-center justify-between text-meta text-audit-cool">
                   <div className="flex items-center gap-4">
-                    <span>Erstellt: {new Date(audit.createdAt).toLocaleDateString('de-DE')}</span>
-                    <span>Aktualisiert: {new Date(audit.updatedAt).toLocaleDateString('de-DE')}</span>
+                    <span>{t('dashboard.created')}: {new Date(audit.createdAt).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}</span>
+                    <span>{t('dashboard.updated')}: {new Date(audit.updatedAt).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}</span>
                   </div>
                   {audit.isOwner && (
                     <button
@@ -544,7 +546,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         setDeleteConfirmId(audit.id);
                       }}
                       className="p-2 text-audit-cool hover:text-red-600 hover:bg-red-50 rounded-audit transition-colors"
-                      title="Audit löschen"
+                      title={t('dashboard.deleteAudit')}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -571,11 +573,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900">
-                Audit löschen?
+                {t('dashboard.deleteAuditTitle')}
               </h3>
             </div>
             <p className="text-gray-600 mb-4">
-              Möchten Sie dieses Audit wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+              {t('dashboard.deleteAuditConfirm')}
             </p>
             {deleteError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -591,7 +593,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 }}
                 disabled={isDeleting}
               >
-                Abbrechen
+                {t('dashboard.cancel')}
               </Button>
               <button
                 onClick={() => handleDeleteAudit(deleteConfirmId)}
@@ -604,10 +606,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Löschen...
+                    {t('dashboard.deleting')}
                   </>
                 ) : (
-                  'Löschen'
+                  t('dashboard.delete')
                 )}
               </button>
             </div>

@@ -53,6 +53,62 @@ export interface TranslationKeys {
     lastUpdated: string;
     noAudits: string;
     startFirstAudit: string;
+    // Extended dashboard translations
+    pageTitle: string;
+    scannerTitle: string;
+    scannerSubtitle: string;
+    advancedAnalysis: string;
+    quickScanPlaceholder: string;
+    quickScan: string;
+    analyzing: string;
+    quickScanEmptyError: string;
+    quickScanMinCharsError: string;
+    quickScanError: string;
+    createAuditTitle: string;
+    createAuditDescription: string;
+    riskClassification: string;
+    complianceChecklist: string;
+    actionPlan: string;
+    startAudit: string;
+    systemsOverview: string;
+    manageAllSystems: string;
+    systems: string;
+    compliant: string;
+    nonCompliant: string;
+    highRisk: string;
+    actionRequired: string;
+    auditsDue: string;
+    systemsRequiringAction: string;
+    more: string;
+    systemsManagement: string;
+    registerSystemsDesc: string;
+    registerSystem: string;
+    activeAuditProcesses: string;
+    activeAuditProcessesDesc: string;
+    auditsFound: string;
+    auditFound: string;
+    searchLabel: string;
+    searchPlaceholder: string;
+    filterStatus: string;
+    allStatus: string;
+    draft: string;
+    inProgress: string;
+    completed: string;
+    archived: string;
+    loadingAudits: string;
+    noAuditsYet: string;
+    noAuditsDesc: string;
+    createdByYou: string;
+    sharedBy: string;
+    created: string;
+    updated: string;
+    deleteAudit: string;
+    deleteAuditTitle: string;
+    deleteAuditConfirm: string;
+    cancel: string;
+    delete: string;
+    deleting: string;
+    auditDeleted: string;
   };
 
   // Audit
@@ -371,6 +427,62 @@ const de: TranslationKeys = {
     lastUpdated: 'Zuletzt aktualisiert',
     noAudits: 'Noch keine Audits vorhanden',
     startFirstAudit: 'Starten Sie Ihr erstes EU AI Act Audit',
+    // Extended dashboard translations
+    pageTitle: 'EU AI Act Audit Dashboard',
+    scannerTitle: 'KI-System Scanner',
+    scannerSubtitle: 'EU AI Act Risikoanalyse',
+    advancedAnalysis: 'Erweiterte Analyse',
+    quickScanPlaceholder: 'Beschreiben Sie Ihr KI-System kurz, z.B.: Chatbot für Kundenservice mit automatischer Antwortgenerierung...',
+    quickScan: 'Schnell-Scan',
+    analyzing: 'Analysiere...',
+    quickScanEmptyError: 'Bitte geben Sie eine Beschreibung ein.',
+    quickScanMinCharsError: 'Die Beschreibung sollte mindestens 50 Zeichen lang sein.',
+    quickScanError: 'Fehler bei der Analyse. Bitte versuchen Sie es erneut.',
+    createAuditTitle: 'Neues Audit erstellen',
+    createAuditDescription: 'Starten Sie eine EU AI Act Compliance-Prüfung für Ihr KI-System.',
+    riskClassification: 'Risikoklassifizierung',
+    complianceChecklist: 'Compliance-Checkliste',
+    actionPlan: 'Maßnahmenplan',
+    startAudit: 'Audit starten',
+    systemsOverview: 'KI-Systeme Übersicht',
+    manageAllSystems: 'Alle Systeme verwalten',
+    systems: 'Systeme',
+    compliant: 'Konform',
+    nonCompliant: 'Nicht konform',
+    highRisk: 'Hochrisiko',
+    actionRequired: 'Handlungsbedarf',
+    auditsDue: 'Audits fällig',
+    systemsRequiringAction: 'Systeme mit Handlungsbedarf',
+    more: 'weitere',
+    systemsManagement: 'KI-Systeme Verwaltung',
+    registerSystemsDesc: 'Registrieren Sie Ihre KI-Systeme für eine zentrale EU AI Act Compliance-Verwaltung.',
+    registerSystem: 'System registrieren',
+    activeAuditProcesses: 'Aktive Audit-Prozesse',
+    activeAuditProcessesDesc: 'Übersicht aller laufenden und abgeschlossenen Compliance-Prüfungen',
+    auditsFound: 'Audits gefunden',
+    auditFound: 'Audit gefunden',
+    searchLabel: 'Suche',
+    searchPlaceholder: 'Nach Titel oder Beschreibung suchen...',
+    filterStatus: 'Status filtern',
+    allStatus: 'Alle Status',
+    draft: 'Entwurf',
+    inProgress: 'In Bearbeitung',
+    completed: 'Abgeschlossen',
+    archived: 'Archiviert',
+    loadingAudits: 'Audits werden geladen...',
+    noAuditsYet: 'Noch keine Audits vorhanden',
+    noAuditsDesc: 'Nutzen Sie den Bereich oben, um Ihr erstes Audit zu starten.',
+    createdByYou: 'Erstellt von Ihnen',
+    sharedBy: 'Geteilt von',
+    created: 'Erstellt',
+    updated: 'Aktualisiert',
+    deleteAudit: 'Audit löschen',
+    deleteAuditTitle: 'Audit löschen?',
+    deleteAuditConfirm: 'Möchten Sie dieses Audit wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    cancel: 'Abbrechen',
+    delete: 'Löschen',
+    deleting: 'Löschen...',
+    auditDeleted: 'Audit wurde erfolgreich gelöscht.',
   },
 
   audit: {
@@ -678,6 +790,62 @@ const en: TranslationKeys = {
     lastUpdated: 'Last Updated',
     noAudits: 'No audits yet',
     startFirstAudit: 'Start your first EU AI Act audit',
+    // Extended dashboard translations
+    pageTitle: 'EU AI Act Audit Dashboard',
+    scannerTitle: 'AI System Scanner',
+    scannerSubtitle: 'EU AI Act Risk Analysis',
+    advancedAnalysis: 'Advanced Analysis',
+    quickScanPlaceholder: 'Briefly describe your AI system, e.g.: Customer service chatbot with automatic response generation...',
+    quickScan: 'Quick Scan',
+    analyzing: 'Analyzing...',
+    quickScanEmptyError: 'Please enter a description.',
+    quickScanMinCharsError: 'The description should be at least 50 characters long.',
+    quickScanError: 'Analysis failed. Please try again.',
+    createAuditTitle: 'Create New Audit',
+    createAuditDescription: 'Start an EU AI Act compliance check for your AI system.',
+    riskClassification: 'Risk Classification',
+    complianceChecklist: 'Compliance Checklist',
+    actionPlan: 'Action Plan',
+    startAudit: 'Start Audit',
+    systemsOverview: 'AI Systems Overview',
+    manageAllSystems: 'Manage All Systems',
+    systems: 'Systems',
+    compliant: 'Compliant',
+    nonCompliant: 'Non-Compliant',
+    highRisk: 'High Risk',
+    actionRequired: 'Action Required',
+    auditsDue: 'Audits Due',
+    systemsRequiringAction: 'Systems Requiring Action',
+    more: 'more',
+    systemsManagement: 'AI Systems Management',
+    registerSystemsDesc: 'Register your AI systems for centralized EU AI Act compliance management.',
+    registerSystem: 'Register System',
+    activeAuditProcesses: 'Active Audit Processes',
+    activeAuditProcessesDesc: 'Overview of all ongoing and completed compliance checks',
+    auditsFound: 'audits found',
+    auditFound: 'audit found',
+    searchLabel: 'Search',
+    searchPlaceholder: 'Search by title or description...',
+    filterStatus: 'Filter by Status',
+    allStatus: 'All Status',
+    draft: 'Draft',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    archived: 'Archived',
+    loadingAudits: 'Loading audits...',
+    noAuditsYet: 'No audits yet',
+    noAuditsDesc: 'Use the section above to start your first audit.',
+    createdByYou: 'Created by you',
+    sharedBy: 'Shared by',
+    created: 'Created',
+    updated: 'Updated',
+    deleteAudit: 'Delete Audit',
+    deleteAuditTitle: 'Delete Audit?',
+    deleteAuditConfirm: 'Are you sure you want to delete this audit? This action cannot be undone.',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    deleting: 'Deleting...',
+    auditDeleted: 'Audit successfully deleted.',
   },
 
   audit: {
