@@ -18,6 +18,7 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
   // auditId kann von URL-Param (/audit/:id) oder Query-Param (?auditId=) kommen
   const urlAuditId = params.id && params.id !== "new" ? params.id : null;
   const queryAuditId = searchParams.get("auditId");
+  const linkedSystemId = searchParams.get("systemId"); // Reference to system in registry
   const [currentAuditId, setCurrentAuditId] = useState<string | null>(urlAuditId || queryAuditId);
 
   const isLoggedIn = authService.isAuthenticated();
@@ -108,6 +109,8 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
         systemInfo: completeSystemInfo,
         // Verwende LIMITED_RISK als Standard wenn keine Risikoklasse gesetzt
         riskClass: state.riskClass || "LIMITED_RISK",
+        // Link to system in registry if available
+        systemId: linkedSystemId || undefined,
       });
 
       // Speichere die neue ID
@@ -151,9 +154,10 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
       });
       setSaveMessage({ type: "success", text: "Gespeichert!" });
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fehler beim Speichern:", error);
-      setSaveMessage({ type: "error", text: "Fehler beim Speichern." });
+      const errorMessage = error?.response?.data?.error || error?.message || "Fehler beim Speichern.";
+      setSaveMessage({ type: "error", text: errorMessage });
     } finally {
       setIsSaving(false);
     }
@@ -190,9 +194,10 @@ export const AuditSaveBar: React.FC<AuditSaveBarProps> = ({ className = "" }) =>
       setVersionNotes("");
       setSaveMessage({ type: "success", text: `Version ${version.version} erstellt!` });
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fehler beim Erstellen der Version:", error);
-      setSaveMessage({ type: "error", text: "Fehler beim Erstellen der Version." });
+      const errorMessage = error?.response?.data?.error || error?.message || "Fehler beim Erstellen der Version.";
+      setSaveMessage({ type: "error", text: errorMessage });
     } finally {
       setIsCreatingVersion(false);
     }

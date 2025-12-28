@@ -128,9 +128,10 @@ export const ActionPlanPage: React.FC = () => {
       });
       setSaveMessage({ type: "success", text: "Audit erfolgreich gespeichert!" });
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fehler beim Speichern:", error);
-      setSaveMessage({ type: "error", text: "Fehler beim Speichern. Bitte versuchen Sie es erneut." });
+      const errorMessage = error?.response?.data?.error || error?.message || "Fehler beim Speichern. Bitte versuchen Sie es erneut.";
+      setSaveMessage({ type: "error", text: errorMessage });
     } finally {
       setIsSaving(false);
     }
@@ -168,9 +169,10 @@ export const ActionPlanPage: React.FC = () => {
       setVersionNotes("");
       setSaveMessage({ type: "success", text: `Version ${version.version} erfolgreich erstellt!` });
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fehler beim Erstellen der Version:", error);
-      setSaveMessage({ type: "error", text: "Fehler beim Erstellen der Version." });
+      const errorMessage = error?.response?.data?.error || error?.message || "Fehler beim Erstellen der Version.";
+      setSaveMessage({ type: "error", text: errorMessage });
     } finally {
       setIsCreatingVersion(false);
     }
