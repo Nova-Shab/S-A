@@ -861,9 +861,10 @@ export const saveCompleteAudit = async (req: Request, res: Response): Promise<vo
       audit,
       completionPercentage: audit.completionPercentage,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Save complete audit error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = error?.message || 'Internal server error';
+    res.status(500).json({ error: errorMessage, details: error?.errors?.map((e: any) => e.message) });
   }
 };
 
@@ -1136,9 +1137,10 @@ export const updateActionItems = async (req: Request, res: Response): Promise<vo
       message: 'Action items updated successfully',
       actionItems: createdItems,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update action items error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = error?.message || 'Internal server error';
+    res.status(500).json({ error: errorMessage, details: error?.errors?.map((e: any) => e.message) });
   }
 };
 
