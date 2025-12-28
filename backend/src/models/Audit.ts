@@ -5,6 +5,7 @@ import User from './User';
 interface AuditAttributes {
   id: number;
   userId: number;
+  systemId?: string; // Reference to frontend System registry
   title: string;
   description?: string;
   systemInfo: {
@@ -21,11 +22,12 @@ interface AuditAttributes {
   updatedAt?: Date;
 }
 
-interface AuditCreationAttributes extends Optional<AuditAttributes, 'id' | 'description' | 'status' | 'completionPercentage' | 'createdAt' | 'updatedAt'> {}
+interface AuditCreationAttributes extends Optional<AuditAttributes, 'id' | 'description' | 'systemId' | 'status' | 'completionPercentage' | 'createdAt' | 'updatedAt'> {}
 
 class Audit extends Model<AuditAttributes, AuditCreationAttributes> implements AuditAttributes {
   public id!: number;
   public userId!: number;
+  public systemId?: string;
   public title!: string;
   public description?: string;
   public systemInfo!: {
@@ -57,6 +59,11 @@ Audit.init(
         model: 'users',
         key: 'id',
       },
+    },
+    systemId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Reference to frontend System registry (localStorage)',
     },
     title: {
       type: DataTypes.STRING,

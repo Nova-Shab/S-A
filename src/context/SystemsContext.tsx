@@ -10,7 +10,8 @@ import {
   AiSystemInfo,
   RiskClass,
   ChangeHistoryEntry,
-  createChangeEntry
+  createChangeEntry,
+  ActionItem
 } from "../models/types";
 import authService from "../services/authService";
 
@@ -41,6 +42,10 @@ interface SystemsContextType {
   updateSystemStatus: (id: string, status: SystemStatus) => void;
   updateSystemRiskClass: (id: string, riskClass: RiskClass) => void;
   updateSystemComplianceScore: (id: string, score: number) => void;
+
+  // Action Items (Maßnahmen) - EINMALIG pro System
+  updateSystemActionItems: (id: string, actionItems: ActionItem[]) => void;
+  getSystemActionItems: (id: string) => ActionItem[];
 
   // V-04: History
   getSystemHistory: (id: string) => ChangeHistoryEntry[];
@@ -262,6 +267,29 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSystemWithHistory(id, { complianceScore: Math.max(0, Math.min(100, score)) });
   }, [updateSystemWithHistory]);
 
+  // Action Items (Maßnahmen) - EINMALIG pro System
+  const updateSystemActionItems = useCallback((id: string, actionItems: ActionItem[]) => {
+    const userName = getCurrentUserName();
+    setSystems(prev => prev.map(sys => {
+      if (sys.id === id) {
+        const newHistory: ChangeHistoryEntry[] = [...(sys.changeHistory || [])];
+        newHistory.push(createChangeEntry("UPDATE", "actionItems", undefined, `${actionItems.length} Maßnahmen`, userName));
+        return {
+          ...sys,
+          actionItems,
+          changeHistory: newHistory,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return sys;
+    }));
+  }, [getCurrentUserName]);
+
+  const getSystemActionItems = useCallback((id: string): ActionItem[] => {
+    const system = systems.find(sys => sys.id === id);
+    return system?.actionItems || [];
+  }, [systems]);
+
   // V-04: History functions
   const getSystemHistory = useCallback((id: string): ChangeHistoryEntry[] => {
     const system = systems.find(sys => sys.id === id);
@@ -412,6 +440,8 @@ export const SystemsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSystemStatus,
     updateSystemRiskClass,
     updateSystemComplianceScore,
+    updateSystemActionItems,
+    getSystemActionItems,
     getSystemHistory,
     addHistoryEntry,
     filter,

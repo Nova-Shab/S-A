@@ -4,6 +4,7 @@ import { useSystems } from "../context/SystemsContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
+import auditService from "../services/auditService";
 import {
   RegisteredAiSystem,
   SYSTEM_STATUS_CONFIG,
@@ -36,6 +37,12 @@ export const SystemsListPage: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeAuditInfo, setActiveAuditInfo] = useState<{
+    systemId: string;
+    auditId: number;
+    auditTitle: string;
+  } | null>(null);
+  const [checkingAudit, setCheckingAudit] = useState<string | null>(null);
 
   // Handler
   const handleCreateSystem = () => {
@@ -76,10 +83,32 @@ export const SystemsListPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleStartAudit = (e: React.MouseEvent, systemId: string) => {
+  const handleStartAudit = async (e: React.MouseEvent, systemId: string) => {
     e.stopPropagation();
-    // Navigate to audit with pre-selected system
-    navigate(`/audit/new?systemId=${systemId}`);
+    setCheckingAudit(systemId);
+
+    try {
+      // Check if there's already an active audit for this system
+      const result = await auditService.checkActiveAuditForSystem(systemId);
+
+      if (result.hasActiveAudit && result.audit) {
+        // Show modal with link to existing audit
+        setActiveAuditInfo({
+          systemId,
+          auditId: result.audit.id,
+          auditTitle: result.audit.title,
+        });
+      } else {
+        // Navigate to new audit with pre-selected system
+        navigate(`/audit/new?systemId=${systemId}`);
+      }
+    } catch (error) {
+      console.error('Error checking active audit:', error);
+      // On error, allow navigation (backend will enforce constraint)
+      navigate(`/audit/new?systemId=${systemId}`);
+    } finally {
+      setCheckingAudit(null);
+    }
   };
 
   const toggleSelectAll = () => {
@@ -406,8 +435,19 @@ export const SystemsListPage: React.FC = () => {
                     <Button
                       variant="secondary"
                       onClick={(e) => handleStartAudit(e, system.id)}
+                      disabled={checkingAudit === system.id}
                     >
-                      {t('systems.startAudit')}
+                      {checkingAudit === system.id ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Prüfe...
+                        </span>
+                      ) : (
+                        t('systems.startAudit')
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -547,6 +587,43 @@ export const SystemsListPage: React.FC = () => {
                 >
                   {t('systems.delete')}
                 </button>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Active Audit Warning Modal */}
+        {activeAuditInfo && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="max-w-md w-full mx-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Aktives Audit vorhanden
+                </h3>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Für dieses System läuft bereits ein Audit: <strong>"{activeAuditInfo.auditTitle}"</strong>
+              </p>
+              <p className="text-gray-500 text-sm mb-6">
+                Pro System kann nur ein aktives Audit gleichzeitig laufen. Sie können das bestehende Audit fortsetzen oder es zuerst abschließen/archivieren.
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button variant="secondary" onClick={() => setActiveAuditInfo(null)}>
+                  Schließen
+                </Button>
+                <Button
+                  onClick={() => {
+                    navigate(`/audit/${activeAuditInfo.auditId}`);
+                    setActiveAuditInfo(null);
+                  }}
+                >
+                  Zum aktiven Audit
+                </Button>
               </div>
             </Card>
           </div>

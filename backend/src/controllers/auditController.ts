@@ -13,6 +13,7 @@ import File from '../models/File';
 
 /**
  * Create a new audit
+ * Enforces: Max 1 active audit per systemId
  */
 export const createAudit = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -21,10 +22,32 @@ export const createAudit = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const { title, description, systemInfo, riskClass } = req.body;
+    const { title, description, systemInfo, riskClass, systemId } = req.body;
+
+    // Check if there's already an active audit for this systemId
+    if (systemId) {
+      const existingActiveAudit = await Audit.findOne({
+        where: {
+          systemId,
+          status: {
+            [Op.in]: ['draft', 'in_progress'], // Active statuses
+          },
+        },
+      });
+
+      if (existingActiveAudit) {
+        res.status(409).json({
+          error: 'Es existiert bereits ein aktives Audit für dieses System.',
+          existingAuditId: existingActiveAudit.id,
+          message: 'Pro System darf nur ein aktives Audit gleichzeitig laufen.',
+        });
+        return;
+      }
+    }
 
     const audit = await Audit.create({
       userId: req.user.id,
+      systemId,
       title,
       description,
       systemInfo,
@@ -40,6 +63,7 @@ export const createAudit = async (req: Request, res: Response): Promise<void> =>
       action: 'created',
       changes: {
         description: `Audit "${title}" created`,
+        systemId: systemId || null,
       },
       ipAddress: req.ip,
     });
@@ -98,6 +122,62 @@ export const findAuditBySystemName = async (req: Request, res: Response): Promis
     }
   } catch (error) {
     console.error('Find audit by systemName error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Check if there's an active audit for a given systemId
+ */
+export const checkActiveAuditForSystem = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { systemId } = req.params;
+
+    if (!systemId) {
+      res.status(400).json({ error: 'systemId is required' });
+      return;
+    }
+
+    const activeAudit = await Audit.findOne({
+      where: {
+        systemId,
+        status: {
+          [Op.in]: ['draft', 'in_progress'],
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: 'owner',
+          attributes: ['id', 'firstName', 'lastName', 'email'],
+        },
+      ],
+    });
+
+    if (activeAudit) {
+      res.status(200).json({
+        hasActiveAudit: true,
+        audit: {
+          id: activeAudit.id,
+          title: activeAudit.title,
+          status: activeAudit.status,
+          completionPercentage: activeAudit.completionPercentage,
+          updatedAt: activeAudit.updatedAt,
+        },
+      });
+    } else {
+      res.status(200).json({
+        hasActiveAudit: false,
+        audit: null,
+      });
+    }
+  } catch (error) {
+    console.error('Check active audit for system error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

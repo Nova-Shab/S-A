@@ -4,6 +4,7 @@ import { AiSystemInfo, RiskClass, AuditAnswer, ActionItem } from '../models/type
 export interface AuditData {
   id: number;
   userId: number;
+  systemId?: string; // Reference to frontend System registry
   title: string;
   description?: string;
   systemInfo: AiSystemInfo;
@@ -75,6 +76,7 @@ export interface CreateAuditData {
   description?: string;
   systemInfo: AiSystemInfo;
   riskClass: RiskClass;
+  systemId?: string; // Reference to frontend System registry
 }
 
 export interface ShareAuditData {
@@ -101,6 +103,21 @@ class AuditService {
   // Existierendes Audit nach Systemname finden
   async findBySystemName(systemName: string): Promise<{ found: boolean; audit: AuditData | null }> {
     const response = await api.get('/audits/find-by-system', { params: { systemName } });
+    return response.data;
+  }
+
+  // Prüfen ob aktives Audit für System existiert
+  async checkActiveAuditForSystem(systemId: string): Promise<{
+    hasActiveAudit: boolean;
+    audit: {
+      id: number;
+      title: string;
+      status: string;
+      completionPercentage: number;
+      updatedAt: string;
+    } | null;
+  }> {
+    const response = await api.get(`/audits/check-active/${systemId}`);
     return response.data;
   }
 

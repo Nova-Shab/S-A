@@ -30,6 +30,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [scanError, setScanError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const user = authService.getCurrentUser();
   const { systems, stats } = useSystems();
 
@@ -85,14 +87,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   };
 
-  const handleDeleteAudit = async (id: number) => {
+  const handleDeleteAudit = async (id: number | null) => {
+    if (id === null) return;
+
     setIsDeleting(true);
+    setDeleteError(null);
+
     try {
       await auditService.deleteAudit(id);
+      // Optimistic update - remove from list immediately
       setAudits(prev => prev.filter(audit => audit.id !== id));
       setDeleteConfirmId(null);
-    } catch (error) {
+      setSuccessMessage('Audit wurde erfolgreich gelöscht.');
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error: any) {
       console.error('Fehler beim Löschen des Audits:', error);
+      const errorMessage = error?.response?.data?.error ||
+                          error?.message ||
+                          'Fehler beim Löschen des Audits. Bitte versuchen Sie es erneut.';
+      setDeleteError(errorMessage);
+      // Keep modal open on error so user can retry
     } finally {
       setIsDeleting(false);
     }
@@ -137,6 +152,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   return (
     <div className="min-h-screen bg-audit-bg">
+      {/* Toast Notifications */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {successMessage}
+        </div>
+      )}
+
       {/* Header */}
       <div className="audit-page-header">
         <div className="audit-container">
@@ -569,13 +594,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 Audit löschen?
               </h3>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Möchten Sie dieses Audit wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
             </p>
+            {deleteError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {deleteError}
+              </div>
+            )}
             <div className="flex justify-end gap-3">
               <Button
                 variant="secondary"
-                onClick={() => setDeleteConfirmId(null)}
+                onClick={() => {
+                  setDeleteConfirmId(null);
+                  setDeleteError(null);
+                }}
                 disabled={isDeleting}
               >
                 Abbrechen

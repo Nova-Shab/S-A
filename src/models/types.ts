@@ -348,6 +348,7 @@ export interface RegisteredAiSystem {
   responsiblePerson?: string;            // Verantwortliche Person
   notes?: string;                        // Interne Notizen
   changeHistory?: ChangeHistoryEntry[];  // V-04: Änderungshistorie
+  actionItems?: ActionItem[];            // Zentraler Maßnahmenkatalog (EINMALIG pro System)
 }
 
 // =============================================================================
