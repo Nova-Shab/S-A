@@ -360,42 +360,59 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         )}
 
-        {/* Filters - Design System */}
-        <div className="audit-card mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ================================================
+            SECTION: Aktive Audit-Prozesse
+            ================================================ */}
+        <div className="mt-10 pt-8 border-t border-audit-light">
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <label className="audit-label">
-                Suche
-              </label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Nach Titel oder Beschreibung suchen..."
-                className="audit-input"
-              />
+              <h2 className="text-h2 text-audit-deep">Aktive Audit-Prozesse</h2>
+              <p className="text-body text-audit-cool mt-1">
+                Übersicht aller laufenden und abgeschlossenen Compliance-Prüfungen
+              </p>
             </div>
-            <div>
-              <label className="audit-label">
-                Status filtern
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="audit-input"
-              >
-                <option value="">Alle Status</option>
-                <option value="draft">Entwurf</option>
-                <option value="in_progress">In Bearbeitung</option>
-                <option value="completed">Abgeschlossen</option>
-                <option value="archived">Archiviert</option>
-              </select>
+            <div className="text-meta text-audit-cool">
+              {audits.length} {audits.length === 1 ? 'Audit' : 'Audits'} gefunden
             </div>
           </div>
-        </div>
 
-        {/* Audits List */}
-        {loading ? (
+          {/* Filters */}
+          <div className="audit-card mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="audit-label">
+                  Suche
+                </label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Nach Titel oder Beschreibung suchen..."
+                  className="audit-input"
+                />
+              </div>
+              <div>
+                <label className="audit-label">
+                  Status filtern
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="audit-input"
+                >
+                  <option value="">Alle Status</option>
+                  <option value="draft">Entwurf</option>
+                  <option value="in_progress">In Bearbeitung</option>
+                  <option value="completed">Abgeschlossen</option>
+                  <option value="archived">Archiviert</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Audits List */}
+          {loading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-audit-steel border-r-transparent"></div>
             <p className="mt-4 text-audit-cool">Audits werden geladen...</p>
@@ -503,6 +520,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             ))}
           </div>
         )}
+        </div>
+        {/* End: Aktive Audit-Prozesse Section */}
       </div>
     </div>
   );
