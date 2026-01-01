@@ -4,7 +4,7 @@
 Ab 2026 müssen über **10.000 EU-Unternehmen** ihre KI-Systeme nach EU AI Act auditieren. Bußgelder bis **€35 Mio.** drohen. Aktuelle Lösungen (Beratung, Excel) sind **teuer** (€50k-€200k), **langsam** (3-6 Monate) und **fehleranfällig**.
 
 ## Unsere Lösung
-**SaaS-Plattform** für systematische EU AI Act Compliance-Audits:
+**SaaS-Plattform** für systematische EU AI Act Calmpliance-Audits:
 - ✅ Intelligente Risikoklassifikation (4 Klassen, automatisch)
 - ✅ Dynamische Checklisten (85+ Anforderungen)
 - ✅ Actionplan-Generator mit Priorisierung

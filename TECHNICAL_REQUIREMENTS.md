@@ -1,5 +1,5 @@
 # Technical Requirements Document (TRD)
-## EU AI Act Compliance Audit Platform
+## EU AI Act Calmpliance Audit Platform
 
 **Version:** 1.0
 **Date:** December 2024

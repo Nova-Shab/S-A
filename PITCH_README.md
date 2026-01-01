@@ -164,11 +164,11 @@ pandoc INVESTOR_PITCH_WORD.md --reference-doc=template.docx -o Investorenpitch.d
 
 ### Erstkontakt an Investor
 
-**Betreff:** Seed-Investment: EU AI Act Compliance Platform (€500k)
+**Betreff:** Seed-Investment: EU AI Act Calmpliance Platform (€500k)
 
 Sehr geehrte/r [Name],
 
-ich kontaktiere Sie bezüglich einer Seed-Investment-Möglichkeit in unsere EU AI Act Compliance Audit Platform.
+ich kontaktiere Sie bezüglich einer Seed-Investment-Möglichkeit in unsere EU AI Act Calmpliance Audit Platform.
 
 **Das Investment auf einen Blick:**
 - Finanzierung: €500k für 20% Equity

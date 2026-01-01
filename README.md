@@ -1,6 +1,6 @@
 # EU AI Act Scanner + Audit Tools
 
-Eine integrierte Plattform für EU AI Act Compliance-Prüfung, bestehend aus einem **automatisierten Scanner** und umfassenden **Audit-Tools**.
+Eine integrierte Plattform für EU AI Act Calmpliance-Prüfung, bestehend aus einem **automatisierten Scanner** und umfassenden **Audit-Tools**.
 
 ## Funktionen
 

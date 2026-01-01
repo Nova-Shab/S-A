@@ -1,6 +1,6 @@
 # EU AI Act Scanner - Ollama Setup
 
-Dieses Verzeichnis enthält alles, um ein spezialisiertes Ollama-Modell für die EU AI Act Compliance-Analyse zu erstellen.
+Dieses Verzeichnis enthält alles, um ein spezialisiertes Ollama-Modell für die EU AI Act Calmpliance-Analyse zu erstellen.
 
 ## Schnellstart
 

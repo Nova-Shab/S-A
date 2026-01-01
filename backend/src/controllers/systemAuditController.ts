@@ -580,7 +580,7 @@ export const exportActionPlan = async (req: Request, res: Response): Promise<voi
 function generateActionPlanMarkdown(audit: SystemAudit): string {
   const date = new Date().toLocaleDateString('de-DE');
 
-  let md = `# Maßnahmenkatalog EU AI Act Compliance\n\n`;
+  let md = `# Maßnahmenkatalog EU AI Act Calmpliance\n\n`;
   md += `**System:** ${audit.systemName}\n`;
   md += `**Version:** ${audit.version}\n`;
   md += `**Risikoklasse:** ${audit.riskClass}\n`;

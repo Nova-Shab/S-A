@@ -173,7 +173,7 @@ export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
     .fontSize(8)
     .font('Helvetica-Oblique')
     .text(
-      'Bewertung der EU AI Act Compliance-Risiken basierend auf bereitgestellten Informationen',
+      'Bewertung der EU AI Act Calmpliance-Risiken basierend auf bereitgestellten Informationen',
       { align: 'left' }
     );
 

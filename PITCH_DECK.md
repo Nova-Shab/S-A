@@ -2,7 +2,7 @@
 
 ## 🎯 Executive Summary
 
-**Projektname:** EU AI Act Compliance Audit Platform
+**Projektname:** EU AI Act Calmpliance Audit Platform
 **Kategorie:** RegTech / LegalTech / AI Governance
 **Status:** Functional Prototype (MVP)
 **Finanzierungsbedarf:** €250.000 - €500.000 (Seed-Phase)

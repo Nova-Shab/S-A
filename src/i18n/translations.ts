@@ -439,7 +439,7 @@ const de: TranslationKeys = {
     quickScanMinCharsError: 'Die Beschreibung sollte mindestens 50 Zeichen lang sein.',
     quickScanError: 'Fehler bei der Analyse. Bitte versuchen Sie es erneut.',
     createAuditTitle: 'Neues Audit erstellen',
-    createAuditDescription: 'Starten Sie eine EU AI Act Compliance-Prüfung für Ihr KI-System.',
+    createAuditDescription: 'Starten Sie eine EU AI Act Calmpliance-Prüfung für Ihr KI-System.',
     riskClassification: 'Risikoklassifizierung',
     complianceChecklist: 'Compliance-Checkliste',
     actionPlan: 'Maßnahmenplan',
@@ -455,7 +455,7 @@ const de: TranslationKeys = {
     systemsRequiringAction: 'Systeme mit Handlungsbedarf',
     more: 'weitere',
     systemsManagement: 'KI-Systeme Verwaltung',
-    registerSystemsDesc: 'Registrieren Sie Ihre KI-Systeme für eine zentrale EU AI Act Compliance-Verwaltung.',
+    registerSystemsDesc: 'Registrieren Sie Ihre KI-Systeme für eine zentrale EU AI Act Calmpliance-Verwaltung.',
     registerSystem: 'System registrieren',
     activeAuditProcesses: 'Aktive Audit-Prozesse',
     activeAuditProcessesDesc: 'Übersicht aller laufenden und abgeschlossenen Compliance-Prüfungen',
@@ -515,7 +515,7 @@ const de: TranslationKeys = {
   },
 
   scanner: {
-    title: 'EU AI Act Compliance Scanner',
+    title: 'EU AI Act Calmpliance Scanner',
     subtitle: 'Automatisierte Risikoanalyse für KI-Systeme',
     enterUrl: 'URL eingeben',
     scanButton: 'Scannen',
@@ -715,7 +715,7 @@ const de: TranslationKeys = {
     clearSelection: 'Auswahl aufheben',
     exportSelected: 'Ausgewählte exportieren',
     noSystems: 'Keine KI-Systeme registriert',
-    noSystemsDesc: 'Registrieren Sie Ihr erstes KI-System, um mit der EU AI Act Compliance zu beginnen.',
+    noSystemsDesc: 'Registrieren Sie Ihr erstes KI-System, um mit der EU AI Act Calmpliance zu beginnen.',
     registerFirst: '+ Erstes System registrieren',
     auditsCompleted: 'Audits durchgeführt',
     startAudit: 'Audit starten',
@@ -878,7 +878,7 @@ const en: TranslationKeys = {
   },
 
   scanner: {
-    title: 'EU AI Act Compliance Scanner',
+    title: 'EU AI Act Calmpliance Scanner',
     subtitle: 'Automated Risk Analysis for AI Systems',
     enterUrl: 'Enter URL',
     scanButton: 'Scan',

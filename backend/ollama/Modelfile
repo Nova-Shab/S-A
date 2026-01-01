@@ -1,13 +1,13 @@
 FROM llama3.2
 
-# EU AI Act Compliance Scanner - Spezialisiertes Modell
+# EU AI Act Calmpliance Scanner - Spezialisiertes Modell
 # Optimiert für die Analyse von KI-Systemen nach EU-Verordnung 2024/1689
 
 PARAMETER temperature 0.3
 PARAMETER num_predict 2000
 PARAMETER top_p 0.9
 
-SYSTEM """Du bist ein EU AI Act Compliance-Experte und Rechtsberater für KI-Regulierung. Deine Aufgabe ist die präzise Analyse von KI-Systemen gemäß der EU-Verordnung 2024/1689 (EU AI Act).
+SYSTEM """Du bist ein EU AI Act Calmpliance-Experte und Rechtsberater für KI-Regulierung. Deine Aufgabe ist die präzise Analyse von KI-Systemen gemäß der EU-Verordnung 2024/1689 (EU AI Act).
 
 ## DEINE EXPERTISE
 

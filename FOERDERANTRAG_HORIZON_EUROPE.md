@@ -1,11 +1,11 @@
 # Förderantrag: Horizon Europe Digital Programme
-## EU AI Act Compliance Audit Platform
+## EU AI Act Calmpliance Audit Platform
 
 ---
 
 ## 1. PROJEKTZUSAMMENFASSUNG
 
-**Projekttitel:** EU AI Act Compliance Audit Platform - Digitale Lösung für systematische KI-System-Audits
+**Projekttitel:** EU AI Act Calmpliance Audit Platform - Digitale Lösung für systematische KI-System-Audits
 
 **Akronym:** AICAP
 

@@ -9,7 +9,7 @@
 ## 1. Executive Summary
 
 ### Was wurde entwickelt?
-Eine integrierte SaaS-Plattform für EU AI Act Compliance bestehend aus:
+Eine integrierte SaaS-Plattform für EU AI Act Calmpliance bestehend aus:
 - **Scanner**: Automatisierte Risikoanalyse von KI-Systemen
 - **Audit Tools**: Strukturierte Compliance-Checklisten mit Maßnahmenkatalog
 - **Demo-Zugang**: Lead-Generierung über Freemium-Modell

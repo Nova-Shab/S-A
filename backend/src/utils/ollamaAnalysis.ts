@@ -7,7 +7,7 @@ import { RiskLevel, ScanFinding, ScanAnalysis } from '../models/ScanResult';
 const OLLAMA_API_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 
 // System prompt for EU AI Act analysis (optimized for smaller models)
-const EU_AI_ACT_SYSTEM_PROMPT = `Du bist ein EU AI Act Compliance-Experte. Analysiere KI-Systeme nach EU-Verordnung 2024/1689.
+const EU_AI_ACT_SYSTEM_PROMPT = `Du bist ein EU AI Act Calmpliance-Experte. Analysiere KI-Systeme nach EU-Verordnung 2024/1689.
 
 RISIKOKLASSEN:
 1. PROHIBITED (Verboten): Social Scoring, unterschwellige Manipulation, biometrische Echtzeit-Überwachung

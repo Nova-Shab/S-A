@@ -231,7 +231,7 @@ export const generateReport = async (req: Request, res: Response): Promise<void>
     // If JSON format requested, return structured data
     if (format === 'json') {
       const report = {
-        title: 'EU AI Act Compliance Report',
+        title: 'EU AI Act Calmpliance Report',
         generatedAt: new Date().toISOString(),
         systemName: scanResult.systemName,
         scanDate: scanResult.createdAt,

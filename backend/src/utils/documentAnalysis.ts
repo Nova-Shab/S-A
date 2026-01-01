@@ -51,7 +51,7 @@ export async function analyzeDocumentForRequirement(
     throw new Error(`Anforderung ${requirementId} nicht gefunden`);
   }
 
-  const prompt = `Du bist ein EU AI Act Compliance-Prüfer. Analysiere das folgende Dokument als Nachweis für die Anforderung "${requirement.title}" (${requirement.articleReference}).
+  const prompt = `Du bist ein EU AI Act Calmpliance-Prüfer. Analysiere das folgende Dokument als Nachweis für die Anforderung "${requirement.title}" (${requirement.articleReference}).
 
 ANFORDERUNG:
 ${requirement.description}

@@ -7,7 +7,7 @@ import { RiskLevel, ScanFinding, ScanAnalysis } from '../models/ScanResult';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 // System prompt for EU AI Act analysis
-const EU_AI_ACT_SYSTEM_PROMPT = `Du bist ein EU AI Act Compliance-Experte. Analysiere KI-Systeme basierend auf der EU-Verordnung 2024/1689 (EU AI Act).
+const EU_AI_ACT_SYSTEM_PROMPT = `Du bist ein EU AI Act Calmpliance-Experte. Analysiere KI-Systeme basierend auf der EU-Verordnung 2024/1689 (EU AI Act).
 
 RISIKOKLASSIFIZIERUNG:
 1. PROHIBITED (Verboten - Art. 5): Social Scoring, unterschwellige Manipulation, Ausnutzung von Schutzbedürftigen, biometrische Echtzeit-Fernidentifikation in öffentlichen Räumen (mit Ausnahmen), Emotionserkennung am Arbeitsplatz/in Schulen, biometrische Kategorisierung nach sensiblen Merkmalen, ungezielte Gesichtsbilddatenbanken, prädiktive Polizeiarbeit auf Einzelpersonen.

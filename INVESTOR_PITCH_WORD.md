@@ -116,7 +116,7 @@ Eine webbasierte SaaS-Plattform, die Unternehmen bei der systematischen Prüfung
 
 # 2. Die Lösung
 
-## EU AI Act Compliance Audit Platform
+## EU AI Act Calmpliance Audit Platform
 
 Eine webbasierte SaaS-Plattform, die Unternehmen Schritt für Schritt durch den kompletten Audit-Prozess führt.
 
@@ -489,7 +489,7 @@ Eine webbasierte SaaS-Plattform, die Unternehmen Schritt für Schritt durch den 
   - 5 Events in 6 Monaten
   - Speaking Slots (Thought Leadership)
 - Content Marketing
-  - "Ultimate EU AI Act Compliance Guide" (100 Seiten, kostenloser Download)
+  - "Ultimate EU AI Act Calmpliance Guide" (100 Seiten, kostenloser Download)
   - Webinar-Serie (monatlich, 100+ Teilnehmer)
   - Blog-Posts (wöchentlich)
 - Direct Outreach (personalisiert)
