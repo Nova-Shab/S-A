@@ -33,7 +33,7 @@ export const getAllActions = async (req: Request, res: Response): Promise<void> 
     // Get all audits the user has access to
     const ownedAudits = await Audit.findAll({
       where: { userId: req.user.id },
-      attributes: ['id'],
+      attributes: ['id', 'systemId', 'updatedAt'],
     });
 
     const sharedAuditIds = await AuditShare.findAll({
@@ -41,9 +41,34 @@ export const getAllActions = async (req: Request, res: Response): Promise<void> 
       attributes: ['auditId'],
     });
 
+    const sharedAudits = await Audit.findAll({
+      where: { id: { [Op.in]: sharedAuditIds.map(s => s.auditId) } },
+      attributes: ['id', 'systemId', 'updatedAt'],
+    });
+
+    const allAccessibleAudits = [...ownedAudits, ...sharedAudits];
+
+    // Deduplicate: For each systemId, keep only the most recent audit
+    // This prevents duplicate actions when multiple audits exist for the same system
+    const systemAuditMap = new Map<string, { id: number; updatedAt: Date }>();
+    const auditsWithoutSystemId: number[] = [];
+
+    for (const audit of allAccessibleAudits) {
+      if (audit.systemId) {
+        const existing = systemAuditMap.get(audit.systemId);
+        const auditUpdatedAt = new Date(audit.updatedAt);
+        if (!existing || auditUpdatedAt > existing.updatedAt) {
+          systemAuditMap.set(audit.systemId, { id: audit.id, updatedAt: auditUpdatedAt });
+        }
+      } else {
+        // Audits without systemId are treated individually (legacy audits)
+        auditsWithoutSystemId.push(audit.id);
+      }
+    }
+
     const accessibleAuditIds = [
-      ...ownedAudits.map(a => a.id),
-      ...sharedAuditIds.map(s => s.auditId),
+      ...Array.from(systemAuditMap.values()).map(a => a.id),
+      ...auditsWithoutSystemId,
     ];
 
     if (accessibleAuditIds.length === 0) {
@@ -397,10 +422,10 @@ export const getResponsiblePersons = async (req: Request, res: Response): Promis
       return;
     }
 
-    // Get accessible audit IDs
+    // Get accessible audit IDs with deduplication by systemId
     const ownedAudits = await Audit.findAll({
       where: { userId: req.user.id },
-      attributes: ['id'],
+      attributes: ['id', 'systemId', 'updatedAt'],
     });
 
     const sharedAuditIds = await AuditShare.findAll({
@@ -408,9 +433,32 @@ export const getResponsiblePersons = async (req: Request, res: Response): Promis
       attributes: ['auditId'],
     });
 
+    const sharedAudits = await Audit.findAll({
+      where: { id: { [Op.in]: sharedAuditIds.map(s => s.auditId) } },
+      attributes: ['id', 'systemId', 'updatedAt'],
+    });
+
+    const allAccessibleAudits = [...ownedAudits, ...sharedAudits];
+
+    // Deduplicate by systemId - keep only most recent audit per system
+    const systemAuditMap = new Map<string, { id: number; updatedAt: Date }>();
+    const auditsWithoutSystemId: number[] = [];
+
+    for (const audit of allAccessibleAudits) {
+      if (audit.systemId) {
+        const existing = systemAuditMap.get(audit.systemId);
+        const auditUpdatedAt = new Date(audit.updatedAt);
+        if (!existing || auditUpdatedAt > existing.updatedAt) {
+          systemAuditMap.set(audit.systemId, { id: audit.id, updatedAt: auditUpdatedAt });
+        }
+      } else {
+        auditsWithoutSystemId.push(audit.id);
+      }
+    }
+
     const accessibleAuditIds = [
-      ...ownedAudits.map(a => a.id),
-      ...sharedAuditIds.map(s => s.auditId),
+      ...Array.from(systemAuditMap.values()).map(a => a.id),
+      ...auditsWithoutSystemId,
     ];
 
     if (accessibleAuditIds.length === 0) {
@@ -444,10 +492,10 @@ export const getSystemsForFilter = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // Get accessible audits
+    // Get accessible audits with deduplication by systemId
     const ownedAudits = await Audit.findAll({
       where: { userId: req.user.id },
-      attributes: ['id', 'title', 'systemInfo'],
+      attributes: ['id', 'title', 'systemInfo', 'systemId', 'updatedAt'],
     });
 
     const sharedAuditIds = await AuditShare.findAll({
@@ -457,12 +505,33 @@ export const getSystemsForFilter = async (req: Request, res: Response): Promise<
 
     const sharedAudits = await Audit.findAll({
       where: { id: { [Op.in]: sharedAuditIds.map(s => s.auditId) } },
-      attributes: ['id', 'title', 'systemInfo'],
+      attributes: ['id', 'title', 'systemInfo', 'systemId', 'updatedAt'],
     });
 
-    const allAudits = [...ownedAudits, ...sharedAudits];
+    const allAccessibleAudits = [...ownedAudits, ...sharedAudits];
 
-    const systems = allAudits.map(audit => {
+    // Deduplicate by systemId - keep only most recent audit per system
+    const systemAuditMap = new Map<string, { audit: typeof ownedAudits[0]; updatedAt: Date }>();
+    const auditsWithoutSystemId: typeof ownedAudits = [];
+
+    for (const audit of allAccessibleAudits) {
+      if (audit.systemId) {
+        const existing = systemAuditMap.get(audit.systemId);
+        const auditUpdatedAt = new Date(audit.updatedAt);
+        if (!existing || auditUpdatedAt > existing.updatedAt) {
+          systemAuditMap.set(audit.systemId, { audit, updatedAt: auditUpdatedAt });
+        }
+      } else {
+        auditsWithoutSystemId.push(audit);
+      }
+    }
+
+    const deduplicatedAudits = [
+      ...Array.from(systemAuditMap.values()).map(a => a.audit),
+      ...auditsWithoutSystemId,
+    ];
+
+    const systems = deduplicatedAudits.map(audit => {
       const systemInfo = audit.systemInfo as any;
       return {
         id: audit.id,
@@ -487,10 +556,10 @@ export const getActionStats = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Get accessible audit IDs
+    // Get accessible audit IDs with deduplication by systemId
     const ownedAudits = await Audit.findAll({
       where: { userId: req.user.id },
-      attributes: ['id', 'title', 'systemInfo'],
+      attributes: ['id', 'title', 'systemInfo', 'systemId', 'updatedAt'],
     });
 
     const sharedAuditIds = await AuditShare.findAll({
@@ -498,9 +567,32 @@ export const getActionStats = async (req: Request, res: Response): Promise<void>
       attributes: ['auditId'],
     });
 
+    const sharedAudits = await Audit.findAll({
+      where: { id: { [Op.in]: sharedAuditIds.map(s => s.auditId) } },
+      attributes: ['id', 'title', 'systemInfo', 'systemId', 'updatedAt'],
+    });
+
+    const allAccessibleAudits = [...ownedAudits, ...sharedAudits];
+
+    // Deduplicate by systemId - keep only most recent audit per system
+    const systemAuditMap = new Map<string, { id: number; updatedAt: Date }>();
+    const auditsWithoutSystemId: number[] = [];
+
+    for (const audit of allAccessibleAudits) {
+      if (audit.systemId) {
+        const existing = systemAuditMap.get(audit.systemId);
+        const auditUpdatedAt = new Date(audit.updatedAt);
+        if (!existing || auditUpdatedAt > existing.updatedAt) {
+          systemAuditMap.set(audit.systemId, { id: audit.id, updatedAt: auditUpdatedAt });
+        }
+      } else {
+        auditsWithoutSystemId.push(audit.id);
+      }
+    }
+
     const accessibleAuditIds = [
-      ...ownedAudits.map(a => a.id),
-      ...sharedAuditIds.map(s => s.auditId),
+      ...Array.from(systemAuditMap.values()).map(a => a.id),
+      ...auditsWithoutSystemId,
     ];
 
     if (accessibleAuditIds.length === 0) {
