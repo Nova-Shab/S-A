@@ -2,7 +2,7 @@
 ## Investorenpräsentation
 
 **Seed-Finanzierung: €500.000**
-**Dezember 2024**
+**Januar 2025**
 
 ---
 
@@ -122,6 +122,16 @@ Eine webbasierte SaaS-Plattform, die Unternehmen Schritt für Schritt durch den 
 
 ## Kernfunktionen (bereits implementiert)
 
+### 0. AI-Scanner für Risikoanalyse (NEU)
+**Problem gelöst:** Schnelle Erstbewertung von KI-Systemen ohne manuelle Analyse
+
+**Unsere Lösung:**
+- Automatische Analyse von KI-Systemen via URL oder Beschreibung
+- GPT-4/Ollama-Integration für präzise KI-gestützte Bewertung
+- Sofortige Risikoklassifikation mit detaillierten Findings
+- PDF-Report-Generierung mit Handlungsempfehlungen
+- Lokale Analyse-Option mit Ollama (Datenschutz-konform)
+
 ### 1. Intelligente Risikoklassifikation
 **Problem gelöst:** Unternehmen wissen nicht, welche Risikoklasse ihr KI-System hat
 
@@ -188,6 +198,25 @@ Eine webbasierte SaaS-Plattform, die Unternehmen Schritt für Schritt durch den 
 - Unveränderbare History
 - Export für Behörden
 
+### 6. KI-gestützte Dokumentenanalyse (NEU)
+**Problem gelöst:** Manuelle Prüfung von Nachweisdokumenten ist zeitaufwändig
+
+**Unsere Lösung:**
+- Automatische PDF- und DOCX-Verarbeitung mit pdf-parse v2
+- KI-gestützte Bewertung von Compliance-Dokumenten
+- Vollständigkeits- und Relevanz-Scores
+- Konkrete Empfehlungen für Verbesserungen
+- Verknüpfung mit spezifischen Anforderungen
+
+### 7. Internationalisierung (NEU)
+**Problem gelöst:** Internationale Teams benötigen mehrsprachige Oberfläche
+
+**Unsere Lösung:**
+- Vollständige Lokalisierung (Deutsch/Englisch)
+- Dashboard und alle Seiten übersetzt
+- Erweiterbar auf weitere EU-Sprachen
+- Locale-aware Datum/Zeit-Formatierung
+
 ## Technologie-Stack
 
 **Frontend:**
@@ -201,6 +230,12 @@ Eine webbasierte SaaS-Plattform, die Unternehmen Schritt für Schritt durch den 
 - TypeScript (Code-Qualität)
 - Sequelize ORM (Datenbank-Abstraktion)
 - SQLite (Dev) / PostgreSQL (Production)
+
+**AI/ML Integration:**
+- GPT-4 API (Cloud-basierte Analyse)
+- Ollama (lokale LLM für Datenschutz)
+- pdf-parse v2 (PDF-Textextraktion)
+- mammoth (DOCX-Verarbeitung)
 
 **Security:**
 - JWT-Authentifizierung (JSON Web Tokens)
@@ -1121,6 +1156,6 @@ Verfügbar auf Anfrage:
 
 ---
 
-**Stand:** Dezember 2024
-**Version:** 1.0
+**Stand:** Januar 2025
+**Version:** 1.1
 **Vertraulich - Nur für autorisierte Empfänger**

@@ -4,7 +4,7 @@
 
 **Projektname:** EU AI Act Calmpliance Audit Platform
 **Kategorie:** RegTech / LegalTech / AI Governance
-**Status:** Functional Prototype (MVP)
+**Status:** Production-Ready MVP (Januar 2025)
 **Finanzierungsbedarf:** €250.000 - €500.000 (Seed-Phase)
 **Förderprogramme:** Horizon Europe, Digital Europe Programme, nationale KI-Innovationsfonds
 
@@ -41,37 +41,59 @@ Eine **webbasierte SaaS-Plattform**, die Unternehmen bei der systematischen Prü
 ### Kernfunktionen (MVP)
 
 #### ✅ Bereits implementiert:
-1. **Intelligente Risikoklassifikation**
+
+1. **AI-Scanner für Risikoanalyse**
+   - Automatische Analyse von KI-Systemen (URL oder Beschreibung)
+   - GPT-4/Ollama-Integration für präzise Bewertung
+   - Sofortige Risikoklassifikation mit Handlungsempfehlungen
+   - PDF-Report-Generierung
+
+2. **Intelligente Risikoklassifikation**
    - Wizard-gestützter Fragebogen
    - Automatische Zuordnung zu Risikoklasse (minimal/limited/hoch/unzulässig)
    - Begründung mit Gesetzesreferenzen
 
-2. **Dynamische Audit-Checklisten**
+3. **Dynamische Audit-Checklisten**
    - 85+ regulatorische Anforderungen strukturiert
    - 8 Kategorien (Datenqualität, Transparenz, Cybersicherheit, etc.)
    - Statusverfolgung: offen/erfüllt/teilweise/nicht-anwendbar
 
-3. **Actionplan-Generator**
+4. **KI-gestützte Dokumentenanalyse**
+   - PDF- und DOCX-Verarbeitung mit pdf-parse v2
+   - Automatische Bewertung von Nachweisdokumenten
+   - Vollständigkeits- und Relevanz-Scores
+   - Empfehlungen für Verbesserungen
+
+5. **Actionplan-Generator**
    - Automatische Ableitung von Handlungsempfehlungen
    - Priorisierung nach Dringlichkeit und Aufwand
    - Verantwortlichkeiten und Deadlines
+   - Deduplizierte Aktionen pro System
 
-4. **Team-Kollaboration**
+6. **Team-Kollaboration**
    - Multi-User-Fähigkeit mit Rollenverwaltung
    - Dateiupload und Dokumentenmanagement
    - Kommentarfunktionen mit Threading
    - Audit Trail (vollständige Änderungshistorie)
 
-5. **Backend-Infrastruktur**
+7. **Internationalisierung**
+   - Vollständig mehrsprachig (Deutsch/Englisch)
+   - Dashboard und alle Seiten lokalisiert
+   - Weitere Sprachen leicht hinzufügbar
+
+8. **Backend-Infrastruktur**
    - REST API mit JWT-Authentifizierung
    - SQLite/PostgreSQL-Datenbank
    - Secure File Storage
+   - Ollama-Integration für lokale KI-Analyse
 
 ### Technologie-Stack
-- **Frontend:** React 18, TypeScript, Tailwind CSS
+- **Frontend:** React 18, TypeScript, Tailwind CSS, Vite
 - **Backend:** Node.js, Express, TypeScript, Sequelize ORM
+- **AI/ML:** GPT-4 API, Ollama (lokale LLM), pdf-parse v2, mammoth
 - **Security:** JWT, bcrypt, Helmet.js, Rate Limiting
-- **Cloud-Ready:** Containerisiert, CI/CD-fähig
+- **Database:** SQLite (dev), PostgreSQL (prod)
+- **Cloud-Ready:** Docker, CI/CD-fähig, EU-Hosting-kompatibel
 
 ---
 
@@ -371,6 +393,6 @@ Eine **webbasierte SaaS-Plattform**, die Unternehmen bei der systematischen Prü
 
 ---
 
-**Stand:** Dezember 2024
-**Version:** 1.2
+**Stand:** Januar 2025
+**Version:** 1.3
 **Vertraulich - Nur für autorisierte Empfänger**

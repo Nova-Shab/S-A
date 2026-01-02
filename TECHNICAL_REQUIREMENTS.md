@@ -1,8 +1,8 @@
 # Technical Requirements Document (TRD)
 ## EU AI Act Calmpliance Audit Platform
 
-**Version:** 1.0
-**Date:** December 2024
+**Version:** 1.1
+**Date:** January 2025
 **Status:** Production-Ready MVP
 **Classification:** Internal - Technical Team
 
@@ -13,6 +13,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2024-12-17 | Development Team | Initial release |
+| 1.1 | 2025-01-02 | Development Team | Added Scanner feature, Document Analysis with pdf-parse v2, Actions deduplication |
 
 ---
 
@@ -515,6 +516,9 @@ src/
 | **express-validator** | 7.2.1 | Input validation |
 | **cors** | 2.8.5 | CORS middleware |
 | **dotenv** | 16.4.7 | Environment variables |
+| **pdf-parse** | 2.4.5 | PDF text extraction |
+| **mammoth** | 1.11.0 | DOCX text extraction |
+| **axios** | 1.6.2 | HTTP client for AI services |
 
 **Backend Directory Structure:**
 ```
@@ -2169,8 +2173,8 @@ describe('Audit Flow', () => {
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** December 17, 2024
-**Next Review:** February 2025
+**Document Version:** 1.1
+**Last Updated:** January 2, 2025
+**Next Review:** March 2025
 **Owner:** Technical Team
 **Status:** Active

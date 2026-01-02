@@ -25,9 +25,12 @@
 
 ### Lösung
 **SaaS-Plattform** für systematische AI Act Compliance-Audits
+- **AI-Scanner:** Automatische Risikoanalyse (GPT-4/Ollama)
 - Risikoklassifikation in 10 Minuten (statt Tagen)
+- **Dokumentenanalyse:** KI-gestützte PDF/DOCX-Prüfung
 - Dynamische Checklisten (85+ Anforderungen)
 - Actionplan-Generator, Team-Kollaboration, Audit Trail
+- Mehrsprachig (DE/EN), weitere Sprachen geplant
 
 ---
 
@@ -84,10 +87,12 @@
 
 ---
 
-## 🎯 Traction
+## 🎯 Traction (Januar 2025)
 
-✅ **MVP:** Functional Prototype (React, Node.js)
-✅ **Features:** Vollständiger Audit-Workflow, Multi-User, Files, Comments
+✅ **MVP:** Production-Ready Prototype (React, Node.js, TypeScript)
+✅ **AI-Scanner:** GPT-4/Ollama-Integration für automatische Risikoanalyse
+✅ **Dokumentenanalyse:** PDF/DOCX-Verarbeitung mit pdf-parse v2
+✅ **Features:** Dashboard, i18n (DE/EN), Actions-Deduplizierung
 ✅ **Tech:** Production-ready, Cloud-native, API-first
 ✅ **Pipeline:** 15 LOIs von Pilot-Kunden (DAX, Mittelstand, Startups)
 

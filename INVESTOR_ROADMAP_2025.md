@@ -1,8 +1,8 @@
 # EU AI Act Scanner + Audit Tools - System Review & Investor Roadmap
 
 **Erstellt:** 22. Dezember 2024
-**Ziel:** Investor Meeting am 08. Januar 2025
-**Status:** MVP / Prototyp
+**Aktualisiert:** 2. Januar 2025
+**Status:** Production-Ready MVP
 
 ---
 
@@ -23,12 +23,15 @@ Eine integrierte SaaS-Plattform für EU AI Act Calmpliance bestehend aus:
 | Auth | JWT-basiert |
 | ORM | Sequelize |
 
-### Aktueller Stand
-- ✅ Grundfunktionen implementiert
-- ✅ Scanner ohne externe Abhängigkeiten (kein n8n)
+### Aktueller Stand (Januar 2025)
+- ✅ Alle Grundfunktionen implementiert
+- ✅ AI-Scanner mit GPT-4/Ollama-Integration
+- ✅ Dokumentenanalyse (PDF/DOCX) mit pdf-parse v2
+- ✅ Vollständige Internationalisierung (DE/EN)
+- ✅ Dashboard mit KPI-Übersicht
+- ✅ Actions-Deduplizierung pro System
 - ✅ Demo-Freischaltung mit Lead-Erfassung
-- ⚠️ Noch nicht produktionsreif
-- ⚠️ UI/UX Optimierungen ausstehend
+- ✅ Produktionsreif für Pilot-Kunden
 
 ---
 
@@ -68,14 +71,16 @@ Eine integrierte SaaS-Plattform für EU AI Act Calmpliance bestehend aus:
 | Feature | Status | Beschreibung |
 |---------|--------|--------------|
 | Textbasierte Analyse | ✅ | Beschreibung des KI-Systems eingeben |
-| URL-Analyse | ⚠️ Placeholder | URL wird akzeptiert, aber nicht gescraped |
+| URL-Analyse | ✅ | Multi-Page-Scraping mit KI-Feature-Erkennung |
+| GPT-4 Integration | ✅ | Cloud-basierte Analyse für präzise Bewertung |
+| Ollama Integration | ✅ | Lokale Analyse (datenschutzkonform) |
 | Risikoklassifizierung | ✅ | PROHIBITED / HIGH_RISK / LIMITED_RISK / MINIMAL_RISK |
 | Risiko-Score | ✅ | 0-100 Punkte |
 | Befunde mit Severity | ✅ | Critical / High / Medium / Low / Info |
 | Handlungsempfehlungen | ✅ | Konkrete nächste Schritte |
 | Artikel-Referenzen | ✅ | Verweis auf EU AI Act Artikel |
 | Scan-Historie | ✅ | Für eingeloggte Nutzer |
-| PDF-Export | ❌ | Noch nicht implementiert |
+| PDF-Export | ✅ | Vollständiger Report mit Findings |
 
 ### 3.2 Audit Tools
 | Feature | Status | Beschreibung |

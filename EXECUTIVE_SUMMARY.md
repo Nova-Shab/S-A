@@ -5,10 +5,13 @@ Ab 2026 müssen über **10.000 EU-Unternehmen** ihre KI-Systeme nach EU AI Act a
 
 ## Unsere Lösung
 **SaaS-Plattform** für systematische EU AI Act Calmpliance-Audits:
+- ✅ **AI-Scanner:** Automatische Risikoanalyse von KI-Systemen (URL/Beschreibung)
 - ✅ Intelligente Risikoklassifikation (4 Klassen, automatisch)
 - ✅ Dynamische Checklisten (85+ Anforderungen)
+- ✅ **Dokumentenanalyse:** KI-gestützte Prüfung von Nachweisdokumenten (PDF, DOCX)
 - ✅ Actionplan-Generator mit Priorisierung
 - ✅ Team-Kollaboration, Dokumentenmanagement, Audit Trail
+- ✅ **Mehrsprachig:** Deutsch & Englisch, weitere Sprachen geplant
 
 ## Geschäftsmodell
 **B2B-SaaS:** €299-€2.999/Monat | **Zusatzerlöse:** Professional Services, White-Label
@@ -18,9 +21,11 @@ Ab 2026 müssen über **10.000 EU-Unternehmen** ihre KI-Systeme nach EU AI Act a
 - **Zielkunden:** KI-Startups, Mittelstand, Konzerne (HR, Finance, Healthcare)
 - **Wachstumstreiber:** Gesetzliche Verpflichtung, keine Opt-out-Möglichkeit
 
-## Traction
-- ✅ **MVP:** Functional Prototype (React, Node.js, TypeScript)
-- ✅ **Features:** Vollständige Audit-Workflow, Multi-User, Dateiupload
+## Traction (Stand: Januar 2025)
+- ✅ **MVP:** Production-Ready Prototype (React, Node.js, TypeScript)
+- ✅ **Scanner:** AI-basierte Risikoanalyse mit GPT-4/Ollama-Integration
+- ✅ **Dokumentenanalyse:** PDF/DOCX-Extraktion mit KI-Bewertung
+- ✅ **Features:** Vollständige Audit-Workflow, Multi-User, Dashboard, i18n
 - ✅ **Ready:** Sofort pilot-fähig mit ersten Kunden
 
 ## Finanzierung
