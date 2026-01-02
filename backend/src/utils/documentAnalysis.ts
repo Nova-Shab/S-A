@@ -2,9 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import mammoth from 'mammoth';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParse = require('pdf-parse');
+import { PDFParse } from 'pdf-parse';
 import { DocumentAIAnalysis } from '../models/SystemAudit';
 import { getRequirementById } from '../data/euAiActRequirements';
 
@@ -18,9 +16,11 @@ export async function extractTextFromDocument(filePath: string): Promise<string>
   try {
     switch (ext) {
       case '.pdf':
+        // pdf-parse v2 API: read file as buffer and pass as data
         const pdfBuffer = fs.readFileSync(filePath);
-        const pdfData = await pdfParse(pdfBuffer);
-        return pdfData.text;
+        const parser = new PDFParse({ data: pdfBuffer });
+        const pdfResult = await parser.getText();
+        return pdfResult.text;
 
       case '.docx':
         const docxResult = await mammoth.extractRawText({ path: filePath });
