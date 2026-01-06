@@ -5,14 +5,139 @@ import { analyzeWithGPT, isGPTAvailable } from './gptAnalysis';
 import { analyzeWithOllama, isOllamaAvailable } from './ollamaAnalysis';
 import { advancedWebScrape, DetectedAIFeature } from './advancedWebScraper';
 
-// Keywords and patterns for detecting AI system characteristics
-const PROHIBITED_KEYWORDS = [
-  'social scoring', 'soziales bewertungssystem', 'social credit',
-  'subliminal', 'unterschwellig', 'manipulation',
-  'exploitation', 'ausbeutung', 'vulnerable groups', 'schutzbedürftige',
-  'real-time biometric', 'echtzeit-biometrisch', 'mass surveillance', 'massenüberwachung',
+// ============================================================================
+// EU AI ACT ARTICLE 5 - PROHIBITED AI PRACTICES (Complete Implementation)
+// ============================================================================
+
+// Art. 5(1)(a) - Unterschwellige Manipulation / Subliminal Manipulation
+const PROHIBITED_SUBLIMINAL = [
+  'subliminal', 'unterschwellig', 'subliminal manipulation', 'unterschwellige manipulation',
+  'subliminal techniques', 'unterschwellige techniken', 'subliminal messaging',
+  'beyond consciousness', 'unterhalb der bewusstseinsschwelle',
+  'manipulative techniques', 'manipulative techniken',
+  'covert manipulation', 'verdeckte manipulation',
+  'psychological manipulation', 'psychologische manipulation',
+  'behavioral manipulation without awareness', 'verhaltensmanipulation ohne bewusstsein',
+];
+
+// Art. 5(1)(b) - Ausnutzung schutzbedürftiger Gruppen / Exploitation of Vulnerabilities
+const PROHIBITED_VULNERABLE_EXPLOITATION = [
+  'exploit vulnerable', 'ausnutzung schutzbedürftig', 'exploitation of vulnerabilities',
+  'target children', 'kinder gezielt', 'targeting minors', 'minderjährige gezielt',
+  'exploit elderly', 'ältere ausnutzen', 'targeting seniors', 'senioren gezielt',
+  'exploit disabled', 'behinderte ausnutzen', 'exploit disability', 'behinderung ausnutzen',
+  'exploit mental', 'psychisch ausnutzen', 'mental vulnerability', 'psychische schwäche',
+  'exploit addiction', 'sucht ausnutzen', 'addictive design', 'suchtförderndes design',
+  'exploit poverty', 'armut ausnutzen', 'economic vulnerability', 'wirtschaftliche schwäche',
+  'dark patterns', 'dunkle muster', 'deceptive design', 'täuschendes design',
+  'predatory targeting', 'räuberisches targeting', 'vulnerable group targeting',
+  'schutzbedürftige gruppen', 'vulnerable persons', 'schutzbedürftige personen',
+  'cognitive impairment', 'kognitive beeinträchtigung',
+];
+
+// Art. 5(1)(c) - Social Scoring durch Behörden / Social Scoring by Public Authorities
+const PROHIBITED_SOCIAL_SCORING = [
+  'social scoring', 'soziales bewertungssystem', 'social credit', 'sozialpunkte',
+  'citizen scoring', 'bürgerbewertung', 'citizen rating', 'bürger-rating',
+  'social rating system', 'soziales ratingsystem', 'trustworthiness score',
+  'vertrauenswürdigkeitsbewertung', 'behavioral scoring', 'verhaltensbewertung',
+  'social behavior score', 'sozialverhaltenspunkte', 'public authority scoring',
+  'behördliche bewertung', 'government scoring', 'staatliche bewertung',
+  'citizen reputation', 'bürger-reputation', 'social trustworthiness',
+  'soziale vertrauenswürdigkeit', 'creditworthiness based on social behavior',
+];
+
+// Art. 5(1)(d) - Prädiktive Polizeiarbeit auf Einzelpersonen / Individual Predictive Policing
+const PROHIBITED_PREDICTIVE_POLICING = [
+  'predictive policing individual', 'vorhersagende polizeiarbeit einzelperson',
+  'individual crime prediction', 'individuelle kriminalitätsprognose',
+  'predict criminal behavior', 'kriminelles verhalten vorhersagen',
+  'crime risk individual', 'kriminalitätsrisiko einzelperson',
+  'predict offending', 'straftaten vorhersagen', 'risk of offending',
+  'rückfallrisiko', 'recidivism prediction individual', 'rückfallprognose einzelperson',
+  'profiling for crime prediction', 'profiling für kriminalitätsprognose',
+  'pre-crime', 'pre-crime system', 'precrime', 'vorhersage straftat',
+  'future criminal', 'zukünftiger straftäter', 'potential offender',
+  'potenzieller straftäter', 'crime propensity', 'kriminalitätsneigung',
+  'individual risk assessment law enforcement', 'einzelrisikobewertung strafverfolgung',
+];
+
+// Art. 5(1)(e) - Ungezieltes Scraping von Gesichtsbildern / Untargeted Facial Image Scraping
+const PROHIBITED_FACIAL_SCRAPING = [
+  'facial scraping', 'gesichtsbilder scraping', 'face scraping',
+  'scrape faces', 'gesichter scrapen', 'facial database scraping',
+  'clearview', 'web scraping faces', 'internet facial images',
+  'social media face scraping', 'soziale medien gesichter scraping',
+  'untargeted facial recognition database', 'ungezielte gesichtserkennungsdatenbank',
+  'mass facial collection', 'massensammlung gesichtsbilder',
+  'building facial database from internet', 'gesichtsdatenbank aus internet',
+  'scraping profile pictures', 'profilbilder scraping',
+  'harvesting facial images', 'gesichtsbilder sammeln',
+  'bulk face collection', 'massenhafte gesichtssammlung',
+  'facial recognition training data from web', 'gesichtserkennung trainingsdaten web',
+];
+
+// Art. 5(1)(f) - Emotionserkennung am Arbeitsplatz/in Schulen / Emotion Recognition at Work/School
+const PROHIBITED_EMOTION_WORKPLACE = [
   'emotion recognition workplace', 'emotionserkennung arbeitsplatz',
-  'predictive policing individual', 'vorhersagende polizeiarbeit',
+  'emotion detection work', 'emotionserkennung arbeit',
+  'emotion recognition school', 'emotionserkennung schule',
+  'emotion detection education', 'emotionserkennung bildung',
+  'affective computing workplace', 'affective computing arbeitsplatz',
+  'employee emotion monitoring', 'mitarbeiter emotionsüberwachung',
+  'student emotion monitoring', 'schüler emotionsüberwachung',
+  'workplace sentiment analysis', 'arbeitsplatz stimmungsanalyse',
+  'employee mood detection', 'mitarbeiter stimmungserkennung',
+  'classroom emotion detection', 'klassenzimmer emotionserkennung',
+  'work emotion ai', 'arbeits emotions ki',
+  'employee facial expression', 'mitarbeiter gesichtsausdruck',
+  'student engagement emotion', 'schüler engagement emotion',
+  'workforce emotion analytics', 'belegschaft emotionsanalyse',
+  'emotional state monitoring employees', 'emotionszustand überwachung mitarbeiter',
+];
+
+// Art. 5(1)(g) - Biometrische Kategorisierung nach sensiblen Merkmalen / Biometric Categorization by Sensitive Attributes
+const PROHIBITED_BIOMETRIC_CATEGORIZATION = [
+  'biometric categorization race', 'biometrische kategorisierung rasse',
+  'biometric ethnicity', 'biometrische ethnizität',
+  'biometric religion', 'biometrische religion',
+  'biometric political', 'biometrische politisch',
+  'biometric sexual orientation', 'biometrische sexuelle orientierung',
+  'race detection', 'rassenerkennung', 'ethnicity detection', 'ethnizitätserkennung',
+  'infer race from face', 'rasse aus gesicht ableiten',
+  'infer religion', 'religion ableiten', 'infer political views', 'politische ansichten ableiten',
+  'sexual orientation detection', 'erkennung sexueller orientierung',
+  'biometric profiling sensitive', 'biometrisches profiling sensibel',
+  'categorize by skin color', 'kategorisieren nach hautfarbe',
+  'facial analysis race', 'gesichtsanalyse rasse',
+  'ethnic profiling biometric', 'ethnisches profiling biometrisch',
+];
+
+// Art. 5(1)(h) - Echtzeit-Fernidentifikation im öffentlichen Raum / Real-time Remote Biometric Identification
+const PROHIBITED_REALTIME_BIOMETRIC = [
+  'real-time biometric', 'echtzeit-biometrisch', 'realtime biometric',
+  'real-time facial recognition public', 'echtzeit gesichtserkennung öffentlich',
+  'live facial recognition', 'live gesichtserkennung',
+  'real-time remote identification', 'echtzeit-fernidentifikation',
+  'mass surveillance biometric', 'massenüberwachung biometrisch',
+  'public space facial recognition', 'öffentlicher raum gesichtserkennung',
+  'live biometric identification', 'live biometrische identifikation',
+  'street facial recognition', 'straßen gesichtserkennung',
+  'real-time face matching', 'echtzeit gesichtsabgleich',
+  'continuous biometric monitoring public', 'kontinuierliche biometrische überwachung öffentlich',
+  'mass biometric surveillance', 'biometrische massenüberwachung',
+];
+
+// Combined PROHIBITED_KEYWORDS for backward compatibility
+const PROHIBITED_KEYWORDS = [
+  ...PROHIBITED_SUBLIMINAL,
+  ...PROHIBITED_VULNERABLE_EXPLOITATION,
+  ...PROHIBITED_SOCIAL_SCORING,
+  ...PROHIBITED_PREDICTIVE_POLICING,
+  ...PROHIBITED_FACIAL_SCRAPING,
+  ...PROHIBITED_EMOTION_WORKPLACE,
+  ...PROHIBITED_BIOMETRIC_CATEGORIZATION,
+  ...PROHIBITED_REALTIME_BIOMETRIC,
 ];
 
 const HIGH_RISK_KEYWORDS = [
@@ -151,9 +276,105 @@ async function fetchUrlContent(url: string): Promise<{ text: string; title: stri
   }
 }
 
+// Detailed prohibited practice detection
+interface ProhibitedPracticeMatch {
+  category: string;
+  article: string;
+  keywords: string[];
+  description: string;
+}
+
+function detectProhibitedPractices(text: string): ProhibitedPracticeMatch[] {
+  const lowerText = text.toLowerCase();
+  const detected: ProhibitedPracticeMatch[] = [];
+
+  const subliminalMatches = PROHIBITED_SUBLIMINAL.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (subliminalMatches.length > 0) {
+    detected.push({
+      category: 'Unterschwellige Manipulation',
+      article: 'Art. 5(1)(a)',
+      keywords: subliminalMatches,
+      description: 'KI-Systeme, die unterschwellige Techniken einsetzen, um das Verhalten von Personen in einer Weise wesentlich zu beeinflussen, die physischen oder psychischen Schaden verursachen kann.',
+    });
+  }
+
+  const vulnerableMatches = PROHIBITED_VULNERABLE_EXPLOITATION.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (vulnerableMatches.length > 0) {
+    detected.push({
+      category: 'Ausnutzung Schutzbedürftiger',
+      article: 'Art. 5(1)(b)',
+      keywords: vulnerableMatches,
+      description: 'KI-Systeme, die Schwächen aufgrund von Alter, Behinderung oder sozialer/wirtschaftlicher Situation ausnutzen, um das Verhalten wesentlich zu beeinflussen.',
+    });
+  }
+
+  const socialScoringMatches = PROHIBITED_SOCIAL_SCORING.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (socialScoringMatches.length > 0) {
+    detected.push({
+      category: 'Social Scoring',
+      article: 'Art. 5(1)(c)',
+      keywords: socialScoringMatches,
+      description: 'KI-Systeme für Social Scoring durch Behörden, die zu nachteiliger Behandlung von Personen führen können.',
+    });
+  }
+
+  const predictiveMatches = PROHIBITED_PREDICTIVE_POLICING.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (predictiveMatches.length > 0) {
+    detected.push({
+      category: 'Prädiktive Polizeiarbeit auf Einzelpersonen',
+      article: 'Art. 5(1)(d)',
+      keywords: predictiveMatches,
+      description: 'KI-Systeme zur Vorhersage von Straftaten einer Einzelperson allein auf Basis von Profiling oder Persönlichkeitsmerkmalen.',
+    });
+  }
+
+  const scrapingMatches = PROHIBITED_FACIAL_SCRAPING.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (scrapingMatches.length > 0) {
+    detected.push({
+      category: 'Ungezieltes Gesichtsbilder-Scraping',
+      article: 'Art. 5(1)(e)',
+      keywords: scrapingMatches,
+      description: 'KI-Systeme zum ungezielten Auslesen von Gesichtsbildern aus dem Internet oder Überwachungsaufnahmen zur Erstellung von Gesichtserkennungsdatenbanken.',
+    });
+  }
+
+  const emotionWorkMatches = PROHIBITED_EMOTION_WORKPLACE.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (emotionWorkMatches.length > 0) {
+    detected.push({
+      category: 'Emotionserkennung am Arbeitsplatz/Schule',
+      article: 'Art. 5(1)(f)',
+      keywords: emotionWorkMatches,
+      description: 'KI-Systeme zur Ableitung von Emotionen am Arbeitsplatz oder in Bildungseinrichtungen (außer für medizinische oder Sicherheitszwecke).',
+    });
+  }
+
+  const biometricCatMatches = PROHIBITED_BIOMETRIC_CATEGORIZATION.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (biometricCatMatches.length > 0) {
+    detected.push({
+      category: 'Biometrische Kategorisierung nach sensiblen Merkmalen',
+      article: 'Art. 5(1)(g)',
+      keywords: biometricCatMatches,
+      description: 'KI-Systeme zur biometrischen Kategorisierung von Personen nach Rasse, politischer Meinung, Gewerkschaftszugehörigkeit, Religion, sexueller Orientierung.',
+    });
+  }
+
+  const realtimeBioMatches = PROHIBITED_REALTIME_BIOMETRIC.filter(kw => lowerText.includes(kw.toLowerCase()));
+  if (realtimeBioMatches.length > 0) {
+    detected.push({
+      category: 'Echtzeit-Biometrie im öffentlichen Raum',
+      article: 'Art. 5(1)(h)',
+      keywords: realtimeBioMatches,
+      description: 'Echtzeit-Fernidentifizierungssysteme in öffentlich zugänglichen Räumen für Strafverfolgungszwecke (mit eng begrenzten Ausnahmen).',
+    });
+  }
+
+  return detected;
+}
+
 // Analyze text for risk indicators
 function analyzeText(text: string): {
   prohibitedMatches: string[];
+  prohibitedPractices: ProhibitedPracticeMatch[];
   highRiskMatches: string[];
   limitedRiskMatches: string[];
   transparencyMatches: string[];
@@ -162,12 +383,13 @@ function analyzeText(text: string): {
   const lowerText = text.toLowerCase();
 
   const prohibitedMatches = PROHIBITED_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
+  const prohibitedPractices = detectProhibitedPractices(text);
   const highRiskMatches = HIGH_RISK_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
   const limitedRiskMatches = LIMITED_RISK_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
   const transparencyMatches = TRANSPARENCY_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
   const aiContextMatches = AI_CONTEXT_KEYWORDS.filter(kw => lowerText.includes(kw.toLowerCase()));
 
-  return { prohibitedMatches, highRiskMatches, limitedRiskMatches, transparencyMatches, aiContextMatches };
+  return { prohibitedMatches, prohibitedPractices, highRiskMatches, limitedRiskMatches, transparencyMatches, aiContextMatches };
 }
 
 // Determine risk level based on matches
@@ -236,8 +458,31 @@ function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: Ri
     });
   }
 
-  // Prohibited findings
-  if (matches.prohibitedMatches.length > 0) {
+  // Prohibited findings - detailed per practice type
+  if (matches.prohibitedPractices && matches.prohibitedPractices.length > 0) {
+    // Add overall warning
+    findings.push({
+      category: '⛔ VERBOTENE KI-PRAKTIKEN',
+      title: `${matches.prohibitedPractices.length} verbotene Praktik(en) nach Art. 5 EU AI Act erkannt`,
+      severity: 'critical',
+      description: `ACHTUNG: Dieses System weist Merkmale von ${matches.prohibitedPractices.length} verbotenen KI-Praktiken auf. Der Betrieb in der EU ist NICHT ZULÄSSIG.`,
+      recommendation: 'SOFORTIGE MASSNAHMEN: 1) Entwicklung/Betrieb stoppen, 2) Rechtliche Beratung einholen, 3) Alternative Ansätze evaluieren, 4) Dokumentation für Behörden vorbereiten.',
+      articleReference: 'Art. 5 EU AI Act',
+    });
+
+    // Add detailed finding for each prohibited practice
+    for (const practice of matches.prohibitedPractices) {
+      findings.push({
+        category: `⛔ ${practice.category}`,
+        title: `Verboten: ${practice.category} (${practice.article})`,
+        severity: 'critical',
+        description: `${practice.description}\n\nErkannte Indikatoren: ${practice.keywords.slice(0, 5).join(', ')}${practice.keywords.length > 5 ? '...' : ''}`,
+        recommendation: `Diese Praktik ist nach ${practice.article} EU AI Act verboten. Der Einsatz dieses Systems in der EU ist in dieser Form untersagt. Prüfen Sie alternative Ansätze ohne verbotene Funktionen.`,
+        articleReference: practice.article,
+      });
+    }
+  } else if (matches.prohibitedMatches.length > 0) {
+    // Fallback for backward compatibility
     findings.push({
       category: 'Verbotene KI-Praktiken',
       title: 'Potenziell verbotene KI-Anwendung erkannt',
