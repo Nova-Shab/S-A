@@ -55,7 +55,7 @@ export const LandingPage: React.FC = () => {
         <div className="text-center mb-12">
           <img
             src="/images/logo.svg"
-            alt="EU AI Act Audit Platform"
+            alt="Calmpliance Scanner"
             className="h-24 w-auto mx-auto mb-6"
           />
           <p className="text-body text-audit-cool max-w-2xl mx-auto">

@@ -121,7 +121,7 @@ const WizardContent: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src="/images/logo.svg" alt="EU AI Act" className="h-8 w-auto mr-4" />
+              <img src="/images/logo.svg" alt="Calmpliance Scanner" className="h-8 w-auto mr-4" />
               <div>
                 <h1 className="text-h3 text-audit-deep">EU AI Act Audit</h1>
                 <p className="text-meta text-audit-cool">
