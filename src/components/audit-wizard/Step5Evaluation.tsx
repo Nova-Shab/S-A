@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuditWizard } from '../../context/AuditWizardContext';
 
-const REQUIREMENT_TITLES: Record<string, string> = {
+// HIGH_RISK requirement titles (Art. 9-15)
+const HIGH_RISK_TITLES: Record<string, string> = {
   risk_management: 'Risikomanagementsystem',
   data_governance: 'Daten-Governance',
   technical_documentation: 'Technische Dokumentation',
@@ -10,6 +11,36 @@ const REQUIREMENT_TITLES: Record<string, string> = {
   human_oversight: 'Menschliche Aufsicht',
   accuracy: 'Genauigkeit, Robustheit, Cybersicherheit',
 };
+
+// LIMITED_RISK requirement titles (Art. 50)
+const LIMITED_RISK_TITLES: Record<string, string> = {
+  transparency_interaction: 'Transparenz bei KI-Interaktion',
+  transparency_emotion: 'Emotionserkennung / Biometrische Kategorisierung',
+  transparency_synthetic: 'Synthetische Inhalte kennzeichnen',
+};
+
+// MINIMAL_RISK voluntary best practices (Art. 95)
+const MINIMAL_RISK_TITLES: Record<string, string> = {
+  voluntary_ethics: 'Freiwillige Verhaltenskodizes',
+  voluntary_documentation: 'Freiwillige Dokumentation',
+  voluntary_fairness: 'Fairness & Nicht-Diskriminierung',
+  voluntary_security: 'Sicherheit & Datenschutz',
+  voluntary_oversight: 'Menschliche Aufsicht',
+};
+
+// Get requirement titles based on risk level
+function getRequirementTitlesForRisk(riskLevel: 'HIGH_RISK' | 'LIMITED_RISK' | 'MINIMAL_RISK' | null | undefined): Record<string, string> {
+  switch (riskLevel) {
+    case 'HIGH_RISK':
+      return HIGH_RISK_TITLES;
+    case 'LIMITED_RISK':
+      return LIMITED_RISK_TITLES;
+    case 'MINIMAL_RISK':
+      return MINIMAL_RISK_TITLES;
+    default:
+      return {};
+  }
+}
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   fulfilled: { label: 'Erfüllt', color: 'text-audit-steel' },
@@ -33,32 +64,41 @@ export const Step5Evaluation: React.FC = () => {
 
   const requirements = currentSystem.requirements || [];
   const riskLevel = currentSystem.riskClassification?.riskLevel;
+  const applicableRequirementTitles = getRequirementTitlesForRisk(riskLevel);
+  const totalRequirementCount = Object.keys(applicableRequirementTitles).length;
 
-  // Calculate statistics
+  // Filter requirements to only those applicable to this risk level
+  const applicableRequirements = requirements.filter(r =>
+    applicableRequirementTitles[r.requirementId] !== undefined
+  );
+
+  // Calculate statistics based on applicable requirements
   const stats = {
-    fulfilled: requirements.filter(r => r.status === 'fulfilled').length,
-    partiallyFulfilled: requirements.filter(r => r.status === 'partially_fulfilled').length,
-    notFulfilled: requirements.filter(r => r.status === 'not_fulfilled').length,
-    notApplicable: requirements.filter(r => r.status === 'not_applicable').length,
-    notAssessed: requirements.filter(r => r.status === 'not_assessed').length,
-    documentsUploaded: requirements.reduce((acc, r) => acc + (r.documents?.length || 0), 0),
-    withAiAnalysis: requirements.reduce(
+    fulfilled: applicableRequirements.filter(r => r.status === 'fulfilled').length,
+    partiallyFulfilled: applicableRequirements.filter(r => r.status === 'partially_fulfilled').length,
+    notFulfilled: applicableRequirements.filter(r => r.status === 'not_fulfilled').length,
+    notApplicable: applicableRequirements.filter(r => r.status === 'not_applicable').length,
+    notAssessed: totalRequirementCount - applicableRequirements.filter(r => r.status !== 'not_assessed').length,
+    documentsUploaded: applicableRequirements.reduce((acc, r) => acc + (r.documents?.length || 0), 0),
+    withAiAnalysis: applicableRequirements.reduce(
       (acc, r) => acc + (r.documents?.filter(d => d.aiAnalysis).length || 0),
       0
     ),
   };
 
-  const totalApplicable = 7 - stats.notApplicable;
+  const totalApplicable = totalRequirementCount - stats.notApplicable;
   const fulfillmentRate = totalApplicable > 0
     ? Math.round(((stats.fulfilled + stats.partiallyFulfilled * 0.5) / totalApplicable) * 100)
     : 0;
 
-  // Identify gaps
-  const gaps = requirements
+  const hasRequirements = totalRequirementCount > 0;
+
+  // Identify gaps (only for applicable requirements)
+  const gaps = applicableRequirements
     .filter(r => r.status === 'not_fulfilled' || r.status === 'partially_fulfilled')
     .map(r => ({
       requirementId: r.requirementId,
-      title: REQUIREMENT_TITLES[r.requirementId] || r.requirementId,
+      title: applicableRequirementTitles[r.requirementId] || r.requirementId,
       status: r.status,
       comment: r.comment,
       documentCount: r.documents?.length || 0,
@@ -95,8 +135,8 @@ export const Step5Evaluation: React.FC = () => {
             </div>
           </div>
 
-          {/* Statistics Grid */}
-          {riskLevel === 'HIGH_RISK' && (
+          {/* Statistics Grid - show for all risk levels with requirements */}
+          {hasRequirements && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="p-4 bg-audit-bg rounded-audit text-center">
                 <p className="text-h2 text-audit-steel">{fulfillmentRate}%</p>
@@ -119,11 +159,22 @@ export const Step5Evaluation: React.FC = () => {
         </div>
       </div>
 
-      {/* Requirements Summary Table */}
-      {riskLevel === 'HIGH_RISK' && (
+      {/* Requirements Summary Table - show for all risk levels with requirements */}
+      {hasRequirements && (
         <div className="audit-panel">
           <div className="audit-panel-header">
-            <h3 className="text-h4 text-audit-deep mb-0">Anforderungsübersicht</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-h4 text-audit-deep mb-0">
+                {riskLevel === 'HIGH_RISK' && 'Hochrisiko-Anforderungen (Art. 9-15)'}
+                {riskLevel === 'LIMITED_RISK' && 'Transparenzpflichten (Art. 50)'}
+                {riskLevel === 'MINIMAL_RISK' && 'Freiwillige Best Practices (Art. 95)'}
+              </h3>
+              {riskLevel === 'MINIMAL_RISK' && (
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-meta">
+                  Freiwillig
+                </span>
+              )}
+            </div>
           </div>
           <div className="audit-panel-body p-0">
             <div className="overflow-x-auto">
@@ -137,7 +188,7 @@ export const Step5Evaluation: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-audit-light">
-                  {Object.entries(REQUIREMENT_TITLES).map(([id, title]) => {
+                  {Object.entries(applicableRequirementTitles).map(([id, title]) => {
                     const req = requirements.find(r => r.requirementId === id);
                     const status = req?.status || 'not_assessed';
                     const statusInfo = STATUS_LABELS[status];
@@ -207,8 +258,8 @@ export const Step5Evaluation: React.FC = () => {
         </div>
       )}
 
-      {/* No Gaps Message */}
-      {riskLevel === 'HIGH_RISK' && gaps.length === 0 && stats.notAssessed === 0 && (
+      {/* No Gaps Message - show for all risk levels with requirements */}
+      {hasRequirements && gaps.length === 0 && stats.notAssessed === 0 && (
         <div className="p-6 bg-audit-bg rounded-audit border-l-4 border-audit-steel">
           <div className="flex items-center">
             <svg className="w-6 h-6 text-audit-steel mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,8 +275,8 @@ export const Step5Evaluation: React.FC = () => {
         </div>
       )}
 
-      {/* Open Assessments Warning */}
-      {stats.notAssessed > 0 && (
+      {/* Open Assessments Warning - only show if there are requirements */}
+      {hasRequirements && stats.notAssessed > 0 && (
         <div className="audit-alert-info">
           <div className="flex items-start">
             <svg className="w-5 h-5 text-audit-steel mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,40 +294,46 @@ export const Step5Evaluation: React.FC = () => {
         </div>
       )}
 
-      {/* Limited/Minimal Risk Summary */}
-      {(riskLevel === 'LIMITED_RISK' || riskLevel === 'MINIMAL_RISK') && (
+      {/* PROHIBITED system warning */}
+      {currentSystem.riskClassification?.isProhibited && (
+        <div className="audit-panel border-2 border-red-500">
+          <div className="audit-panel-body">
+            <div className="bg-red-50 rounded-audit p-6">
+              <div className="flex items-start">
+                <svg className="w-8 h-8 text-red-600 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <h3 className="text-h4 text-red-800 mb-2">Verbotene KI-Praktik</h3>
+                  <p className="text-body text-red-700">
+                    Dieses System wurde als verboten nach Art. 5 EU AI Act klassifiziert.
+                    Ein Compliance-Audit ist nicht durchführbar. Das System darf in der EU nicht betrieben werden.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No requirements message for MINIMAL_RISK without voluntary audit */}
+      {riskLevel === 'MINIMAL_RISK' && !hasRequirements && (
         <div className="audit-panel">
           <div className="audit-panel-body">
-            {riskLevel === 'LIMITED_RISK' ? (
-              <div className="space-y-4">
-                <h3 className="text-h4 text-audit-deep">Transparenzpflichten (Art. 50)</h3>
-                <p className="text-body text-audit-cool">
-                  Für Systeme mit begrenztem Risiko gelten folgende Transparenzpflichten:
-                </p>
-                <ul className="space-y-2 text-body text-audit-cool">
-                  <li className="flex items-start">
-                    <svg className="w-4 h-4 mr-2 mt-1 text-audit-steel" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Personen müssen informiert werden, wenn sie mit einem KI-System interagieren
-                  </li>
-                  <li className="flex items-start">
-                    <svg className="w-4 h-4 mr-2 mt-1 text-audit-steel" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    KI-generierte Inhalte müssen als solche gekennzeichnet werden
-                  </li>
-                </ul>
+            <div className="bg-green-50 rounded-audit p-6">
+              <div className="flex items-start">
+                <svg className="w-8 h-8 text-green-600 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-h4 text-green-800 mb-2">Keine Pflichtanforderungen</h3>
+                  <p className="text-body text-green-700">
+                    Für Systeme mit minimalem Risiko bestehen keine spezifischen Pflichtanforderungen nach EU AI Act.
+                    Das freiwillige Audit wurde nicht durchgeführt.
+                  </p>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <h3 className="text-h4 text-audit-deep">Minimales Risiko</h3>
-                <p className="text-body text-audit-cool">
-                  Für Systeme mit minimalem Risiko bestehen keine spezifischen Anforderungen nach EU AI Act.
-                  Es wird jedoch empfohlen, freiwillige Verhaltenskodizes zu befolgen.
-                </p>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}

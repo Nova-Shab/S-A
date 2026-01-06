@@ -2,6 +2,110 @@ import React, { useState, useRef } from 'react';
 import { useAuditWizard, RequirementAssessment, EvidenceDocument } from '../../context/AuditWizardContext';
 import api from '../../services/api';
 
+// LIMITED_RISK requirements (Art. 50 - Transparency)
+const LIMITED_RISK_REQUIREMENTS = [
+  {
+    id: 'transparency_interaction',
+    article: 'Art. 50(1)',
+    title: 'Transparenz bei KI-Interaktion',
+    description: 'Natürliche Personen müssen informiert werden, dass sie mit einem KI-System interagieren.',
+    checkpoints: [
+      'Nutzer werden über KI-Interaktion informiert',
+      'Information erfolgt rechtzeitig und verständlich',
+      'Ausnahmen für offensichtliche KI-Nutzung dokumentiert',
+      'Barrierefreie Gestaltung der Information',
+    ],
+  },
+  {
+    id: 'transparency_emotion',
+    article: 'Art. 50(3)',
+    title: 'Emotionserkennung / Biometrische Kategorisierung',
+    description: 'Bei Systemen zur Emotionserkennung oder biometrischen Kategorisierung müssen betroffene Personen informiert werden.',
+    checkpoints: [
+      'Betroffene über Systemtyp informiert',
+      'Verarbeitungszweck kommuniziert',
+      'Opt-out-Möglichkeit vorhanden (falls anwendbar)',
+      'Datenschutzrechtliche Grundlage dokumentiert',
+    ],
+  },
+  {
+    id: 'transparency_synthetic',
+    article: 'Art. 50(4)',
+    title: 'Synthetische Inhalte kennzeichnen',
+    description: 'KI-generierte oder manipulierte Inhalte (Deep Fakes, synthetische Medien) müssen als solche gekennzeichnet werden.',
+    checkpoints: [
+      'Maschinenlesbare Kennzeichnung implementiert',
+      'Sichtbare Kennzeichnung für Nutzer',
+      'Metadaten zur Herkunft vorhanden',
+      'Ausnahmen dokumentiert (Kunst, Satire)',
+    ],
+  },
+];
+
+// MINIMAL_RISK voluntary best practices (Art. 95)
+const MINIMAL_RISK_REQUIREMENTS = [
+  {
+    id: 'voluntary_ethics',
+    article: 'Art. 95',
+    title: 'Freiwillige Verhaltenskodizes',
+    description: 'Freiwillige Anwendung von Verhaltenskodizes zur Förderung vertrauenswürdiger KI.',
+    checkpoints: [
+      'Ethische Grundsätze für KI-Entwicklung dokumentiert',
+      'Interne Richtlinien für verantwortungsvolle KI',
+      'Stakeholder-Engagement bei KI-Entscheidungen',
+      'Regelmäßige Überprüfung der KI-Auswirkungen',
+    ],
+  },
+  {
+    id: 'voluntary_documentation',
+    article: 'Best Practice',
+    title: 'Freiwillige Dokumentation',
+    description: 'Dokumentation des KI-Systems auch ohne gesetzliche Verpflichtung als Best Practice.',
+    checkpoints: [
+      'Systembeschreibung und Zweckbestimmung dokumentiert',
+      'Trainings- und Testdaten beschrieben',
+      'Bekannte Einschränkungen kommuniziert',
+      'Verantwortlichkeiten definiert',
+    ],
+  },
+  {
+    id: 'voluntary_fairness',
+    article: 'Best Practice',
+    title: 'Fairness & Nicht-Diskriminierung',
+    description: 'Freiwillige Maßnahmen zur Vermeidung von Verzerrungen und Diskriminierung.',
+    checkpoints: [
+      'Bias-Analyse durchgeführt',
+      'Maßnahmen zur Vermeidung von Diskriminierung',
+      'Diverse Testdatensätze verwendet',
+      'Monitoring für unbeabsichtigte Verzerrungen',
+    ],
+  },
+  {
+    id: 'voluntary_security',
+    article: 'Best Practice',
+    title: 'Sicherheit & Datenschutz',
+    description: 'Freiwillige Implementierung von Sicherheits- und Datenschutzmaßnahmen.',
+    checkpoints: [
+      'Datenschutzfreundliche Voreinstellungen',
+      'Minimierung der Datenerhebung',
+      'Sichere Datenverarbeitung',
+      'Zugriffskontrollen implementiert',
+    ],
+  },
+  {
+    id: 'voluntary_oversight',
+    article: 'Best Practice',
+    title: 'Menschliche Aufsicht',
+    description: 'Freiwillige Einrichtung menschlicher Kontrollmechanismen.',
+    checkpoints: [
+      'Menschliche Überprüfung kritischer Entscheidungen',
+      'Eskalationsprozess definiert',
+      'Feedback-Mechanismen vorhanden',
+      'Schulung der Aufsichtspersonen',
+    ],
+  },
+];
+
 // High-risk system requirements (Art. 9-15)
 const HIGH_RISK_REQUIREMENTS = [
   {
@@ -296,12 +400,32 @@ const RequirementCard: React.FC<RequirementCardProps> = ({
   );
 };
 
+// Helper to get requirements based on risk level
+function getRequirementsForRiskLevel(riskLevel: 'HIGH_RISK' | 'LIMITED_RISK' | 'MINIMAL_RISK' | null | undefined, voluntaryAudit: boolean) {
+  switch (riskLevel) {
+    case 'HIGH_RISK':
+      return { requirements: HIGH_RISK_REQUIREMENTS, label: 'Hochrisiko-Anforderungen (Art. 9-15)', mandatory: true };
+    case 'LIMITED_RISK':
+      return { requirements: LIMITED_RISK_REQUIREMENTS, label: 'Transparenzpflichten (Art. 50)', mandatory: true };
+    case 'MINIMAL_RISK':
+      if (voluntaryAudit) {
+        return { requirements: MINIMAL_RISK_REQUIREMENTS, label: 'Freiwillige Best Practices (Art. 95)', mandatory: false };
+      }
+      return { requirements: [], label: '', mandatory: false };
+    default:
+      return { requirements: [], label: '', mandatory: false };
+  }
+}
+
 export const Step4Requirements: React.FC = () => {
   const { state, updateAISystem, nextStep, prevStep } = useAuditWizard();
   const currentSystem = state.aiSystems[state.currentSystemIndex];
   const [uploadingReq, setUploadingReq] = useState<string | null>(null);
+  const [voluntaryAudit, setVoluntaryAudit] = useState(false);
 
   const requirements = currentSystem?.requirements || [];
+  const riskLevel = currentSystem?.riskClassification?.riskLevel;
+  const { requirements: applicableRequirements, label: requirementsLabel, mandatory } = getRequirementsForRiskLevel(riskLevel, voluntaryAudit);
 
   const getOrCreateAssessment = (reqId: string): RequirementAssessment => {
     const existing = requirements.find(r => r.requirementId === reqId);
@@ -377,10 +501,13 @@ export const Step4Requirements: React.FC = () => {
     }
   };
 
-  // Calculate progress
-  const assessedCount = requirements.filter(r => r.status !== 'not_assessed').length;
-  const totalCount = HIGH_RISK_REQUIREMENTS.length;
-  const progress = Math.round((assessedCount / totalCount) * 100);
+  // Calculate progress based on applicable requirements
+  const assessedCount = requirements.filter(r =>
+    r.status !== 'not_assessed' &&
+    applicableRequirements.some(ar => ar.id === r.requirementId)
+  ).length;
+  const totalCount = applicableRequirements.length;
+  const progress = totalCount > 0 ? Math.round((assessedCount / totalCount) * 100) : 0;
 
   if (!currentSystem) {
     return (
@@ -390,8 +517,73 @@ export const Step4Requirements: React.FC = () => {
     );
   }
 
-  // Skip if not high-risk
-  if (currentSystem.riskClassification?.riskLevel !== 'HIGH_RISK') {
+  // PROHIBITED: Show warning and no audit option
+  if (currentSystem.riskClassification?.isProhibited) {
+    return (
+      <div className="space-y-8">
+        <div className="audit-panel border-2 border-red-500">
+          <div className="audit-panel-header bg-red-50">
+            <h2 className="text-h3 text-red-700 mb-0">Verbotenes KI-System</h2>
+          </div>
+          <div className="audit-panel-body">
+            <div className="bg-red-100 border border-red-300 rounded-audit p-6 mb-6">
+              <div className="flex items-start">
+                <svg className="w-8 h-8 text-red-600 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <h3 className="text-h4 text-red-800 mb-2">Audit nicht möglich</h3>
+                  <p className="text-body text-red-700 mb-4">
+                    Das System "{currentSystem.name}" wurde als <strong>verboten nach Art. 5 EU AI Act</strong> klassifiziert.
+                    Ein Compliance-Audit ist nicht sinnvoll, da das System in der EU nicht betrieben werden darf.
+                  </p>
+                  <div className="bg-white rounded-audit p-4">
+                    <h4 className="text-label text-red-800 mb-2">Empfohlene Maßnahmen:</h4>
+                    <ul className="space-y-2 text-body text-red-700">
+                      <li className="flex items-start">
+                        <span className="text-red-500 mr-2">1.</span>
+                        Entwicklung/Betrieb des Systems sofort stoppen
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-500 mr-2">2.</span>
+                        Rechtliche Beratung einholen
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-500 mr-2">3.</span>
+                        Alternative Ansätze ohne verbotene Praktiken evaluieren
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-500 mr-2">4.</span>
+                        Bei Neuentwicklung: Risikoklassifizierung erneut durchführen
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between pt-4">
+          <button onClick={prevStep} className="audit-btn-secondary flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            </svg>
+            Zurück zur Klassifizierung
+          </button>
+          <button onClick={nextStep} className="audit-btn-primary flex items-center">
+            Weiter zur Zusammenfassung
+            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // MINIMAL_RISK: Show option for voluntary audit
+  if (riskLevel === 'MINIMAL_RISK' && !voluntaryAudit) {
     return (
       <div className="space-y-8">
         <div className="audit-panel">
@@ -399,17 +591,65 @@ export const Step4Requirements: React.FC = () => {
             <h2 className="text-h3 text-audit-deep mb-0">Anforderungsprüfung</h2>
           </div>
           <div className="audit-panel-body">
-            <div className="audit-alert-info">
-              <p className="text-body text-audit-deep">
-                Da "{currentSystem.name}" als <strong>{
-                  currentSystem.riskClassification?.riskLevel === 'LIMITED_RISK' ? 'System mit begrenztem Risiko' : 'System mit minimalem Risiko'
-                }</strong> klassifiziert wurde, gelten die umfangreichen Anforderungen für Hochrisiko-Systeme (Art. 9-15) nicht.
+            <div className="bg-green-50 border border-green-200 rounded-audit p-6 mb-6">
+              <div className="flex items-start">
+                <svg className="w-8 h-8 text-green-600 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-h4 text-green-800 mb-2">Minimales Risiko - Keine Pflichtanforderungen</h3>
+                  <p className="text-body text-green-700 mb-4">
+                    Das System "{currentSystem.name}" wurde als <strong>System mit minimalem Risiko</strong> klassifiziert.
+                    Nach dem EU AI Act bestehen keine spezifischen Pflichtanforderungen.
+                  </p>
+                  <p className="text-body text-audit-cool">
+                    Sie können jedoch ein <strong>freiwilliges Audit</strong> nach Art. 95 EU AI Act durchführen,
+                    um Best Practices zu dokumentieren und sich auf zukünftige Anforderungen vorzubereiten.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-audit-bg rounded-audit p-6">
+              <h4 className="text-h4 text-audit-deep mb-4">Freiwilliges Audit durchführen?</h4>
+              <p className="text-body text-audit-cool mb-4">
+                Ein freiwilliges Audit bietet folgende Vorteile:
               </p>
-              {currentSystem.riskClassification?.riskLevel === 'LIMITED_RISK' && (
-                <p className="text-body text-audit-cool mt-2">
-                  Es gelten jedoch Transparenzpflichten nach Art. 50 EU AI Act.
-                </p>
-              )}
+              <ul className="space-y-2 text-body text-audit-cool mb-6">
+                <li className="flex items-center">
+                  <svg className="w-5 h-5 text-audit-steel mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Dokumentation von Best Practices
+                </li>
+                <li className="flex items-center">
+                  <svg className="w-5 h-5 text-audit-steel mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Vorbereitung auf zukünftige Regulierungen
+                </li>
+                <li className="flex items-center">
+                  <svg className="w-5 h-5 text-audit-steel mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Stärkung des Kundenvertrauens
+                </li>
+                <li className="flex items-center">
+                  <svg className="w-5 h-5 text-audit-steel mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Interne Qualitätssicherung
+                </li>
+              </ul>
+              <button
+                onClick={() => setVoluntaryAudit(true)}
+                className="audit-btn-secondary flex items-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Freiwilliges Audit starten
+              </button>
             </div>
           </div>
         </div>
@@ -422,7 +662,7 @@ export const Step4Requirements: React.FC = () => {
             Zurück
           </button>
           <button onClick={nextStep} className="audit-btn-primary flex items-center">
-            Weiter zur Bewertung
+            Überspringen & zur Bewertung
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -432,6 +672,7 @@ export const Step4Requirements: React.FC = () => {
     );
   }
 
+  // Show requirements for HIGH_RISK, LIMITED_RISK, or MINIMAL_RISK with voluntary audit
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -463,9 +704,23 @@ export const Step4Requirements: React.FC = () => {
         </div>
       </div>
 
+      {/* Requirements Label */}
+      <div className="audit-panel">
+        <div className="audit-panel-body py-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-h4 text-audit-deep">{requirementsLabel}</h3>
+            {!mandatory && (
+              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-meta">
+                Freiwillig
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Requirements List */}
       <div className="space-y-4">
-        {HIGH_RISK_REQUIREMENTS.map((req) => (
+        {applicableRequirements.map((req) => (
           <RequirementCard
             key={req.id}
             requirement={req}
