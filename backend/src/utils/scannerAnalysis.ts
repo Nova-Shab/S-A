@@ -931,8 +931,26 @@ function featuresToFindings(features: DetectedAIFeature[]): ScanFinding[] {
   });
 }
 
-// Main analysis function - uses GPT when available, falls back to keywords
+// Main analysis function - uses evidence-based scanner v2 when available
 export async function analyzeSystem(inputType: 'url' | 'description', inputValue: string): Promise<ScanAnalysis> {
+  // Check if new evidence-based scanner should be used
+  const useEvidenceScanner = process.env.SCANNER_USE_EVIDENCE_BASED !== 'false';
+
+  if (useEvidenceScanner) {
+    try {
+      console.log('[Scanner] Using evidence-based scanner v2...');
+      const { performEvidenceBasedScan, convertToLegacyFormat } = await import('./evidenceBasedScanner');
+      const evidenceResult = await performEvidenceBasedScan(inputType, inputValue);
+      const legacyResult = convertToLegacyFormat(evidenceResult);
+      console.log(`[Scanner] Evidence-based scan complete: ${legacyResult.riskLevel} (score: ${legacyResult.riskScore})`);
+      return legacyResult;
+    } catch (error) {
+      console.error('[Scanner] Evidence-based scanner failed, falling back to legacy:', error);
+      // Fall through to legacy analysis
+    }
+  }
+
+  // Legacy analysis flow
   let textToAnalyze: string;
   let pageTitle: string | undefined;
   let isUrlScan = false;
