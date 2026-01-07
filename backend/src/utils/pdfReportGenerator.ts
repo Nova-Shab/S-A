@@ -1,5 +1,4 @@
 import PDFDocument from 'pdfkit';
-import { v4 as uuidv4 } from 'uuid';
 
 interface ScanFinding {
   category: string;
@@ -30,41 +29,23 @@ interface ReportData {
   riskLevelLabel: string;
 }
 
-// Risk level German labels
-const RISK_LABELS: Record<string, string> = {
-  PROHIBITED: 'Verboten',
-  HIGH_RISK: 'Hochrisiko',
-  LIMITED_RISK: 'Begrenztes Risiko',
-  MINIMAL_RISK: 'Minimal',
-  UNKNOWN: 'Unbekannt',
+// Risk level German labels and colors
+const RISK_CONFIG: Record<string, { label: string; color: string }> = {
+  PROHIBITED: { label: 'VERBOTEN', color: '#dc2626' },
+  HIGH_RISK: { label: 'Hochrisiko', color: '#ea580c' },
+  LIMITED_RISK: { label: 'Begrenztes Risiko', color: '#ca8a04' },
+  MINIMAL_RISK: { label: 'Minimales Risiko', color: '#16a34a' },
+  UNKNOWN: { label: 'Unbekannt', color: '#6b7280' },
 };
 
-// Severity German labels
-const SEVERITY_LABELS: Record<string, string> = {
-  critical: 'Kritisch',
-  high: 'Hoch',
-  medium: 'Moderat',
-  low: 'Niedrig',
-  info: 'Info',
+// Severity config
+const SEVERITY_CONFIG: Record<string, { label: string; color: string }> = {
+  critical: { label: 'KRITISCH', color: '#dc2626' },
+  high: { label: 'Hoch', color: '#ea580c' },
+  medium: { label: 'Mittel', color: '#ca8a04' },
+  low: { label: 'Niedrig', color: '#2563eb' },
+  info: { label: 'Info', color: '#6b7280' },
 };
-
-// Article mapping status
-type ArticleStatus = 'compliant' | 'non_compliant' | 'unknown' | 'not_applicable';
-
-interface ArticleMapping {
-  article: string;
-  title: string;
-  status: ArticleStatus;
-  requirement: string;
-  evidence?: string;
-  reason: string;
-}
-
-// Generate Scan ID string
-function generateScanIdString(scanId: number): string {
-  const randomPart = uuidv4().substring(0, 8);
-  return `scan_${randomPart}_${scanId.toString().padStart(8, '0')}`;
-}
 
 // Generate PDF Report
 export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
@@ -72,14 +53,13 @@ export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
     size: 'A4',
     margins: { top: 50, bottom: 50, left: 50, right: 50 },
     info: {
-      Title: 'EU AI Act Compliance Report',
-      Author: 'Calmpliance Scanner - EU AI Act Risikoanalyse',
+      Title: `EU AI Act Compliance Report - ${data.systemName}`,
+      Author: 'Calmpliance Scanner',
       Subject: `Compliance Report für ${data.systemName}`,
       Keywords: 'EU AI Act, Compliance, Risk Assessment, Calmpliance',
     },
   });
 
-  const scanIdString = generateScanIdString(data.scanId);
   const today = new Date();
   const dateStr = today.toLocaleDateString('de-DE', {
     day: 'numeric',
@@ -89,396 +69,218 @@ export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
 
   // Colors
   const primaryColor = '#1e3a5f';
-  const accentColor = '#2563eb';
   const mutedColor = '#6b7280';
-  const headerBg = '#f1f5f9';
+
+  // Get risk config
+  const riskConfig = RISK_CONFIG[data.analysis.riskLevel] || RISK_CONFIG.UNKNOWN;
 
   // Helper functions
-  const drawSectionHeader = (title: string, number: string) => {
-    doc.moveDown(0.5);
-    doc
-      .fillColor(primaryColor)
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text(`${number}. ${title}`, { underline: false });
-    doc.moveDown(0.3);
+  const drawLine = () => {
     doc.strokeColor('#e5e7eb').lineWidth(1);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.5);
   };
 
-  const drawSubSection = (title: string) => {
-    doc
-      .fillColor(primaryColor)
-      .fontSize(11)
-      .font('Helvetica-Bold')
-      .text(title);
-    doc.moveDown(0.2);
+  const checkPageSpace = (needed: number) => {
+    if (doc.y > 750 - needed) {
+      doc.addPage();
+    }
   };
 
-  const drawParagraph = (text: string) => {
-    doc.fillColor('#374151').fontSize(10).font('Helvetica').text(text, {
-      align: 'justify',
-      lineGap: 2,
-    });
-    doc.moveDown(0.3);
-  };
-
-  const drawBulletPoint = (text: string, indent = 0) => {
-    doc
-      .fillColor('#374151')
-      .fontSize(10)
-      .font('Helvetica')
-      .text(`• ${text}`, 50 + indent, doc.y, {
-        width: 495 - indent,
-        lineGap: 2,
-      });
-    doc.moveDown(0.2);
-  };
-
-  // Header
+  // ========== HEADER ==========
   doc
     .fillColor(primaryColor)
-    .fontSize(20)
+    .fontSize(22)
     .font('Helvetica-Bold')
-    .text('EU AI Act Compliance Report', { align: 'left' });
+    .text('EU AI Act Compliance Report', { align: 'center' });
 
   doc
     .fillColor(mutedColor)
     .fontSize(10)
     .font('Helvetica')
-    .text('Calmpliance Scanner - Automatisierte Risikoanalyse', { align: 'left' });
+    .text('Calmpliance Scanner - Automatisierte Risikoanalyse', { align: 'center' });
 
+  doc.moveDown(0.5);
+  drawLine();
+
+  // ========== SYSTEM INFO ==========
   doc.moveDown(0.3);
+  doc.fillColor(primaryColor).fontSize(12).font('Helvetica-Bold').text('System: ', { continued: true });
+  doc.font('Helvetica').text(data.systemName);
 
-  // Risk Level Badge
-  const riskLabel = RISK_LABELS[data.analysis.riskLevel] || data.riskLevelLabel;
-  doc
-    .fillColor(accentColor)
-    .fontSize(16)
-    .font('Helvetica-Bold')
-    .text(riskLabel, { align: 'left' });
+  doc.fillColor(mutedColor).fontSize(10).font('Helvetica');
+  doc.text(`Datum: ${dateStr}`);
+  doc.text(`Scan-ID: ${data.scanId}`);
+  doc.text(`Eingabe: ${data.inputType === 'url' ? 'URL-Analyse' : 'Beschreibung'}`);
+
+  if (data.inputType === 'url') {
+    doc.text(`URL: ${data.inputValue.substring(0, 80)}${data.inputValue.length > 80 ? '...' : ''}`);
+  }
 
   doc.moveDown(0.5);
 
-  // Meta information
-  doc
-    .fillColor(mutedColor)
-    .fontSize(9)
-    .font('Helvetica')
-    .text(`Bewertungsdatum: ${dateStr}`);
-  doc.text(
-    `Eingabetyp: ${data.inputType === 'url' ? 'Website-URL' : 'Beschreibung'}`
+  // ========== RISK LEVEL BOX ==========
+  const boxY = doc.y;
+  doc.rect(50, boxY, 495, 60).fillAndStroke('#f8fafc', '#e2e8f0');
+
+  doc.fillColor(riskConfig.color).fontSize(18).font('Helvetica-Bold');
+  doc.text(`Risikoklassifizierung: ${riskConfig.label}`, 60, boxY + 12);
+
+  doc.fillColor(primaryColor).fontSize(11).font('Helvetica');
+  doc.text(`Risiko-Score: ${data.analysis.riskScore}/100`, 60, boxY + 38);
+
+  doc.y = boxY + 70;
+  doc.moveDown(0.5);
+
+  // ========== SUMMARY ==========
+  doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text('Zusammenfassung');
+  doc.moveDown(0.3);
+  doc.fillColor('#374151').fontSize(10).font('Helvetica').text(data.analysis.summary, {
+    align: 'justify',
+    lineGap: 2,
+  });
+  doc.moveDown(0.5);
+  drawLine();
+
+  // ========== FINDINGS ==========
+  doc.moveDown(0.3);
+  const criticalCount = data.analysis.findings.filter(f => f.severity === 'critical').length;
+  const highCount = data.analysis.findings.filter(f => f.severity === 'high').length;
+  const mediumCount = data.analysis.findings.filter(f => f.severity === 'medium').length;
+
+  doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold');
+  doc.text(`Befunde (${data.analysis.findings.length} gesamt)`);
+
+  doc.fillColor(mutedColor).fontSize(9).font('Helvetica');
+  doc.text(`${criticalCount} Kritisch | ${highCount} Hoch | ${mediumCount} Mittel`);
+  doc.moveDown(0.5);
+
+  // Sort findings by severity
+  const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
+  const sortedFindings = [...data.analysis.findings].sort(
+    (a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity)
   );
-  doc.text(`Scan ID: ${scanIdString}`);
-  doc.text('EU AI Act Version: 2024-1689');
 
-  doc.moveDown(0.3);
-  doc
-    .fillColor(mutedColor)
-    .fontSize(8)
-    .font('Helvetica-Oblique')
-    .text(
-      'Bewertung der EU AI Act Calmpliance-Risiken basierend auf bereitgestellten Informationen',
-      { align: 'left' }
-    );
+  sortedFindings.forEach((finding, index) => {
+    checkPageSpace(80);
 
-  // ============================================
-  // 1. Zusammenfassung
-  // ============================================
-  drawSectionHeader('Zusammenfassung', '1');
-  drawParagraph(data.analysis.summary);
+    const sevConfig = SEVERITY_CONFIG[finding.severity] || SEVERITY_CONFIG.info;
 
-  drawSubSection('Risikobegründung:');
-  const riskReason =
-    data.analysis.findings.length > 0
-      ? data.analysis.findings[0].description
-      : 'Keine spezifischen Risikofaktoren identifiziert.';
-  drawParagraph(riskReason);
+    // Finding header with severity badge
+    doc.fillColor(sevConfig.color).fontSize(10).font('Helvetica-Bold');
+    doc.text(`[${sevConfig.label}] `, { continued: true });
+    doc.fillColor(primaryColor).text(finding.title);
 
-  doc
-    .fillColor(mutedColor)
-    .fontSize(9)
-    .font('Helvetica')
-    .text('Konfidenz: medium');
-
-  // ============================================
-  // 2. Was wurde bewertet
-  // ============================================
-  drawSectionHeader('Was wurde bewertet', '2');
-
-  drawSubSection(data.inputType === 'url' ? 'Website-Inhalt' : 'Systembeschreibung');
-  if (data.inputType === 'url') {
-    drawParagraph(`Analysierte URL: ${data.inputValue}`);
-  } else {
-    const truncatedDesc =
-      data.inputValue.length > 200
-        ? data.inputValue.substring(0, 200) + '...'
-        : data.inputValue;
-    drawParagraph(truncatedDesc);
-  }
-
-  doc.moveDown(0.3);
-  drawSubSection('Einschränkungen');
-  drawBulletPoint('Keine Informationen über die technische Umsetzung der KI');
-  drawBulletPoint('Keine Informationen über die Datenverarbeitung');
-
-  doc.moveDown(0.3);
-  drawSubSection('Nicht bewertet');
-  drawBulletPoint('Technische Dokumentation');
-  drawBulletPoint('Datenschutzbestimmungen');
-
-  // ============================================
-  // 3. KI-System-Identifikation
-  // ============================================
-  drawSectionHeader('KI-System-Identifikation', '3');
-
-  drawSubSection(data.systemName);
-  doc
-    .fillColor(mutedColor)
-    .fontSize(9)
-    .font('Helvetica')
-    .text('Status: Wahrscheinlich vorhanden');
-  doc.moveDown(0.2);
-
-  if (data.analysis.detectedFeatures.length > 0) {
-    drawSubSection('Erkannte Merkmale:');
-    data.analysis.detectedFeatures.forEach((feature) => {
-      drawBulletPoint(feature);
-    });
-  }
-
-  // ============================================
-  // 4. EU AI Act Risikoklassifizierung
-  // ============================================
-  drawSectionHeader('EU AI Act Risikoklassifizierung', '4');
-
-  doc
-    .fillColor(primaryColor)
-    .fontSize(12)
-    .font('Helvetica-Bold')
-    .text(`Zugewiesene Risikostufe: ${riskLabel}`);
-  doc.moveDown(0.2);
-
-  doc
-    .fillColor(mutedColor)
-    .fontSize(9)
-    .font('Helvetica')
-    .text(`Risiko-Score: ${data.analysis.riskScore}/100`);
-  doc.text('Konfidenz: medium');
-
-  // ============================================
-  // 5. Artikel-Zuordnung
-  // ============================================
-  drawSectionHeader('Artikel-Zuordnung', '5');
-
-  drawParagraph(data.analysis.summary);
-
-  // Map findings to articles
-  const articleMappings: ArticleMapping[] = [];
-
-  data.analysis.findings.forEach((finding) => {
+    // Category and article reference
+    doc.fillColor(mutedColor).fontSize(9).font('Helvetica');
+    let meta = finding.category;
     if (finding.articleReference) {
-      articleMappings.push({
-        article: finding.articleReference,
-        title: finding.title,
-        status:
-          finding.severity === 'critical' || finding.severity === 'high'
-            ? 'non_compliant'
-            : 'unknown',
-        requirement: finding.description,
-        evidence: 'Kein Nachweis verfügbar',
-        reason: finding.recommendation,
-      });
+      meta += ` | ${finding.articleReference}`;
+    }
+    doc.text(meta);
+
+    // Description
+    doc.moveDown(0.2);
+    doc.fillColor('#374151').fontSize(9).font('Helvetica');
+    const descText = finding.description.length > 300
+      ? finding.description.substring(0, 300) + '...'
+      : finding.description;
+    doc.text(descText, { lineGap: 1 });
+
+    // Recommendation
+    if (finding.recommendation) {
+      doc.moveDown(0.2);
+      doc.fillColor('#059669').fontSize(9).font('Helvetica-Bold').text('Empfehlung: ', { continued: true });
+      doc.font('Helvetica').fillColor('#374151');
+      const recText = finding.recommendation.length > 200
+        ? finding.recommendation.substring(0, 200) + '...'
+        : finding.recommendation;
+      doc.text(recText);
+    }
+
+    doc.moveDown(0.4);
+
+    // Separator between findings (except last)
+    if (index < sortedFindings.length - 1) {
+      doc.strokeColor('#e5e7eb').lineWidth(0.5);
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+      doc.moveDown(0.4);
     }
   });
 
-  // Add default transparency article if not present
-  if (!articleMappings.some((m) => m.article.includes('50'))) {
-    articleMappings.push({
-      article: 'Artikel 50',
-      title: 'Transparenzpflichten für Anbieter und Betreiber bestimmter KI Systeme',
-      status: 'unknown',
-      requirement:
-        'Anbieter müssen sicherstellen, dass Benutzer informiert werden, wenn sie mit einem KI-System interagieren',
-      evidence: 'Kein Nachweis verfügbar',
-      reason: 'Transparenz ist wichtig, um Benutzer über die Verwendung von KI zu informieren',
-    });
-  }
+  // ========== DETECTED FEATURES ==========
+  if (data.analysis.detectedFeatures.length > 0) {
+    checkPageSpace(60);
+    doc.moveDown(0.5);
+    drawLine();
 
-  articleMappings.forEach((mapping) => {
+    doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text('Erkannte KI-Merkmale');
     doc.moveDown(0.3);
-    doc
-      .fillColor(primaryColor)
-      .fontSize(11)
-      .font('Helvetica-Bold')
-      .text(`${mapping.article}: ${mapping.title}`);
 
-    const statusLabel =
-      mapping.status === 'compliant'
-        ? 'Konform'
-        : mapping.status === 'non_compliant'
-          ? 'Nicht konform'
-          : 'Unbekannt';
-    doc.fillColor(mutedColor).fontSize(9).font('Helvetica').text(statusLabel);
-    doc.moveDown(0.2);
-
-    doc.fillColor('#374151').fontSize(10).font('Helvetica-Bold').text('Anforderung: ', {
-      continued: true,
+    doc.fillColor('#374151').fontSize(10).font('Helvetica');
+    data.analysis.detectedFeatures.slice(0, 15).forEach(feature => {
+      doc.text(`• ${feature}`);
     });
-    doc.font('Helvetica').text(mapping.requirement);
-    doc.moveDown(0.1);
-    doc.fillColor(mutedColor).fontSize(9).text(mapping.evidence || '');
-    doc.moveDown(0.1);
-    doc.fillColor('#374151').fontSize(10).font('Helvetica-Bold').text('Warum wichtig: ', {
-      continued: true,
-    });
-    doc.font('Helvetica').text(mapping.reason);
-  });
+    if (data.analysis.detectedFeatures.length > 15) {
+      doc.fillColor(mutedColor).text(`... und ${data.analysis.detectedFeatures.length - 15} weitere`);
+    }
+  }
 
-  // ============================================
-  // 6. Lücken und Unsicherheiten
-  // ============================================
-  doc.addPage();
-  drawSectionHeader('Lücken und Unsicherheiten', '6');
-
-  drawSubSection('Identifizierte Lücken');
+  // ========== COMPLIANCE GAPS ==========
   if (data.analysis.complianceGaps.length > 0) {
-    data.analysis.complianceGaps.forEach((gap) => {
-      drawBulletPoint(`${gap} (Moderat)`);
+    checkPageSpace(60);
+    doc.moveDown(0.5);
+    drawLine();
+
+    doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text('Compliance-Lücken');
+    doc.moveDown(0.3);
+
+    doc.fillColor('#374151').fontSize(10).font('Helvetica');
+    data.analysis.complianceGaps.forEach(gap => {
+      doc.text(`• ${gap}`);
     });
-  } else {
-    drawParagraph('Keine spezifischen Lücken identifiziert.');
   }
 
-  doc.moveDown(0.3);
-  drawSubSection('Unsicherheiten');
-  drawBulletPoint('Technische Umsetzung - Es ist unklar, wie die KI-Technologie implementiert ist');
-  drawBulletPoint('Datenverarbeitung - Keine Details zur Datenverarbeitung verfügbar');
-
-  // ============================================
-  // 7. Evidenz- und Dokumentations-Checkliste
-  // ============================================
-  drawSectionHeader('Evidenz- und Dokumentations-Checkliste', '7');
-
-  const checklistItems = [
-    {
-      item: 'Technische Dokumentation',
-      desc: 'Beschreibung der KI-System-Architektur',
-      status: 'Erforderlich',
-    },
-    {
-      item: 'Datenschutz-Folgenabschätzung',
-      desc: 'DSGVO-konforme Bewertung',
-      status: 'Empfohlen',
-    },
-    {
-      item: 'Risikobewertung',
-      desc: 'Dokumentierte Risikobewertung gemäß EU AI Act',
-      status: 'Erforderlich',
-    },
-    {
-      item: 'Qualitätsmanagementsystem',
-      desc: 'QMS-Dokumentation',
-      status: 'Empfohlen',
-    },
-  ];
-
-  checklistItems.forEach((item) => {
-    doc
-      .fillColor(primaryColor)
-      .fontSize(10)
-      .font('Helvetica-Bold')
-      .text(item.item, { continued: true });
-    doc.font('Helvetica').text(` - ${item.desc}`);
-    doc.fillColor(mutedColor).fontSize(9).text(`Status: ${item.status}`);
-    doc.moveDown(0.2);
-  });
-
-  // ============================================
-  // 8. Praktische nächste Schritte
-  // ============================================
-  drawSectionHeader('Praktische nächste Schritte', '8');
-
-  // Immediate
-  drawSubSection('Sofort (7 Tage)');
-  if (data.analysis.findings.some((f) => f.severity === 'critical')) {
-    data.analysis.findings
-      .filter((f) => f.severity === 'critical')
-      .forEach((f) => {
-        drawBulletPoint(f.recommendation);
-      });
-  } else {
-    drawParagraph('Keine sofortigen Maßnahmen erforderlich.');
-  }
-
-  // Short-term
-  doc.moveDown(0.3);
-  drawSubSection('Kurzfristig (30 Tage)');
+  // ========== NEXT STEPS ==========
   if (data.analysis.nextSteps.length > 0) {
-    data.analysis.nextSteps.slice(0, 3).forEach((step) => {
-      drawBulletPoint(step);
+    checkPageSpace(60);
+    doc.moveDown(0.5);
+    drawLine();
+
+    doc.fillColor(primaryColor).fontSize(14).font('Helvetica-Bold').text('Empfohlene nächste Schritte');
+    doc.moveDown(0.3);
+
+    doc.fillColor('#374151').fontSize(10).font('Helvetica');
+    data.analysis.nextSteps.forEach((step, idx) => {
+      doc.text(`${idx + 1}. ${step}`);
     });
-  } else {
-    drawParagraph('Keine kurzfristigen Maßnahmen erforderlich.');
   }
 
-  // Mid-term
-  doc.moveDown(0.3);
-  drawSubSection('Mittelfristig (90 Tage)');
-  if (data.analysis.nextSteps.length > 3) {
-    data.analysis.nextSteps.slice(3).forEach((step) => {
-      drawBulletPoint(step);
-    });
-  } else {
-    drawParagraph('Keine mittelfristigen Maßnahmen erforderlich.');
-  }
-
-  // ============================================
-  // 9. Offene Fragen
-  // ============================================
-  drawSectionHeader('Offene Fragen', '9');
-
-  const openQuestions = [
-    'Wie wird die KI-Technologie implementiert?',
-    'Welche Daten werden verarbeitet und wie?',
-    'Gibt es eine menschliche Überwachung der KI-Entscheidungen?',
-    'Wie werden Benutzer über die KI-Nutzung informiert?',
-  ];
-
-  openQuestions.forEach((q) => {
-    drawBulletPoint(q);
-  });
-
-  // ============================================
-  // 10. Wichtiger Hinweis
-  // ============================================
-  drawSectionHeader('Wichtiger Hinweis', '10');
-
-  doc
-    .fillColor('#374151')
-    .fontSize(9)
-    .font('Helvetica')
-    .text(
-      'Dieses Dokument ist eine Bereitschafts- und Risikobewertung auf Basis öffentlich verfügbarer Informationen. ' +
-        'Es stellt keine Rechtsberatung dar und sollte nicht als Ersatz für qualifizierte rechtliche Beratung herangezogen werden. ' +
-        'Die Bewertung spiegelt Informationen zum Bewertungsdatum wider. ' +
-        'Unbekannte Faktoren können die Schlussfolgerungen wesentlich beeinflussen.',
-      { align: 'justify', lineGap: 2 }
-    );
-
-  // Footer
+  // ========== DISCLAIMER ==========
+  checkPageSpace(100);
   doc.moveDown(1);
-  doc.strokeColor('#e5e7eb').lineWidth(1);
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.5);
+  drawLine();
 
-  doc
-    .fillColor(mutedColor)
-    .fontSize(8)
-    .font('Helvetica')
-    .text('Erstellt von Calmpliance Scanner - EU AI Act Risikoanalyse', { align: 'center' });
-  doc.text(`Scan ID: ${scanIdString} | ${dateStr}`, { align: 'center' });
+  doc.fillColor(primaryColor).fontSize(12).font('Helvetica-Bold').text('Wichtiger Hinweis');
+  doc.moveDown(0.3);
+
+  doc.fillColor(mutedColor).fontSize(9).font('Helvetica').text(
+    'Dieser Bericht ist eine automatisierte Risikoeinschätzung basierend auf den bereitgestellten Informationen. ' +
+    'Er stellt keine Rechtsberatung dar und sollte nicht als Ersatz für qualifizierte rechtliche Beratung verwendet werden. ' +
+    'Die Bewertung spiegelt den Informationsstand zum Bewertungszeitpunkt wider. ' +
+    'Für eine verbindliche Einschätzung konsultieren Sie bitte qualifizierte Rechtsberater.',
+    { align: 'justify', lineGap: 2 }
+  );
+
+  // ========== FOOTER ==========
+  doc.moveDown(1);
+  drawLine();
+
+  doc.fillColor(mutedColor).fontSize(8).font('Helvetica').text(
+    'Erstellt von Calmpliance Scanner - EU AI Act Risikoanalyse',
+    { align: 'center' }
+  );
+  doc.text(`Scan-ID: ${data.scanId} | ${dateStr}`, { align: 'center' });
   doc.text('www.calmpliance.eu', { align: 'center' });
 
   return doc;
