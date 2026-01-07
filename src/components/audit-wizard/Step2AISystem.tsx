@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuditWizard, AISystem } from '../../context/AuditWizardContext';
 
 const DEPLOYMENT_AREAS = [
@@ -13,6 +13,38 @@ const DEPLOYMENT_AREAS = [
   { value: 'education', label: 'Bildung', examples: 'Lernplattformen, Prüfungsbewertung' },
   { value: 'other', label: 'Sonstiges', examples: 'Andere Einsatzbereiche' },
 ];
+
+// Domain to deployment area mapping
+const DOMAIN_TO_DEPLOYMENT: Record<string, string> = {
+  'personal': 'hr',
+  'hr': 'hr',
+  'personalwesen': 'hr',
+  'recruiting': 'hr',
+  'kundenservice': 'customer_service',
+  'customer': 'customer_service',
+  'support': 'customer_service',
+  'chatbot': 'customer_service',
+  'finanz': 'finance',
+  'kredit': 'finance',
+  'risiko': 'finance',
+  'gesundheit': 'healthcare',
+  'medizin': 'healthcare',
+  'diagnostik': 'healthcare',
+  'sicherheit': 'security',
+  'überwachung': 'security',
+  'biometrie': 'security',
+  'marketing': 'marketing',
+  'werbung': 'marketing',
+  'produktion': 'production',
+  'fertigung': 'production',
+  'qualität': 'production',
+  'recht': 'legal',
+  'justiz': 'legal',
+  'vertrag': 'legal',
+  'bildung': 'education',
+  'schule': 'education',
+  'prüfung': 'education',
+};
 
 interface SystemFormData {
   name: string;
@@ -30,12 +62,151 @@ const initialFormData: SystemFormData = {
   vendor: '',
 };
 
+// Helper function to detect deployment area from text
+function detectDeploymentArea(text: string): string {
+  const lowerText = text.toLowerCase();
+  for (const [keyword, area] of Object.entries(DOMAIN_TO_DEPLOYMENT)) {
+    if (lowerText.includes(keyword)) {
+      return area;
+    }
+  }
+  return 'other';
+}
+
+// Parse JSON and extract system data
+function parseJsonToFormData(jsonData: Record<string, unknown>): SystemFormData | null {
+  try {
+    // Extract name
+    const name = (jsonData.systemName || jsonData.name || jsonData.system_name || '') as string;
+
+    // Extract description from various possible fields
+    const description = (
+      jsonData.description ||
+      jsonData.primaryPurpose ||
+      jsonData.purpose ||
+      jsonData.useCase ||
+      jsonData.use_case ||
+      ''
+    ) as string;
+
+    // Extract deployment area
+    let deploymentArea = '';
+    if (jsonData.deploymentArea && typeof jsonData.deploymentArea === 'string') {
+      deploymentArea = jsonData.deploymentArea;
+    } else if (jsonData.domain && typeof jsonData.domain === 'string') {
+      deploymentArea = detectDeploymentArea(jsonData.domain);
+    } else if (jsonData.sector && typeof jsonData.sector === 'string') {
+      deploymentArea = detectDeploymentArea(jsonData.sector);
+    } else if (jsonData.category && typeof jsonData.category === 'string') {
+      deploymentArea = detectDeploymentArea(jsonData.category);
+    } else if (description) {
+      deploymentArea = detectDeploymentArea(description);
+    }
+
+    // Validate deployment area is in our list
+    if (!DEPLOYMENT_AREAS.find(d => d.value === deploymentArea)) {
+      deploymentArea = 'other';
+    }
+
+    // Extract vendor/provider info
+    const vendor = (
+      jsonData.systemProvider ||
+      jsonData.provider ||
+      jsonData.vendor ||
+      jsonData.hersteller ||
+      jsonData.anbieter ||
+      ''
+    ) as string;
+
+    const isThirdParty = Boolean(vendor) || Boolean(jsonData.isThirdParty) || Boolean(jsonData.thirdParty);
+
+    return {
+      name: name.trim(),
+      description: description.trim(),
+      deploymentArea,
+      isThirdParty,
+      vendor: vendor.trim(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const Step2AISystem: React.FC = () => {
   const { state, addAISystem, updateAISystem, nextStep, prevStep, updateState } = useAuditWizard();
   const [formData, setFormData] = useState<SystemFormData>(initialFormData);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(state.aiSystems.length === 0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle JSON file import
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImportError(null);
+    setImportSuccess(null);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const jsonData = JSON.parse(content);
+
+        // Handle array of systems
+        const systems = Array.isArray(jsonData) ? jsonData : [jsonData];
+
+        let importedCount = 0;
+        for (const systemData of systems) {
+          const parsed = parseJsonToFormData(systemData);
+          if (parsed && parsed.name) {
+            // Fill the form with the first valid system
+            if (importedCount === 0) {
+              setFormData(parsed);
+              setShowForm(true);
+              setIsEditing(null);
+            } else {
+              // Add additional systems directly
+              addAISystem({
+                name: parsed.name,
+                description: parsed.description,
+                deploymentArea: parsed.deploymentArea || 'other',
+                isThirdParty: parsed.isThirdParty,
+                vendor: parsed.vendor,
+              });
+            }
+            importedCount++;
+          }
+        }
+
+        if (importedCount > 0) {
+          if (importedCount === 1) {
+            setImportSuccess('System-Daten wurden in das Formular übernommen. Bitte prüfen und ergänzen Sie die Angaben.');
+          } else {
+            setImportSuccess(`${importedCount} Systeme importiert. Das erste System wird im Formular angezeigt.`);
+          }
+        } else {
+          setImportError('Keine gültigen Systemdaten in der JSON-Datei gefunden.');
+        }
+      } catch {
+        setImportError('Die Datei konnte nicht gelesen werden. Bitte stellen Sie sicher, dass es sich um eine gültige JSON-Datei handelt.');
+      }
+    };
+
+    reader.onerror = () => {
+      setImportError('Fehler beim Lesen der Datei.');
+    };
+
+    reader.readAsText(file);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -119,15 +290,78 @@ export const Step2AISystem: React.FC = () => {
       {/* Intro */}
       <div className="audit-panel">
         <div className="audit-panel-header">
-          <h2 className="text-h3 text-audit-deep mb-0">KI-Systeme erfassen</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-h3 text-audit-deep mb-0">KI-Systeme erfassen</h2>
+            {/* JSON Import Button */}
+            <div className="flex items-center">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFileImport}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="audit-btn-secondary flex items-center text-sm"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                JSON importieren
+              </button>
+            </div>
+          </div>
         </div>
         <div className="audit-panel-body">
           <p className="text-body text-audit-cool">
             Erfassen Sie alle KI-Systeme, die Sie im Rahmen dieses Audits prüfen möchten.
             Für jedes System wird eine separate Risikoklassifizierung und Anforderungsprüfung durchgeführt.
           </p>
+          <p className="text-meta text-audit-cool mt-2">
+            <strong>Tipp:</strong> Sie können auch eine JSON-Datei mit Systemdaten importieren.
+          </p>
         </div>
       </div>
+
+      {/* Import Messages */}
+      {importSuccess && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-audit">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-body text-green-800">{importSuccess}</p>
+              <button
+                onClick={() => setImportSuccess(null)}
+                className="text-sm text-green-600 hover:text-green-800 underline mt-1"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {importError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-audit">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-body text-red-800">{importError}</p>
+              <button
+                onClick={() => setImportError(null)}
+                className="text-sm text-red-600 hover:text-red-800 underline mt-1"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Existing Systems List */}
       {state.aiSystems.length > 0 && (
