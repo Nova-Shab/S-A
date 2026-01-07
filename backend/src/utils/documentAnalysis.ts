@@ -2,7 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import mammoth from 'mammoth';
-import pdfParse from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 import { DocumentAIAnalysis } from '../models/SystemAudit';
 import { getRequirementById } from '../data/euAiActRequirements';
 
@@ -27,8 +27,10 @@ export async function extractTextFromDocument(filePath: string): Promise<string>
       case '.pdf':
         console.log('[DocAnalysis] Processing PDF...');
         const pdfBuffer = fs.readFileSync(filePath);
-        const pdfResult = await pdfParse(pdfBuffer);
+        const pdfParser = new PDFParse({ data: pdfBuffer });
+        const pdfResult = await pdfParser.getText();
         text = pdfResult.text;
+        await pdfParser.destroy();
         break;
 
       case '.docx':
