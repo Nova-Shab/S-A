@@ -5,9 +5,16 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import fs from 'fs';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables - check if .env exists
+const envPath = path.join(__dirname, '../.env');
+if (!fs.existsSync(envPath)) {
+  console.warn('⚠️  WARNING: .env file not found!');
+  console.warn('   Copy .env.example to .env and configure your settings:');
+  console.warn('   cp backend/.env.example backend/.env');
+}
+dotenv.config({ path: envPath });
 
 // Import routes
 import authRoutes from './routes/authRoutes';
@@ -121,6 +128,14 @@ const startServer = async () => {
       console.log('');
       console.log(`  Demo Mode: ${process.env.DEMO_ENABLED !== 'false' ? 'ENABLED' : 'DISABLED'}`);
       console.log(`  Auto-Grant: ${process.env.DEMO_AUTO_GRANT === 'true' ? 'YES' : 'NO'}`);
+      console.log('');
+      console.log('  Scanner Configuration:');
+      console.log(`    → GPT: ${process.env.SCANNER_USE_GPT === 'true' ? '✅ ENABLED' : '❌ DISABLED'}`);
+      console.log(`    → Ollama: ${process.env.SCANNER_USE_OLLAMA === 'true' ? '✅ ENABLED' : '❌ DISABLED'}`);
+      if (process.env.SCANNER_USE_OLLAMA === 'true') {
+        console.log(`      URL: ${process.env.OLLAMA_URL || 'http://localhost:11434'}`);
+        console.log(`      Model: ${process.env.OLLAMA_MODEL || 'eu-ai-act'}`);
+      }
       console.log('═══════════════════════════════════════════════════════');
       console.log('');
     });
