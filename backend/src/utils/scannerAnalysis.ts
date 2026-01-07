@@ -94,6 +94,49 @@ const PROHIBITED_EMOTION_WORKPLACE = [
   'student engagement emotion', 'schüler engagement emotion',
   'workforce emotion analytics', 'belegschaft emotionsanalyse',
   'emotional state monitoring employees', 'emotionszustand überwachung mitarbeiter',
+  // Additional keywords for better detection
+  'emotionserkennung arbeitskontext', 'emotion arbeitskontext',
+  'gesichtsausdruck mitarbeiter', 'gesichtsausdrücke mitarbeiter',
+  'stimmungsbewertung mitarbeiter', 'stimmungsanalyse mitarbeiter',
+  'emotionen mitarbeiter', 'emotion mitarbeiter',
+  'mitarbeiter emotion', 'mitarbeitenden emotion',
+  'leistungsbewertung emotion', 'leistungsbewertung stimmung',
+  'stimmungserkennung arbeit', 'stimmungserkennung mitarbeiter',
+  'gefühlserkennung arbeitsplatz', 'gefühlserkennung mitarbeiter',
+  'emotionale überwachung mitarbeiter', 'emotionale analyse mitarbeiter',
+  'employee emotion', 'worker emotion', 'staff emotion',
+  'employee mood', 'worker mood', 'staff mood',
+  'employee sentiment', 'worker sentiment', 'staff sentiment',
+  'gesichtsausdruck analyse arbeit', 'emotional state employee',
+  'emotionszustand mitarbeiter', 'affect recognition work', 'affekterkennung arbeit',
+];
+
+// Keywords indicating emotion analysis (for combination detection)
+const EMOTION_INDICATORS = [
+  'emotion', 'emotionserkennung', 'emotionsanalyse', 'emotionen',
+  'stimmungserkennung', 'stimmungsanalyse', 'stimmungsbewertung', 'stimmung',
+  'gefühlserkennung', 'gefühlsanalyse', 'affective', 'affekt',
+  'gesichtsausdruck', 'gesichtsausdrücke', 'facial expression',
+  'mood detection', 'mood analysis', 'sentiment analysis',
+];
+
+// Keywords indicating workplace/employee context (for combination detection)
+const WORKPLACE_INDICATORS = [
+  'arbeitsplatz', 'arbeitskontext', 'arbeit', 'workplace', 'work',
+  'mitarbeiter', 'mitarbeitende', 'mitarbeitenden', 'employee', 'employees',
+  'belegschaft', 'personal', 'angestellte', 'beschäftigte',
+  'workforce', 'worker', 'staff', 'personnel',
+  'büro', 'office', 'firma', 'unternehmen', 'company',
+  'hr', 'human resources', 'personalwesen',
+  'leistungsbewertung', 'performance evaluation', 'performance review',
+];
+
+// Keywords indicating school/education context (for combination detection)
+const SCHOOL_INDICATORS = [
+  'schule', 'school', 'schüler', 'student', 'students',
+  'klassenzimmer', 'classroom', 'bildung', 'education',
+  'unterricht', 'lesson', 'prüfung', 'exam',
+  'universität', 'university', 'hochschule',
 ];
 
 // Art. 5(1)(g) - Biometrische Kategorisierung nach sensiblen Merkmalen / Biometric Categorization by Sensitive Attributes
@@ -346,6 +389,22 @@ function detectProhibitedPractices(text: string): ProhibitedPracticeMatch[] {
       keywords: emotionWorkMatches,
       description: 'KI-Systeme zur Ableitung von Emotionen am Arbeitsplatz oder in Bildungseinrichtungen (außer für medizinische oder Sicherheitszwecke).',
     });
+  } else {
+    // Combination detection: emotion keyword + workplace/school context
+    const emotionMatches = EMOTION_INDICATORS.filter(kw => lowerText.includes(kw.toLowerCase()));
+    const workplaceMatches = WORKPLACE_INDICATORS.filter(kw => lowerText.includes(kw.toLowerCase()));
+    const schoolMatches = SCHOOL_INDICATORS.filter(kw => lowerText.includes(kw.toLowerCase()));
+
+    if (emotionMatches.length > 0 && (workplaceMatches.length > 0 || schoolMatches.length > 0)) {
+      const contextMatches = [...workplaceMatches, ...schoolMatches];
+      const contextType = workplaceMatches.length > 0 ? 'Arbeitsplatz' : 'Schule';
+      detected.push({
+        category: `Emotionserkennung am ${contextType}`,
+        article: 'Art. 5(1)(f)',
+        keywords: [...emotionMatches, ...contextMatches],
+        description: 'KI-Systeme zur Ableitung von Emotionen am Arbeitsplatz oder in Bildungseinrichtungen (außer für medizinische oder Sicherheitszwecke).',
+      });
+    }
   }
 
   const biometricCatMatches = PROHIBITED_BIOMETRIC_CATEGORIZATION.filter(kw => lowerText.includes(kw.toLowerCase()));
@@ -394,7 +453,7 @@ function analyzeText(text: string): {
 
 // Determine risk level based on matches
 function determineRiskLevel(matches: ReturnType<typeof analyzeText>): RiskLevel {
-  if (matches.prohibitedMatches.length > 0) {
+  if (matches.prohibitedMatches.length > 0 || matches.prohibitedPractices.length > 0) {
     return 'PROHIBITED';
   }
   if (matches.highRiskMatches.length >= 2) {

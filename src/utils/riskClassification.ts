@@ -287,6 +287,50 @@ const PROHIBITED_EMOTION_WORK_KEYWORDS = [
   "workplace sentiment analysis", "arbeitsplatz stimmungsanalyse",
   "employee mood detection", "mitarbeiter stimmungserkennung",
   "classroom emotion detection", "klassenzimmer emotionserkennung",
+  // Additional keywords for better detection
+  "emotionserkennung arbeitskontext", "emotion arbeitskontext",
+  "gesichtsausdruck mitarbeiter", "gesichtsausdrücke mitarbeiter",
+  "stimmungsbewertung mitarbeiter", "stimmungsanalyse mitarbeiter",
+  "emotionen mitarbeiter", "emotion mitarbeiter",
+  "mitarbeiter emotion", "mitarbeitenden emotion",
+  "leistungsbewertung emotion", "leistungsbewertung stimmung",
+  "stimmungserkennung arbeit", "stimmungserkennung mitarbeiter",
+  "gefühlserkennung arbeitsplatz", "gefühlserkennung mitarbeiter",
+  "emotionale überwachung mitarbeiter", "emotionale analyse mitarbeiter",
+  "employee emotion", "worker emotion", "staff emotion",
+  "employee mood", "worker mood", "staff mood",
+  "employee sentiment", "worker sentiment", "staff sentiment",
+  "employee facial expression", "gesichtsausdruck analyse arbeit",
+  "emotional state employee", "emotionszustand mitarbeiter",
+  "affect recognition work", "affekterkennung arbeit",
+];
+
+// Keywords indicating emotion analysis
+const EMOTION_KEYWORDS = [
+  "emotion", "emotionserkennung", "emotionsanalyse", "emotionen",
+  "stimmungserkennung", "stimmungsanalyse", "stimmungsbewertung", "stimmung",
+  "gefühlserkennung", "gefühlsanalyse", "affective", "affekt",
+  "gesichtsausdruck", "gesichtsausdrücke", "facial expression",
+  "mood detection", "mood analysis", "sentiment analysis",
+];
+
+// Keywords indicating workplace/employee context
+const WORKPLACE_KEYWORDS = [
+  "arbeitsplatz", "arbeitskontext", "arbeit", "workplace", "work",
+  "mitarbeiter", "mitarbeitende", "mitarbeitenden", "employee", "employees",
+  "belegschaft", "personal", "angestellte", "beschäftigte",
+  "workforce", "worker", "staff", "personnel",
+  "büro", "office", "firma", "unternehmen", "company",
+  "hr", "human resources", "personalwesen",
+  "leistungsbewertung", "performance evaluation", "performance review",
+];
+
+// Keywords indicating school/education context
+const SCHOOL_KEYWORDS = [
+  "schule", "school", "schüler", "student", "students",
+  "klassenzimmer", "classroom", "bildung", "education",
+  "unterricht", "lesson", "prüfung", "exam",
+  "universität", "university", "hochschule",
 ];
 
 // Art. 5(1)(g) - Biometrische Kategorisierung nach sensiblen Merkmalen
@@ -318,9 +362,18 @@ interface ProhibitedPracticeResult {
 }
 
 export function checkProhibitedPractices(systemInfo: AiSystemInfo): ProhibitedPracticeResult {
+  // Combine all relevant text fields for analysis
   const useCase = systemInfo.useCase?.toLowerCase() || "";
   const purpose = systemInfo.primaryPurpose?.toLowerCase() || "";
-  const combined = `${useCase} ${purpose}`;
+  const prohibitedUses = systemInfo.prohibitedUses?.toLowerCase() || "";
+  const foreseenMisuse = systemInfo.foreseenMisuse?.toLowerCase() || "";
+  const intendedUsers = systemInfo.intendedUsers?.toLowerCase() || "";
+  const domain = systemInfo.domain?.toLowerCase() || "";
+  const systemName = (systemInfo as unknown as Record<string, unknown>).systemName?.toString().toLowerCase() || "";
+  const description = (systemInfo as unknown as Record<string, unknown>).description?.toString().toLowerCase() || "";
+
+  // Combine all fields for comprehensive analysis
+  const combined = `${useCase} ${purpose} ${prohibitedUses} ${foreseenMisuse} ${intendedUsers} ${domain} ${systemName} ${description}`;
 
   const practices: ProhibitedPracticeResult["practices"] = [];
 
@@ -382,6 +435,22 @@ export function checkProhibitedPractices(systemInfo: AiSystemInfo): ProhibitedPr
       article: "Art. 5(1)(f)",
       matchedKeywords: emotionWorkMatches,
     });
+  } else {
+    // Also check for combination of emotion keywords + workplace/school keywords
+    const hasEmotionKeyword = EMOTION_KEYWORDS.some(kw => combined.includes(kw));
+    const workplaceMatches = WORKPLACE_KEYWORDS.filter(kw => combined.includes(kw));
+    const schoolMatches = SCHOOL_KEYWORDS.filter(kw => combined.includes(kw));
+
+    if (hasEmotionKeyword && (workplaceMatches.length > 0 || schoolMatches.length > 0)) {
+      const context = workplaceMatches.length > 0 ? "Arbeitsplatz" : "Schule/Bildung";
+      const matchedContext = workplaceMatches.length > 0 ? workplaceMatches : schoolMatches;
+      const emotionMatches = EMOTION_KEYWORDS.filter(kw => combined.includes(kw));
+      practices.push({
+        category: `Emotionserkennung am ${context}`,
+        article: "Art. 5(1)(f)",
+        matchedKeywords: [...emotionMatches, ...matchedContext],
+      });
+    }
   }
 
   // Art. 5(1)(g) - Biometrische Kategorisierung nach sensiblen Merkmalen
