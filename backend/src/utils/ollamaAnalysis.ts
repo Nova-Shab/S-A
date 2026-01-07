@@ -113,9 +113,17 @@ function validateResponse(data: unknown): OllamaResponse | null {
 // Check if Ollama is available
 export async function checkOllamaConnection(): Promise<boolean> {
   try {
+    console.log(`[Ollama] Checking connection to ${OLLAMA_API_URL}/api/tags...`);
     const response = await axios.get(`${OLLAMA_API_URL}/api/tags`, { timeout: 5000 });
+    const models = response.data?.models || [];
+    console.log(`[Ollama] Connected! Available models: ${models.map((m: { name: string }) => m.name).join(', ') || 'none'}`);
     return response.status === 200;
-  } catch {
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.log(`[Ollama] Connection failed: ${error.code} - ${error.message}`);
+    } else {
+      console.log(`[Ollama] Connection failed:`, error);
+    }
     return false;
   }
 }

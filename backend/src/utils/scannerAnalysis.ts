@@ -983,21 +983,25 @@ export async function analyzeSystem(inputType: 'url' | 'description', inputValue
   }
 
   // Try GPT analysis first if available
-  if (isGPTAvailable()) {
+  const gptEnabled = isGPTAvailable();
+  console.log(`[Scanner] GPT available: ${gptEnabled}`);
+  if (gptEnabled) {
     try {
-      console.log('Using GPT-powered analysis...');
+      console.log('[Scanner] Using GPT-powered analysis...');
       const gptResult = await analyzeWithGPT(inputType, textToAnalyze, pageTitle);
       return gptResult;
     } catch (error) {
-      console.error('GPT analysis failed:', error);
+      console.error('[Scanner] GPT analysis failed:', error);
       // Fall through to try Ollama or keyword analysis
     }
   }
 
   // Try Ollama analysis if available
-  if (await isOllamaAvailable()) {
+  const ollamaEnabled = await isOllamaAvailable();
+  console.log(`[Scanner] Ollama available: ${ollamaEnabled}`);
+  if (ollamaEnabled) {
     try {
-      console.log('Using Ollama local analysis...');
+      console.log('[Scanner] Using Ollama local analysis...');
       const ollamaResult = await analyzeWithOllama(inputType, textToAnalyze, pageTitle);
       // Merge with advanced features if available
       if (advancedFeatures.length > 0) {
@@ -1010,13 +1014,13 @@ export async function analyzeSystem(inputType: 'url' | 'description', inputValue
       }
       return ollamaResult;
     } catch (error) {
-      console.error('Ollama analysis failed:', error);
+      console.error('[Scanner] Ollama analysis failed:', error);
       // Fall through to keyword analysis
     }
   }
 
   // Fallback to keyword-based analysis
-  console.log('Using keyword-based analysis...');
+  console.log('[Scanner] Falling back to keyword-based analysis...');
   const keywordResult = analyzeWithKeywords(textToAnalyze, isUrlScan, pageTitle);
 
   // Merge with advanced features from web scraping
