@@ -78,12 +78,13 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </button>
               ))}
             </div>
+
+            {/* Separator between nav and utilities */}
+            <div className="hidden lg:block h-8 w-px bg-audit-light ml-4" />
           </div>
 
-          {/* Right side: Language Switcher, Demo Button & User Menu */}
+          {/* Right side: Demo Button, User Menu & Language Switcher */}
           <div className="flex items-center gap-2 lg:gap-3">
-            {/* Language Switcher */}
-            <LanguageSwitcher />
             {/* Audit Tools (Demo) Button */}
             {demoEnabled && (
               <button
@@ -168,6 +169,14 @@ export const Navigation: React.FC<NavigationProps> = ({
               </svg>
               <span className="hidden xl:inline">{t('nav.logout')}</span>
             </button>
+
+            {/* Separator */}
+            <div className="hidden lg:block h-6 w-px bg-audit-light mx-1" />
+
+            {/* Language Switcher - at the end for consistency */}
+            <div className="hidden lg:block">
+              <LanguageSwitcher />
+            </div>
 
             {/* Mobile menu button */}
             <button
