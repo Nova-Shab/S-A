@@ -6,6 +6,7 @@ import {
   getScanHistory,
   deleteScan,
   generateReport,
+  getScannerStatus,
 } from '../controllers/scannerController';
 import { authenticate } from '../middleware/auth';
 
@@ -30,6 +31,7 @@ const scanValidation = [
 ];
 
 // Public routes (no auth required for basic scanning)
+router.get('/status', getScannerStatus);
 router.post('/analyze', scanValidation, performScan);
 router.get('/result/:id', getScanResult);
 router.get('/report/:id', generateReport);

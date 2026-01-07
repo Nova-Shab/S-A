@@ -3,6 +3,8 @@ import { validationResult } from 'express-validator';
 import ScanResult from '../models/ScanResult';
 import { analyzeSystem, RISK_LEVEL_INFO } from '../utils/scannerAnalysis';
 import generatePdfReport from '../utils/pdfReportGenerator';
+import { isOllamaAvailable, getOllamaModels, checkOllamaConnection } from '../utils/ollamaAnalysis';
+import { isGPTAvailable } from '../utils/gptAnalysis';
 
 // Perform a new scan
 export const performScan = async (req: Request, res: Response): Promise<void> => {
@@ -291,6 +293,66 @@ export const generateReport = async (req: Request, res: Response): Promise<void>
     res.status(500).json({
       success: false,
       error: 'Fehler beim Erstellen des Reports',
+    });
+  }
+};
+
+// Get scanner status (LLM availability)
+export const getScannerStatus = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const ollamaConnected = await checkOllamaConnection();
+    const ollamaConfigured = process.env.SCANNER_USE_OLLAMA === 'true';
+    const ollamaModel = process.env.OLLAMA_MODEL || 'llama3.2';
+    const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+
+    const gptConfigured = process.env.SCANNER_USE_GPT === 'true';
+    const gptAvailable = await isGPTAvailable();
+
+    let availableModels: string[] = [];
+    if (ollamaConnected) {
+      availableModels = await getOllamaModels();
+    }
+
+    // Determine current analysis mode
+    let analysisMode: 'gpt' | 'ollama' | 'keyword' = 'keyword';
+    let analysisDescription = 'Keyword-basierte Analyse (Fallback)';
+
+    if (gptConfigured && gptAvailable) {
+      analysisMode = 'gpt';
+      analysisDescription = 'GPT-gestützte KI-Analyse (Cloud)';
+    } else if (ollamaConfigured && ollamaConnected) {
+      analysisMode = 'ollama';
+      analysisDescription = `Ollama LLM-Analyse (Lokal: ${ollamaModel})`;
+    }
+
+    res.json({
+      success: true,
+      status: {
+        analysisMode,
+        analysisDescription,
+        llmAvailable: analysisMode !== 'keyword',
+        ollama: {
+          configured: ollamaConfigured,
+          connected: ollamaConnected,
+          url: ollamaUrl,
+          model: ollamaModel,
+          availableModels,
+          setupCommand: 'cd backend/ollama && ./setup.sh',
+        },
+        gpt: {
+          configured: gptConfigured,
+          available: gptAvailable,
+        },
+      },
+      recommendation: analysisMode === 'keyword'
+        ? 'Für bessere Ergebnisse: Ollama installieren (ollama.com) und backend/ollama/setup.sh ausführen'
+        : null,
+    });
+  } catch (error) {
+    console.error('Get scanner status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Fehler beim Abrufen des Scanner-Status',
     });
   }
 };
