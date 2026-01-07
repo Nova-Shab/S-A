@@ -184,54 +184,82 @@ const PROHIBITED_KEYWORDS = [
 ];
 
 const HIGH_RISK_KEYWORDS = [
-  // Biometrics
-  'biometric', 'biometrisch', 'facial recognition', 'gesichtserkennung',
-  'fingerprint', 'fingerabdruck', 'iris scan', 'voice recognition', 'stimmerkennung',
+  // Biometrics - specific terms only
+  'biometric identification', 'biometrische identifikation', 'biometrische erkennung',
+  'facial recognition', 'gesichtserkennung', 'face recognition',
+  'fingerprint recognition', 'fingerabdruckerkennung', 'iris scan', 'iris-scan',
+  'voice recognition', 'stimmerkennung', 'spracherkennung',
+  'biometric data', 'biometrische daten',
 
-  // Critical Infrastructure
-  'critical infrastructure', 'kritische infrastruktur', 'energy grid', 'stromnetz',
-  'water supply', 'wasserversorgung', 'traffic management', 'verkehrssteuerung',
+  // Critical Infrastructure - specific terms
+  'critical infrastructure', 'kritische infrastruktur',
+  'energy grid management', 'stromnetz-steuerung',
+  'water supply system', 'wasserversorgungssystem',
+  'traffic management system', 'verkehrssteuerungssystem',
 
   // Education & Employment - HR/Recruitment (Anhang III Nr. 4)
-  'educational assessment', 'bildungsbewertung', 'exam scoring', 'prüfungsbewertung',
-  'recruitment', 'einstellung', 'hiring decision', 'einstellungsentscheidung',
-  'employee monitoring', 'mitarbeiterüberwachung', 'performance evaluation', 'leistungsbewertung',
-  // Additional HR keywords
-  'bewerbung', 'bewerbungen', 'bewerber', 'bewerberin', 'bewerberinnen',
-  'lebenslauf', 'lebensläufe', 'cv', 'resume', 'résumé',
-  'personalauswahl', 'personalentscheidung', 'hr screening', 'screening tool',
-  'applicant', 'applicants', 'candidate', 'kandidat', 'kandidaten',
-  'job application', 'stellenbewerbung', 'bewerbungsverfahren',
-  'applicant tracking', 'bewerbermanagement', 'talent acquisition',
-  'ranking', 'bewerberranking', 'kandidatenranking',
-  'hiring', 'einstellungsprozess', 'recruiting', 'rekrutierung',
-  'human resources', 'personalwesen', 'hr-system', 'hr system',
-  'qualifikation', 'qualifikationen', 'berufserfahrung', 'soft skills',
+  // More specific terms to avoid false positives
+  'automated recruitment', 'automatisierte rekrutierung',
+  'ai recruitment', 'ki-rekrutierung', 'ki-basierte einstellung',
+  'cv screening', 'cv-screening', 'lebenslauf-analyse', 'lebenslauf-screening',
+  'applicant tracking system', 'bewerbermanagement-system',
+  'automated hiring', 'automatisierte einstellung',
+  'candidate scoring', 'bewerber-scoring', 'bewerber-bewertung',
+  'hr analytics', 'hr-analytics', 'personalanalyse',
+  'employee monitoring system', 'mitarbeiterüberwachungssystem',
+  'performance evaluation system', 'leistungsbewertungssystem',
+  'educational assessment system', 'bildungsbewertungssystem',
+  'exam scoring system', 'prüfungsbewertungssystem',
+  'automated grading', 'automatisierte benotung',
 
-  // Essential Services
-  'credit scoring', 'kreditbewertung', 'loan decision', 'kreditentscheidung',
-  'insurance pricing', 'versicherungspreis', 'healthcare diagnosis', 'medizinische diagnose',
+  // Essential Services - specific terms
+  'credit scoring system', 'kreditbewertungssystem', 'kredit-scoring',
+  'loan decision system', 'kreditentscheidungssystem',
+  'insurance risk assessment', 'versicherungs-risikobewertung',
+  'healthcare diagnosis system', 'medizinisches diagnosesystem',
+  'medical ai', 'medizin-ki', 'diagnose-ki',
 
-  // Law Enforcement & Justice
-  'law enforcement', 'strafverfolgung', 'criminal justice', 'strafjustiz',
-  'recidivism', 'rückfallprognose', 'evidence evaluation', 'beweisbewertung',
+  // Law Enforcement & Justice - specific terms
+  'law enforcement ai', 'ki-strafverfolgung',
+  'criminal justice system', 'strafjustizsystem',
+  'recidivism prediction', 'rückfallprognose-system',
+  'evidence evaluation system', 'beweisbewertungssystem',
+  'predictive policing', 'vorhersagende polizeiarbeit',
 
-  // Migration & Border
-  'migration', 'border control', 'grenzkontrolle', 'asylum', 'asyl',
-  'visa assessment', 'visumprüfung',
+  // Migration & Border - specific terms
+  'border control system', 'grenzkontrollsystem',
+  'asylum assessment', 'asylbewertung', 'asyl-prüfung',
+  'visa assessment system', 'visumprüfungssystem',
+  'migration management', 'migrationsmanagement',
 
-  // Safety Components
-  'medical device', 'medizinprodukt', 'safety component', 'sicherheitskomponente',
-  'autonomous vehicle', 'autonomes fahrzeug', 'robot', 'roboter',
+  // Safety Components - specific terms
+  'medical device ai', 'medizinprodukt-ki',
+  'safety-critical system', 'sicherheitskritisches system',
+  'autonomous vehicle', 'autonomes fahrzeug', 'selbstfahrend',
+  'industrial robot', 'industrieroboter',
 ];
 
 const LIMITED_RISK_KEYWORDS = [
-  'chatbot', 'chat bot', 'conversational ai', 'konversations-ki',
-  'virtual assistant', 'virtueller assistent', 'customer service bot',
-  'emotion detection', 'emotionserkennung',
-  'deepfake', 'synthetic media', 'synthetische medien',
-  'ai-generated', 'ki-generiert', 'content generation', 'inhaltsgenerierung',
-  'recommendation system', 'empfehlungssystem',
+  // Chatbots & Assistants - specific terms
+  'chatbot', 'chat-bot', 'kundenservice-bot', 'service-bot',
+  'conversational ai', 'konversations-ki',
+  'virtual assistant', 'virtueller assistent', 'digitaler assistent',
+  'voice assistant', 'sprachassistent',
+
+  // Emotion Detection (non-workplace) - specific terms
+  'emotion detection', 'emotionserkennung', 'emotion recognition',
+  'sentiment analysis', 'stimmungsanalyse', 'gefühlserkennung',
+
+  // Synthetic Content - specific terms
+  'deepfake', 'deep fake', 'deep-fake',
+  'synthetic media', 'synthetische medien',
+  'ai-generated content', 'ki-generierte inhalte',
+  'generated images', 'generierte bilder',
+  'text generation', 'textgenerierung',
+
+  // Recommendation Systems - specific terms
+  'recommendation engine', 'empfehlungssystem', 'empfehlungsalgorithmus',
+  'personalized recommendations', 'personalisierte empfehlungen',
 ];
 
 const TRANSPARENCY_KEYWORDS = [
@@ -241,16 +269,21 @@ const TRANSPARENCY_KEYWORDS = [
 ];
 
 // AI-related keywords to detect if a page is about AI systems
+// Note: Short keywords like 'ki', 'ai' removed - they cause false positives (match "Kinder", "Main", etc.)
 const AI_CONTEXT_KEYWORDS = [
-  'artificial intelligence', 'künstliche intelligenz', 'ki', 'ai',
+  'artificial intelligence', 'künstliche intelligenz',
   'machine learning', 'maschinelles lernen', 'deep learning',
-  'neural network', 'neuronales netzwerk',
-  'natural language processing', 'nlp',
-  'computer vision', 'bildverarbeitung',
-  'automation', 'automatisierung',
-  'algorithm', 'algorithmus',
-  'data processing', 'datenverarbeitung',
-  'predictive', 'vorhersage',
+  'neural network', 'neuronales netzwerk', 'neuronale netze',
+  'natural language processing', 'nlp-system', 'nlp-technologie',
+  'computer vision', 'bildverarbeitung', 'bilderkennung',
+  'automatisierung', 'automatisierte entscheidung',
+  'algorithmus', 'algorithmen', 'algorithmisch',
+  'datenverarbeitung', 'datenanalyse',
+  'vorhersagemodell', 'prädiktiv', 'predictive analytics',
+  'chatbot', 'sprachassistent', 'virtueller assistent',
+  'ki-system', 'ki-gestützt', 'ki-basiert', 'ai-system', 'ai-powered',
+  'intelligente automatisierung', 'intelligent automation',
+  'roboter', 'robotik', 'robotic',
 ];
 
 // Fetch and extract text from URL
@@ -467,14 +500,17 @@ function determineRiskLevel(matches: ReturnType<typeof analyzeText>): RiskLevel 
   );
 
   // Strong high-risk keywords that clearly indicate high-risk usage
+  // These are specific enough to not cause false positives
   const strongHighRiskKeywords = [
-    'biometric', 'biometrisch', 'gesichtserkennung', 'facial recognition',
-    'credit scoring', 'kreditbewertung', 'kreditentscheidung',
-    'law enforcement', 'strafverfolgung', 'criminal justice',
-    'medical device', 'medizinprodukt', 'medical diagnosis', 'medizinische diagnose',
-    'autonomous vehicle', 'autonomes fahrzeug',
-    'safety component', 'sicherheitskomponente',
-    'border control', 'grenzkontrolle', 'migration', 'asylum', 'asyl'
+    'biometric identification', 'biometrische identifikation', 'biometrische erkennung',
+    'gesichtserkennung', 'facial recognition', 'face recognition',
+    'credit scoring', 'kredit-scoring', 'kreditbewertung',
+    'law enforcement ai', 'strafverfolgung', 'criminal justice system',
+    'medical device ai', 'medizinprodukt-ki', 'medizinisches diagnosesystem',
+    'autonomous vehicle', 'autonomes fahrzeug', 'selbstfahrend',
+    'safety-critical', 'sicherheitskritisch',
+    'border control system', 'grenzkontrollsystem',
+    'asylum assessment', 'asylbewertung', 'visa assessment'
   ];
 
   const hasStrongHighRisk = matches.highRiskMatches.some(m =>
@@ -597,9 +633,10 @@ function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: Ri
   // High-risk findings - only show if actually classified as HIGH_RISK
   const hasAIContext = matches.aiContextMatches.length >= 2;
   const strongHighRiskKeywords = [
-    'biometric', 'biometrisch', 'gesichtserkennung', 'facial recognition',
-    'credit scoring', 'kreditbewertung', 'medical device', 'medizinprodukt',
-    'law enforcement', 'strafverfolgung', 'autonomous vehicle', 'autonomes fahrzeug'
+    'biometric identification', 'biometrische identifikation', 'gesichtserkennung',
+    'facial recognition', 'credit scoring', 'kredit-scoring', 'kreditbewertung',
+    'medical device ai', 'medizinprodukt-ki', 'medizinisches diagnosesystem',
+    'law enforcement ai', 'autonomous vehicle', 'autonomes fahrzeug'
   ];
   const hasStrongHighRisk = matches.highRiskMatches.some(m =>
     strongHighRiskKeywords.some(kw => m.toLowerCase().includes(kw.toLowerCase()))
