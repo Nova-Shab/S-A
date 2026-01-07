@@ -2,7 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import mammoth from 'mammoth';
-import { PDFParse } from 'pdf-parse';
+import pdfParse from 'pdf-parse';
 import { DocumentAIAnalysis } from '../models/SystemAudit';
 import { getRequirementById } from '../data/euAiActRequirements';
 
@@ -13,28 +13,53 @@ const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'eu-ai-act';
 export async function extractTextFromDocument(filePath: string): Promise<string> {
   const ext = path.extname(filePath).toLowerCase();
 
+  console.log(`[DocAnalysis] Extracting text from: ${filePath} (type: ${ext})`);
+
+  // Check if file exists
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Datei nicht gefunden: ${filePath}`);
+  }
+
   try {
+    let text = '';
+
     switch (ext) {
       case '.pdf':
-        // pdf-parse v2 API: read file as buffer and pass as data
+        console.log('[DocAnalysis] Processing PDF...');
         const pdfBuffer = fs.readFileSync(filePath);
-        const parser = new PDFParse({ data: pdfBuffer });
-        const pdfResult = await parser.getText();
-        return pdfResult.text;
+        const pdfResult = await pdfParse(pdfBuffer);
+        text = pdfResult.text;
+        break;
 
       case '.docx':
+      case '.doc':
+        console.log('[DocAnalysis] Processing DOCX/DOC...');
         const docxResult = await mammoth.extractRawText({ path: filePath });
-        return docxResult.value;
+        text = docxResult.value;
+        if (docxResult.messages && docxResult.messages.length > 0) {
+          console.log('[DocAnalysis] Mammoth warnings:', docxResult.messages);
+        }
+        break;
 
       case '.txt':
       case '.md':
-        return fs.readFileSync(filePath, 'utf-8');
+        console.log('[DocAnalysis] Processing text file...');
+        text = fs.readFileSync(filePath, 'utf-8');
+        break;
 
       default:
         throw new Error(`Nicht unterstütztes Dateiformat: ${ext}`);
     }
+
+    console.log(`[DocAnalysis] Extracted ${text.length} characters`);
+
+    if (!text || text.trim().length === 0) {
+      throw new Error('Dokument enthält keinen extrahierbaren Text');
+    }
+
+    return text;
   } catch (error) {
-    console.error('Error extracting text:', error);
+    console.error('[DocAnalysis] Error extracting text:', error);
     throw error;
   }
 }
@@ -75,6 +100,9 @@ Analysiere das Dokument und antworte NUR mit validem JSON:
 Bewerte streng nach EU AI Act Standards.`;
 
   try {
+    console.log(`[DocAnalysis] Sending to Ollama (${OLLAMA_MODEL}) at ${OLLAMA_API_URL}...`);
+    console.log(`[DocAnalysis] Document text length: ${documentText.length} chars`);
+
     const response = await axios.post(
       `${OLLAMA_API_URL}/api/generate`,
       {
@@ -90,13 +118,17 @@ Bewerte streng nach EU AI Act Standards.`;
     );
 
     const content = response.data.response;
+    console.log(`[DocAnalysis] Ollama response received (${content?.length || 0} chars)`);
+
     const jsonMatch = content.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
+      console.warn('[DocAnalysis] No JSON found in response, using fallback');
       return createFallbackAnalysis(documentText, requirement.title);
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+    console.log(`[DocAnalysis] Analysis complete: completeness=${parsed.completenessScore}, relevance=${parsed.relevanceScore}`);
 
     return {
       analyzedAt: new Date().toISOString(),
@@ -111,7 +143,14 @@ Bewerte streng nach EU AI Act Standards.`;
         : 'needs_improvement',
     };
   } catch (error) {
-    console.error('Ollama analysis error:', error);
+    if (axios.isAxiosError(error)) {
+      console.error(`[DocAnalysis] Ollama request failed: ${error.code} - ${error.message}`);
+      if (error.code === 'ECONNREFUSED') {
+        console.error('[DocAnalysis] Ollama is not running. Start with: ollama serve');
+      }
+    } else {
+      console.error('[DocAnalysis] Ollama analysis error:', error);
+    }
     return createFallbackAnalysis(documentText, requirement.title);
   }
 }
@@ -141,12 +180,40 @@ function createFallbackAnalysis(documentText: string, requirementTitle: string):
   };
 }
 
-// Check if document analysis is available (Ollama running)
+// Check if document analysis is available (Ollama running with correct model)
 export async function isDocumentAnalysisAvailable(): Promise<boolean> {
+  if (process.env.SCANNER_USE_OLLAMA !== 'true') {
+    console.log('[DocAnalysis] Ollama is disabled (SCANNER_USE_OLLAMA !== true)');
+    return false;
+  }
+
   try {
+    console.log(`[DocAnalysis] Checking Ollama availability at ${OLLAMA_API_URL}...`);
     const response = await axios.get(`${OLLAMA_API_URL}/api/tags`, { timeout: 5000 });
-    return response.status === 200;
-  } catch {
+
+    if (response.status === 200) {
+      const models = response.data.models || [];
+      const modelNames = models.map((m: { name: string }) => m.name);
+      console.log(`[DocAnalysis] Ollama running. Available models: ${modelNames.join(', ')}`);
+
+      // Check if the required model exists
+      const hasModel = modelNames.some((name: string) =>
+        name.includes(OLLAMA_MODEL) || name.startsWith(OLLAMA_MODEL)
+      );
+
+      if (!hasModel) {
+        console.warn(`[DocAnalysis] Model '${OLLAMA_MODEL}' not found. Create with: ollama create ${OLLAMA_MODEL} -f Modelfile`);
+      }
+
+      return true;
+    }
+    return false;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.code === 'ECONNREFUSED') {
+      console.log('[DocAnalysis] Ollama not running (ECONNREFUSED)');
+    } else {
+      console.log('[DocAnalysis] Ollama check failed:', error);
+    }
     return false;
   }
 }
