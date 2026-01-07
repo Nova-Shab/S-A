@@ -72,10 +72,10 @@ export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
     size: 'A4',
     margins: { top: 50, bottom: 50, left: 50, right: 50 },
     info: {
-      Title: 'EU AI Act Readiness Snapshot',
-      Author: 'VAMO - EU AI Act Risk Analysis',
+      Title: 'EU AI Act Compliance Report',
+      Author: 'Calmpliance Scanner - EU AI Act Risikoanalyse',
       Subject: `Compliance Report für ${data.systemName}`,
-      Keywords: 'EU AI Act, Compliance, Risk Assessment',
+      Keywords: 'EU AI Act, Compliance, Risk Assessment, Calmpliance',
     },
   });
 
@@ -141,7 +141,13 @@ export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
     .fillColor(primaryColor)
     .fontSize(20)
     .font('Helvetica-Bold')
-    .text('EU AI Act Readiness Snapshot', { align: 'left' });
+    .text('EU AI Act Compliance Report', { align: 'left' });
+
+  doc
+    .fillColor(mutedColor)
+    .fontSize(10)
+    .font('Helvetica')
+    .text('Calmpliance Scanner - Automatisierte Risikoanalyse', { align: 'left' });
 
   doc.moveDown(0.3);
 
@@ -471,8 +477,9 @@ export function generatePdfReport(data: ReportData): PDFKit.PDFDocument {
     .fillColor(mutedColor)
     .fontSize(8)
     .font('Helvetica')
-    .text('Erstellt von VAMO - EU AI Act Risk Analysis', { align: 'center' });
+    .text('Erstellt von Calmpliance Scanner - EU AI Act Risikoanalyse', { align: 'center' });
   doc.text(`Scan ID: ${scanIdString} | ${dateStr}`, { align: 'center' });
+  doc.text('www.calmpliance.eu', { align: 'center' });
 
   return doc;
 }
