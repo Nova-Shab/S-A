@@ -43,7 +43,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       <div className="audit-container">
         <div className="flex justify-between h-18 lg:h-20">
           {/* Logo and Brand */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0">
             <div className="flex-shrink-0 flex items-center">
               <img
                 src="/images/logo.svg"
@@ -51,52 +51,50 @@ export const Navigation: React.FC<NavigationProps> = ({
                 className="h-12 lg:h-14 w-auto"
               />
             </div>
+          </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:ml-8 lg:flex lg:items-center lg:gap-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  className={`inline-flex items-center px-3 xl:px-4 py-2.5 text-sm lg:text-base font-medium rounded-audit transition-all duration-200 whitespace-nowrap ${getNavButtonClass(item.id)}`}
+          {/* Desktop Navigation - Center */}
+          <div className="hidden lg:flex lg:items-center lg:gap-1 flex-1 justify-center">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={`inline-flex items-center px-3 py-2.5 text-sm font-medium rounded-audit transition-all duration-200 whitespace-nowrap ${getNavButtonClass(item.id)}`}
+                title={t(item.labelKey)}
+              >
+                <svg
+                  className="w-5 h-5 flex-shrink-0 xl:mr-1.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-5 h-5 mr-1.5 lg:mr-2 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d={item.icon}
-                    />
-                  </svg>
-                  <span className="hidden xl:inline">{t(item.labelKey)}</span>
-                  <span className="xl:hidden">{t(item.labelKey)}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Separator between nav and utilities */}
-            <div className="hidden lg:block h-8 w-px bg-audit-light ml-4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={item.icon}
+                  />
+                </svg>
+                <span className="hidden xl:inline">{t(item.labelKey)}</span>
+              </button>
+            ))}
           </div>
 
           {/* Right side: Demo Button, User Menu & Language Switcher */}
-          <div className="flex items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-1 lg:gap-2">
             {/* Audit Tools (Demo) Button */}
             {demoEnabled && (
               <button
                 onClick={() => onNavigate(hasDemoAccess ? 'audit-tools' : 'demo-access')}
-                className={`hidden lg:inline-flex items-center px-3 xl:px-4 py-2.5 text-sm lg:text-base font-medium rounded-audit transition-all duration-200 whitespace-nowrap ${
+                className={`hidden lg:inline-flex items-center px-3 py-2 text-sm font-medium rounded-audit transition-all duration-200 whitespace-nowrap ${
                   isActive('audit-tools') || isActive('demo-access')
                     ? 'bg-audit-deep text-white shadow-audit'
                     : 'bg-audit-steel text-white hover:bg-audit-deep'
                 }`}
+                title="Audit Tools"
               >
                 <svg
-                  className="w-5 h-5 mr-1.5 lg:mr-2 flex-shrink-0"
+                  className="w-5 h-5 flex-shrink-0 xl:mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -109,7 +107,6 @@ export const Navigation: React.FC<NavigationProps> = ({
                   />
                 </svg>
                 <span className="hidden xl:inline">Audit Tools</span>
-                <span className="xl:hidden">Audit</span>
                 {!hasDemoAccess && (
                   <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-audit-bg text-audit-steel rounded-full border border-audit-light">
                     Demo
@@ -122,40 +119,28 @@ export const Navigation: React.FC<NavigationProps> = ({
             {userName && (
               <button
                 onClick={() => onNavigate('profile')}
-                className={`hidden lg:flex items-center gap-2 px-3 py-2 rounded-audit text-sm lg:text-base transition-colors ${
+                className={`hidden lg:flex items-center gap-1.5 px-2 py-2 rounded-audit text-sm transition-colors ${
                   isActive('profile')
                     ? 'bg-audit-bg text-audit-deep'
                     : 'text-audit-cool hover:bg-audit-bg hover:text-audit-deep'
                 }`}
-                title={t('profile.title')}
+                title={userName}
               >
-                <div className="w-8 h-8 rounded-full bg-audit-steel text-white flex items-center justify-center text-sm font-medium flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-audit-steel text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
                   {userName.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
-                <span className="hidden xl:inline truncate max-w-[120px]">{userName}</span>
-                <svg
-                  className="w-4 h-4 text-audit-light hidden xl:block"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                <span className="hidden xl:inline truncate max-w-[100px] text-sm">{userName}</span>
               </button>
             )}
 
             {/* Logout Button */}
             <button
               onClick={onLogout}
-              className="hidden lg:inline-flex items-center px-3 xl:px-4 py-2.5 text-sm lg:text-base font-medium text-audit-cool hover:text-audit-deep hover:bg-audit-bg rounded-audit transition-colors whitespace-nowrap"
+              className="hidden lg:inline-flex items-center px-2 py-2 text-sm font-medium text-audit-cool hover:text-audit-deep hover:bg-audit-bg rounded-audit transition-colors"
+              title={t('nav.logout')}
             >
               <svg
-                className="w-5 h-5 mr-1.5 lg:mr-2 flex-shrink-0"
+                className="w-5 h-5 flex-shrink-0 xl:mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -171,9 +156,9 @@ export const Navigation: React.FC<NavigationProps> = ({
             </button>
 
             {/* Separator */}
-            <div className="hidden lg:block h-6 w-px bg-audit-light mx-1" />
+            <div className="hidden lg:block h-5 w-px bg-audit-light" />
 
-            {/* Language Switcher - at the end for consistency */}
+            {/* Language Switcher */}
             <div className="hidden lg:block">
               <LanguageSwitcher />
             </div>

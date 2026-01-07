@@ -453,18 +453,60 @@ function analyzeText(text: string): {
 
 // Determine risk level based on matches
 function determineRiskLevel(matches: ReturnType<typeof analyzeText>): RiskLevel {
+  // PROHIBITED always takes priority
   if (matches.prohibitedMatches.length > 0 || matches.prohibitedPractices.length > 0) {
     return 'PROHIBITED';
   }
-  if (matches.highRiskMatches.length >= 2) {
+
+  // For HIGH_RISK: require AI context + significant high-risk indicators
+  // This prevents false positives from general websites mentioning "hr", "recruitment", etc.
+  const hasAIContext = matches.aiContextMatches.length >= 2;
+  const hasStrongAIContext = matches.aiContextMatches.some(m =>
+    ['artificial intelligence', 'künstliche intelligenz', 'machine learning',
+     'maschinelles lernen', 'deep learning', 'neural network', 'neuronales netzwerk'].includes(m.toLowerCase())
+  );
+
+  // Strong high-risk keywords that clearly indicate high-risk usage
+  const strongHighRiskKeywords = [
+    'biometric', 'biometrisch', 'gesichtserkennung', 'facial recognition',
+    'credit scoring', 'kreditbewertung', 'kreditentscheidung',
+    'law enforcement', 'strafverfolgung', 'criminal justice',
+    'medical device', 'medizinprodukt', 'medical diagnosis', 'medizinische diagnose',
+    'autonomous vehicle', 'autonomes fahrzeug',
+    'safety component', 'sicherheitskomponente',
+    'border control', 'grenzkontrolle', 'migration', 'asylum', 'asyl'
+  ];
+
+  const hasStrongHighRisk = matches.highRiskMatches.some(m =>
+    strongHighRiskKeywords.some(kw => m.toLowerCase().includes(kw.toLowerCase()))
+  );
+
+  // HIGH_RISK if:
+  // 1. Strong high-risk keywords detected (e.g., biometric, credit scoring, law enforcement)
+  // 2. OR: Multiple high-risk indicators + AI context (confirms it's an AI system in high-risk area)
+  // 3. OR: Many high-risk indicators (>=3) suggesting comprehensive high-risk system
+  if (hasStrongHighRisk) {
     return 'HIGH_RISK';
   }
-  if (matches.highRiskMatches.length === 1) {
-    return 'HIGH_RISK'; // Even one high-risk indicator suggests caution
+
+  if (matches.highRiskMatches.length >= 3) {
+    return 'HIGH_RISK';
   }
+
+  if (matches.highRiskMatches.length >= 2 && (hasAIContext || hasStrongAIContext)) {
+    return 'HIGH_RISK';
+  }
+
+  // Single high-risk match without AI context is not enough - could be false positive
+  // But with AI context, it's suspicious enough for LIMITED_RISK at minimum
+  if (matches.highRiskMatches.length >= 1 && hasAIContext) {
+    return 'LIMITED_RISK'; // Downgraded from HIGH_RISK - needs investigation
+  }
+
   if (matches.limitedRiskMatches.length > 0 || matches.transparencyMatches.length > 0) {
     return 'LIMITED_RISK';
   }
+
   return 'MINIMAL_RISK';
 }
 
@@ -552,16 +594,42 @@ function generateFindings(matches: ReturnType<typeof analyzeText>, riskLevel: Ri
     });
   }
 
-  // High-risk findings
-  if (matches.highRiskMatches.length > 0) {
+  // High-risk findings - only show if actually classified as HIGH_RISK
+  const hasAIContext = matches.aiContextMatches.length >= 2;
+  const strongHighRiskKeywords = [
+    'biometric', 'biometrisch', 'gesichtserkennung', 'facial recognition',
+    'credit scoring', 'kreditbewertung', 'medical device', 'medizinprodukt',
+    'law enforcement', 'strafverfolgung', 'autonomous vehicle', 'autonomes fahrzeug'
+  ];
+  const hasStrongHighRisk = matches.highRiskMatches.some(m =>
+    strongHighRiskKeywords.some(kw => m.toLowerCase().includes(kw.toLowerCase()))
+  );
+  const isConfirmedHighRisk = hasStrongHighRisk ||
+    matches.highRiskMatches.length >= 3 ||
+    (matches.highRiskMatches.length >= 2 && hasAIContext);
+
+  if (matches.highRiskMatches.length > 0 && isConfirmedHighRisk) {
     findings.push({
       category: 'Hochrisiko-KI-System',
-      title: 'Hochrisiko-Klassifizierung wahrscheinlich',
+      title: 'Hochrisiko-Klassifizierung erkannt',
       severity: 'high',
-      description: `Das System weist Merkmale eines Hochrisiko-KI-Systems auf: ${matches.highRiskMatches.join(', ')}. Diese unterliegen strengen Anforderungen nach Anhang III EU AI Act.`,
+      description: `Das System weist Merkmale eines Hochrisiko-KI-Systems auf: ${matches.highRiskMatches.slice(0, 5).join(', ')}${matches.highRiskMatches.length > 5 ? '...' : ''}. Diese unterliegen strengen Anforderungen nach Anhang III EU AI Act.`,
       recommendation: 'Vollständige Konformitätsbewertung durchführen. Risikomanagement, Datenqualität, technische Dokumentation und menschliche Aufsicht sicherstellen.',
       articleReference: 'Art. 6, Anhang III EU AI Act',
     });
+  } else if (matches.highRiskMatches.length > 0) {
+    // Keywords found but not enough context for HIGH_RISK classification
+    findings.push({
+      category: 'Potenziell relevante Begriffe',
+      title: 'Begriffe aus Hochrisiko-Bereichen gefunden',
+      severity: 'medium',
+      description: `Folgende Begriffe wurden gefunden: ${matches.highRiskMatches.slice(0, 5).join(', ')}. Diese könnten auf ein Hochrisiko-System hinweisen, aber der KI-Kontext ist nicht eindeutig bestätigt.`,
+      recommendation: 'Prüfen Sie, ob dieses System tatsächlich KI/ML einsetzt. Falls ja, führen Sie eine detaillierte Risikoanalyse durch.',
+      articleReference: 'Art. 6, Anhang III EU AI Act',
+    });
+  }
+
+  if (isConfirmedHighRisk) {
 
     // Specific high-risk findings
     if (matches.highRiskMatches.some(m => m.includes('biometric') || m.includes('biometrisch'))) {
