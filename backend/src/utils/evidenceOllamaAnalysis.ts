@@ -164,7 +164,8 @@ Antworte NUR mit JSON:`;
     }
 
     // Validate findings
-    const findings = validateChunkFindings(parsed.findings || [], chunk.content, logger);
+    const rawFindings = Array.isArray(parsed.findings) ? parsed.findings : [];
+    const findings = validateChunkFindings(rawFindings, chunk.content, logger);
 
     // Log for trace
     logger?.logChunkAnalysis({

@@ -540,7 +540,11 @@ function createKeywordBasedResult(
       'Manuelle Prüfung der identifizierten Bereiche empfohlen',
     ],
     dataQuality: {
-      ...dataQuality,
+      sufficientData: dataQuality.sufficient,
+      pagesAnalyzed: dataQuality.pagesAnalyzed,
+      contentCharacters: dataQuality.totalChars,
+      uniqueContentCharacters: dataQuality.uniqueChars,
+      qualityScore: dataQuality.score,
       issues: [...dataQuality.issues, 'Keyword-basierte Analyse (LLM nicht verfügbar)'],
     },
     metadata: {
@@ -591,14 +595,12 @@ function createErrorResult(
     complianceGaps: [],
     nextSteps: ['URL-Zugriff prüfen', 'Alternative Eingabemethode nutzen'],
     dataQuality: {
-      sufficient: false,
-      score: 0,
+      sufficientData: false,
       pagesAnalyzed: 0,
       contentCharacters: 0,
       uniqueContentCharacters: 0,
       qualityScore: 0,
       issues: [errorMessage],
-      recommendations: ['URL prüfen', 'Zugänglichkeit sicherstellen'],
     },
     metadata: {
       analysisMethod: 'keyword',
@@ -649,13 +651,13 @@ export function convertToLegacyFormat(analysis: EvidenceBasedAnalysis): ScanAnal
   });
 
   // Add data quality info
-  if (!analysis.dataQuality.sufficient) {
+  if (!analysis.dataQuality.sufficientData) {
     findings.push({
       category: 'Datenqualität',
       title: 'Unzureichende Datenbasis',
       severity: 'medium',
       description: `Nur ${analysis.dataQuality.pagesAnalyzed} Seite(n) mit ${analysis.dataQuality.contentCharacters} Zeichen analysiert. ${analysis.dataQuality.issues.join('. ')}`,
-      recommendation: analysis.dataQuality.recommendations.join('. '),
+      recommendation: 'Prüfen Sie die URL-Zugänglichkeit und versuchen Sie spezifische Unterseiten zu scannen.',
       articleReference: '',
     });
   }

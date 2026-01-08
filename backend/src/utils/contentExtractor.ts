@@ -9,6 +9,7 @@
  */
 
 import * as cheerio from 'cheerio';
+import type { AnyNode } from 'domhandler';
 import crypto from 'crypto';
 import { ContentChunk, CrawlResult, ScannerConfig, DEFAULT_SCANNER_CONFIG } from '../types/evidenceTypes';
 import { AnalysisLogger } from './analysisLogger';
@@ -153,11 +154,11 @@ export function extractContent(
   });
 
   // Try to find main content area
-  let $mainContent = $('body');
+  let $mainContent: cheerio.Cheerio<AnyNode> = $('body');
   for (const selector of MAIN_CONTENT_SELECTORS) {
     const $found = $(selector);
     if ($found.length > 0 && $found.text().trim().length > 100) {
-      $mainContent = $found.first();
+      $mainContent = $found.first() as cheerio.Cheerio<AnyNode>;
       logger?.debug(`Found main content using selector: ${selector}`);
       break;
     }
@@ -267,7 +268,7 @@ export function extractContent(
   };
 }
 
-function extractTextFromElement($: cheerio.CheerioAPI, $el: cheerio.Cheerio<cheerio.Element>): string {
+function extractTextFromElement($: cheerio.CheerioAPI, $el: cheerio.Cheerio<AnyNode>): string {
   // Get text content, preserving some structure
   let text = '';
 
@@ -275,7 +276,7 @@ function extractTextFromElement($: cheerio.CheerioAPI, $el: cheerio.Cheerio<chee
     if (node.type === 'text') {
       text += $(node).text();
     } else if (node.type === 'tag') {
-      const tagName = (node as cheerio.Element).tagName?.toLowerCase();
+      const tagName = (node as any).tagName?.toLowerCase();
       const $child = $(node);
 
       // Add appropriate spacing
