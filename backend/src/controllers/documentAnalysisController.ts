@@ -298,3 +298,84 @@ export const checkAnalysisAvailability = async (req: Request, res: Response): Pr
     });
   }
 };
+
+// Simple analyze-only endpoint (doesn't require auditId)
+// Used for local/frontend document analysis
+export const analyzeDocumentOnly = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const file = req.file;
+    const { requirementId, requirementTitle } = req.body;
+
+    console.log('[DocAnalysis] analyzeDocumentOnly called');
+    console.log('[DocAnalysis] File:', file?.originalname, file?.size);
+    console.log('[DocAnalysis] requirementId:', requirementId);
+
+    if (!file) {
+      res.status(400).json({ success: false, error: 'Keine Datei hochgeladen' });
+      return;
+    }
+
+    if (!requirementId) {
+      // Clean up uploaded file
+      fs.unlinkSync(file.path);
+      res.status(400).json({ success: false, error: 'requirementId ist erforderlich' });
+      return;
+    }
+
+    // Check if Ollama is available for analysis
+    const aiAvailable = await isDocumentAnalysisAvailable();
+    console.log('[DocAnalysis] AI available:', aiAvailable);
+
+    let analysis = null;
+
+    if (aiAvailable) {
+      try {
+        console.log('[DocAnalysis] Extracting text from:', file.path);
+        const documentText = await extractTextFromDocument(file.path);
+        console.log('[DocAnalysis] Extracted text length:', documentText.length);
+
+        console.log('[DocAnalysis] Starting AI analysis...');
+        analysis = await analyzeDocumentForRequirement(
+          documentText,
+          requirementId,
+          file.originalname
+        );
+        console.log('[DocAnalysis] Analysis complete:', analysis);
+      } catch (analysisError) {
+        console.error('[DocAnalysis] AI analysis error:', analysisError);
+        // Continue without AI analysis
+      }
+    }
+
+    // Clean up uploaded file after analysis
+    try {
+      fs.unlinkSync(file.path);
+    } catch (e) {
+      console.warn('[DocAnalysis] Could not delete temp file:', file.path);
+    }
+
+    // Return response matching frontend expectations
+    res.status(200).json({
+      success: true,
+      analysis: analysis ? {
+        relevanceScore: analysis.relevanceScore,
+        completenessScore: analysis.completenessScore,
+        status: 'completed',
+        findings: analysis.findings || [],
+        gaps: analysis.gaps || [],
+        recommendations: analysis.recommendations || [],
+        summary: `Bewertung: ${analysis.overallAssessment === 'adequate' ? 'Ausreichend' : analysis.overallAssessment === 'needs_improvement' ? 'Verbesserungsbedarf' : 'Unzureichend'}`,
+        analyzedAt: analysis.analyzedAt,
+      } : null,
+      aiAnalysisAvailable: aiAvailable,
+      message: analysis
+        ? 'Dokument erfolgreich analysiert'
+        : aiAvailable
+          ? 'Analyse fehlgeschlagen'
+          : 'KI-Analyse nicht verfügbar (Ollama nicht erreichbar)',
+    });
+  } catch (error) {
+    console.error('[DocAnalysis] Analyze error:', error);
+    res.status(500).json({ success: false, error: 'Fehler bei der Dokumentanalyse' });
+  }
+};
